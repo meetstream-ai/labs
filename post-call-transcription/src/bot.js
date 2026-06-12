@@ -1,26 +1,16 @@
 const axios = require("axios");
 
 const API_BASE = "https://api.meetstream.ai/api/v1";
-const WEBHOOK_PORT = process.env.PORT || 3000;
 
 /**
  * Creates a MeetStream bot that joins a meeting and records a post-call transcript.
  *
- * The bot is configured with:
- *   - MeetStream's own transcription provider (no extra API key needed)
- *   - A callback_url pointing to our local webhook server
- *
- * After the call, MeetStream will POST `transcription.processed` to our webhook,
- * at which point we automatically fetch and display the full transcript.
- *
- * @param {string} meetingLink  Full Zoom / Google Meet / Teams meeting URL
+ * @param {string} meetingLink   Full Zoom / Google Meet / Teams meeting URL
+ * @param {string} webhookUrl    Public URL MeetStream will POST events to
  * @returns {Promise<{ bot_id: string, transcript_id: string }>}
  */
-async function createBot(meetingLink) {
-  const webhookUrl =
-    process.env.WEBHOOK_URL || `http://localhost:${WEBHOOK_PORT}/webhook`;
-
-  console.log("\n  Creating MeetStream bot...");
+async function createBot(meetingLink, webhookUrl) {
+  console.log("  Creating MeetStream bot...");
   console.log(`   Meeting : ${meetingLink}`);
   console.log(`   Webhook : ${webhookUrl}\n`);
 
@@ -58,7 +48,6 @@ async function createBot(meetingLink) {
     console.log(`   transcript_id : ${transcriptId ?? "(will arrive in webhook)"}`);
     console.log("\n  Waiting for the meeting to end...\n");
 
-    // Store for the webhook handler to pick up
     process.env._BOT_ID = botId;
     process.env._TRANSCRIPT_ID = transcriptId ?? "";
 
