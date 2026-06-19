@@ -4,11 +4,16 @@ const path = require("path");
 
 const API_BASE = "https://api.meetstream.ai/api/v1";
 
+// Cap on how many times we'll retry fetching a not-yet-ready transcript.
+// At 5s per retry, 12 retries = 60s of waiting before giving up.
+const MAX_RETRIES = 12;
+
 /**
  * Fetches the formatted post-call transcript for a given transcript_id.
  * @param {string} transcriptId  The transcript_id returned when the bot was created
+ * @param {number} attempt       Internal retry counter — do not set manually
  */
-async function fetchTranscript(transcriptId) {
+async function fetchTranscript(transcriptId, attempt = 1) {
   if (!transcriptId) {
     console.warn("   No transcript_id available — skipping fetch.");
     return;
@@ -29,10 +34,20 @@ async function fetchTranscript(transcriptId) {
     printTranscript(data);
     saveTranscript(transcriptId, data);
   } catch (err) {
-    // Transcript may still be processing — retry once after 5 s
+    // Transcript may still be processing — retry with a capped attempt count
     if (err.response?.status === 404 || err.response?.status === 202) {
-      console.log("  Transcript not ready yet — retrying in 5 seconds...");
-      setTimeout(() => fetchTranscript(transcriptId), 5000);
+      if (attempt >= MAX_RETRIES) {
+        console.error(
+          `  Transcript still not ready after ${MAX_RETRIES} attempts — giving up.`
+        );
+        console.error("   Try fetching it manually later with this transcript_id:");
+        console.error(`   ${transcriptId}`);
+        return;
+      }
+      console.log(
+        `  Transcript not ready yet — retrying in 5 seconds... (attempt ${attempt}/${MAX_RETRIES})`
+      );
+      setTimeout(() => fetchTranscript(transcriptId, attempt + 1), 5000);
     } else {
       console.error(
         `  Failed to fetch transcript (HTTP ${err.response?.status}):`
