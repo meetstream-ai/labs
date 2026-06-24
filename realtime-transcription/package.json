@@ -1,0 +1,14 @@
+{
+  "name": "realtime-transcription",
+  "version": "1.0.0",
+  "description": "Receive live streaming transcription from a MeetStream bot via webhook or WebSocket",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:ws": "node ws-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.18.0"
+  }
+}
