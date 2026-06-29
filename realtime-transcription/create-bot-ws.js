@@ -64,7 +64,7 @@ if (!providers[PROVIDER]) {
 }
 
 const payload = {
-  meeting_url: MEETING_URL,
+  meeting_link: MEETING_URL,
   bot_name: "MeetStream Transcription Bot (WebSocket)",
 
   live_transcription_required: {
