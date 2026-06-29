@@ -66,7 +66,7 @@ if (!providers[PROVIDER]) {
 
 // ─── Bot payload ──────────────────────────────────────────────────────────────
 const payload = {
-  meeting_url: MEETING_URL,
+  meeting_link: MEETING_URL,
   bot_name: "MeetStream Transcription Bot",
 
   // Required for live transcription: where to POST events
