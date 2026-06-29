@@ -73,6 +73,13 @@ cloudflared tunnel --url http://localhost:3000
 MEETSTREAM_API_KEY=your_key \
 WEBHOOK_URL=https://xxxx.ngrok.io \
 node create-bot.js <meeting_url>
+
+for windows:
+$env:MEETSTREAM_API_KEY="your_api_key"
+
+$env:WEBHOOK_URL="https://your-url"
+
+node create-bot.js "https://meeting-link"
 ```
 
 **WebSocket:**
