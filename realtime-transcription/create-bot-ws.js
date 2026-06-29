@@ -88,7 +88,7 @@ async function createBot() {
   console.log(`  Meeting   : ${MEETING_URL}`);
   console.log(`  WebSocket : ${WEBSOCKET_URL}/ws\n`);
 
-  const res = await fetch("https://api.meetstream.ai/api/v1/bots", {
+  const res = await fetch("https://api.meetstream.ai/api/v1/bots/create_bot", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
