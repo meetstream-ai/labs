@@ -1,0 +1,26 @@
+node_modules/
+.env
+logs/
+*.wav
+*.pcm
+*.log
+# Generated audio files
+logs_audio/
+*.pcm
+*.wav
+*.mp3
+
+# Build files
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code settings
+.vscode/
+
+# Temporary files
+tmp/
+temp/
