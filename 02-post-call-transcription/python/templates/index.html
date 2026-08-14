@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MeetStream Post-Call Transcription</title>
+<style>
+  :root {
+    --bg: #0e0f12;
+    --panel: #17181c;
+    --border: #2a2b31;
+    --text: #e6e6e9;
+    --muted: #8b8d97;
+    --accent: #ff5a1f;
+    --green: #3ecf7e;
+    --red: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    margin: 0 0 4px 0;
+    font-size: 20px;
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 28px 60px;
+  }
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .tile {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .tile .label {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .tile .value {
+    font-size: 26px;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+  .tile .sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+  }
+  .panel h2 {
+    font-size: 15px;
+    margin: 0 0 14px 0;
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .field {
+    margin-bottom: 14px;
+  }
+  .field-row {
+    display: flex;
+    gap: 8px;
+  }
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    background: #0c0d10;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+  }
+  input:focus { outline: 1px solid var(--accent); }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    padding: 10px 16px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-show {
+    background: #1f2026;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .status-pill {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #232430;
+    color: var(--muted);
+  }
+  .status-pill.active { background: #143d24; color: var(--green); }
+  .status-pill.error { background: #3d1414; color: var(--red); }
+  .deploy-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    text-align: left;
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .empty-row td {
+    color: var(--muted);
+    text-align: center;
+    padding: 20px 8px;
+  }
+  #logs {
+    background: #0a0a0d;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    height: 220px;
+    overflow-y: auto;
+    font-family: "SF Mono", Consolas, Monaco, monospace;
+    font-size: 12.5px;
+    color: #b7f5c9;
+    white-space: pre-wrap;
+  }
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .error-banner {
+    background: #3d1414;
+    color: #ffb4b4;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  a.file-link { color: var(--accent); text-decoration: none; }
+  a.file-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>MeetStream Post-Call Transcription</h1>
+  <p>Paste an API key and meeting link, deploy the agent, and watch it fetch the transcript once the meeting ends.</p>
+</header>
+
+<main>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="label">Status</div>
+      <div class="value" id="tile-status">Idle</div>
+      <div class="sub" id="tile-status-sub">No agent deployed</div>
+    </div>
+    <div class="tile">
+      <div class="label">Elapsed</div>
+      <div class="value" id="tile-elapsed">0:00</div>
+      <div class="sub">Time since deploy</div>
+    </div>
+    <div class="tile">
+      <div class="label">Speakers Detected</div>
+      <div class="value" id="tile-speakers">0</div>
+      <div class="sub">Unique voices in transcript</div>
+    </div>
+    <div class="tile">
+      <div class="label">Files Saved</div>
+      <div class="value" id="tile-files">0</div>
+      <div class="sub">Files in output/</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Deploy Agent</h2>
+    <div class="error-banner" id="error-banner"></div>
+
+    <div class="field">
+      <label for="api-key">MeetStream API key</label>
+      <div class="field-row">
+        <input type="password" id="api-key" placeholder="ms_xxxxxxxxxxxxxxxxxxxx">
+        <button class="btn-show" id="toggle-key">show</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="meeting-link">Meeting link</label>
+      <input type="text" id="meeting-link" placeholder="https://meet.google.com/xxx-xxxx-xxx">
+    </div>
+
+    <div class="deploy-row">
+      <button class="btn-primary" id="deploy-btn">Deploy Agent</button>
+      <span class="status-pill" id="status-pill">Idle</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Current session</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Bot ID</th>
+          <th>Platform</th>
+          <th>Meeting Link</th>
+          <th>Start Time</th>
+          <th>Duration</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="session-body">
+        <tr class="empty-row"><td colspan="6">No session yet.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2 style="margin:0;">Live logs</h2>
+      <button class="btn-ghost" id="clear-logs">clear</button>
+    </div>
+    <div id="logs"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2 style="margin:0;">Output files</h2>
+      <button class="btn-ghost" id="refresh-files">refresh</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Size</th>
+          <th>Modified</th>
+        </tr>
+      </thead>
+      <tbody id="files-body">
+        <tr class="empty-row"><td colspan="3">No output files yet. Deploy an agent and let the meeting finish.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+
+<script>
+const deployBtn = document.getElementById("deploy-btn");
+const toggleKeyBtn = document.getElementById("toggle-key");
+const apiKeyInput = document.getElementById("api-key");
+const meetingLinkInput = document.getElementById("meeting-link");
+const errorBanner = document.getElementById("error-banner");
+const statusPill = document.getElementById("status-pill");
+const logsEl = document.getElementById("logs");
+const clearLogsBtn = document.getElementById("clear-logs");
+const refreshFilesBtn = document.getElementById("refresh-files");
+
+let logsClearedAt = 0;
+
+toggleKeyBtn.addEventListener("click", () => {
+  const isPassword = apiKeyInput.type === "password";
+  apiKeyInput.type = isPassword ? "text" : "password";
+  toggleKeyBtn.textContent = isPassword ? "hide" : "show";
+});
+
+function showError(message) {
+  errorBanner.textContent = message;
+  errorBanner.style.display = "block";
+}
+
+function hideError() {
+  errorBanner.style.display = "none";
+}
+
+function formatDuration(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+deployBtn.addEventListener("click", async () => {
+  hideError();
+  const api_key = apiKeyInput.value.trim();
+  const meeting_link = meetingLinkInput.value.trim();
+
+  if (!api_key || !meeting_link) {
+    showError("Both the API key and meeting link are required.");
+    return;
+  }
+
+  deployBtn.disabled = true;
+  try {
+    const res = await fetch("/api/deploy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ api_key, meeting_link }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showError(data.error || "Failed to deploy agent.");
+    }
+  } catch (e) {
+    showError("Could not reach the local server.");
+  }
+});
+
+function applyStatusPillClass(status) {
+  statusPill.classList.remove("active", "error");
+  if (["Joining", "Active", "Paused", "Processing", "Deploying"].includes(status)) {
+    statusPill.classList.add("active");
+  } else if (["Fatal", "PermissionDenied", "Error", "Timeout"].includes(status)) {
+    statusPill.classList.add("error");
+  }
+}
+
+async function pollState() {
+  try {
+    const res = await fetch("/api/state");
+    const data = await res.json();
+
+    document.getElementById("tile-status").textContent = data.status;
+    document.getElementById("tile-status-sub").textContent = data.busy
+      ? "Agent running"
+      : (data.session.bot_id ? "Last run finished" : "No agent deployed");
+    document.getElementById("tile-elapsed").textContent = formatDuration(data.elapsed);
+    document.getElementById("tile-speakers").textContent = data.speakers_detected;
+    document.getElementById("tile-files").textContent = data.files_saved;
+
+    statusPill.textContent = data.status;
+    applyStatusPillClass(data.status);
+
+    deployBtn.disabled = data.busy;
+
+    const sessionBody = document.getElementById("session-body");
+    if (data.session.bot_id) {
+      sessionBody.innerHTML = `
+        <tr>
+          <td>${data.session.bot_id.slice(0, 8)}</td>
+          <td>${data.session.platform || "-"}</td>
+          <td>${data.session.meeting_link || "-"}</td>
+          <td>${data.session.start_time || "-"}</td>
+          <td>${formatDuration(data.elapsed)}</td>
+          <td>${data.status}</td>
+        </tr>`;
+    } else {
+      sessionBody.innerHTML = `<tr class="empty-row"><td colspan="6">No session yet.</td></tr>`;
+    }
+
+    if (data.logs.length) {
+      logsEl.textContent = data.logs.slice(logsClearedAt).join("\n");
+      logsEl.scrollTop = logsEl.scrollHeight;
+    }
+  } catch (e) {
+    // local server not reachable yet, ignore and retry on next tick
+  }
+}
+
+clearLogsBtn.addEventListener("click", () => {
+  logsClearedAt = 1e9;
+  logsEl.textContent = "";
+  fetch("/api/state").then(r => r.json()).then(d => { logsClearedAt = d.logs.length; });
+});
+
+async function loadOutputFiles() {
+  try {
+    const res = await fetch("/api/output-files");
+    const data = await res.json();
+    const body = document.getElementById("files-body");
+    if (!data.files.length) {
+      body.innerHTML = `<tr class="empty-row"><td colspan="3">No output files yet. Deploy an agent and let the meeting finish.</td></tr>`;
+      return;
+    }
+    body.innerHTML = data.files.map(f => `
+      <tr>
+        <td><a class="file-link" href="/output/${encodeURIComponent(f.name)}" target="_blank">${f.name}</a></td>
+        <td>${formatBytes(f.size_bytes)}</td>
+        <td>${f.modified}</td>
+      </tr>`).join("");
+  } catch (e) {
+    // ignore
+  }
+}
+
+refreshFilesBtn.addEventListener("click", loadOutputFiles);
+
+setInterval(pollState, 1500);
+setInterval(loadOutputFiles, 5000);
+pollState();
+loadOutputFiles();
+</script>
+
+</body>
+</html>
