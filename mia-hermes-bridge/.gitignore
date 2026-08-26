@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+dist/
+node_modules/
+*.tgz
+*.log
+.DS_Store
