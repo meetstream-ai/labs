@@ -16,14 +16,14 @@
  * On connect, clients receive one JSON text frame:
  *   { "type": "ready", "format": "PCM16LE", "sampleRate": 48000, "channels": 1 }
  *
- * Multiple consumers can connect simultaneously — all receive the same stream.
+ * Multiple consumers can connect simultaneously - all receive the same stream.
  */
 
 import { WebSocket } from "ws";
 import chalk from "chalk";
 
 // If a consumer's outbound buffer grows past this, they're too slow to keep
-// up with live audio — disconnect them rather than let memory grow unbounded.
+// up with live audio - disconnect them rather than let memory grow unbounded.
 // 2MB ≈ ~10 seconds of buffered 48kHz/16-bit/mono audio, generous enough to
 // absorb brief network jitter but small enough to catch a truly stuck client.
 const MAX_BUFFERED_BYTES = 2 * 1024 * 1024;
@@ -45,7 +45,7 @@ export class Broadcaster {
     const count = this.clients.size;
     this.logger.info(
       chalk.green(`📡  Stream consumer connected`) +
-      chalk.dim(` — ${count} client${count === 1 ? "" : "s"} listening`)
+      chalk.dim(` - ${count} client${count === 1 ? "" : "s"} listening`)
     );
 
     // Handshake: tell the client exactly what it will receive
@@ -61,7 +61,7 @@ export class Broadcaster {
       this.clients.delete(ws);
       this.logger.info(
         chalk.yellow(`📡  Stream consumer disconnected`) +
-        chalk.dim(` — ${this.clients.size} remaining`)
+        chalk.dim(` - ${this.clients.size} remaining`)
       );
     });
 
@@ -77,13 +77,13 @@ export class Broadcaster {
    *
    * Backpressure: any consumer whose buffered (unsent) bytes exceed
    * MAX_BUFFERED_BYTES is forcibly disconnected. A slow consumer otherwise
-   * causes Node to queue frames in memory indefinitely — this caps that.
+   * causes Node to queue frames in memory indefinitely - this caps that.
    *
    * @param {string} speakerName
-   * @param {Buffer} pcmBuffer  — raw PCM16 LE bytes
+   * @param {Buffer} pcmBuffer  - raw PCM16 LE bytes
    */
   broadcast(speakerName, pcmBuffer) {
-    if (this.clients.size === 0) return;  // nobody listening — skip encoding
+    if (this.clients.size === 0) return;  // nobody listening - skip encoding
 
     const frame = this.#buildFrame(speakerName, pcmBuffer);
     let dead = null;
@@ -96,7 +96,7 @@ export class Broadcaster {
 
       if (ws.bufferedAmount > MAX_BUFFERED_BYTES) {
         this.logger.error(
-          `Stream consumer too slow (${(ws.bufferedAmount / 1024).toFixed(0)} KB buffered) — disconnecting`
+          `Stream consumer too slow (${(ws.bufferedAmount / 1024).toFixed(0)} KB buffered) - disconnecting`
         );
         ws.terminate();
         (dead ??= []).push(ws);

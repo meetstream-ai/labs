@@ -1,0 +1,27 @@
+{
+  "name": "@meetstream-labs/delete-bot-data",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Permanently erase a MeetStream bot's recordings and transcripts, with a confirmation prompt and a data_deletion webhook listener.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "listen": "node index.js listen"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "data-deletion",
+    "webhook",
+    "gdpr"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

@@ -1,5 +1,5 @@
 /**
- * MeetStream Labs — Real-Time Transcription
+ * MeetStream Labs - Real-Time Transcription
  * create-bot.js
  *
  * Creates a MeetStream bot with live transcription enabled.
@@ -80,7 +80,7 @@ const payload = {
     },
   },
 
-  // Echoed back in every webhook event — useful for session correlation
+  // Echoed back in every webhook event - useful for session correlation
   custom_attributes: {
     provider: PROVIDER,
   },

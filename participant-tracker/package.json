@@ -1,0 +1,25 @@
+{
+  "name": "@meetstream-labs/participant-tracker",
+  "version": "1.0.0",
+  "description": "Track meeting joins and leaves via MeetStream participant webhooks and build an attendance report.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "attendance",
+    "participants",
+    "webhooks"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

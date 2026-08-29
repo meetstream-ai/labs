@@ -35,8 +35,11 @@ export function createBotEventTracker() {
 
   return {
     handle(event) {
-      const name = event.bot_event || event.event;
-      if (!event.bot_id || !['bot.stopped', 'bot.kicked', 'bot.denied', 'bot.notallowed', 'bot.failed'].includes(name)) return;
+      // Live API sends `event`; `bot_event` is a legacy/doc alias kept only as a fallback.
+      const name = event.event || event.bot_event;
+      // `bot.stopped` is the ONE terminal event - `bot_status` says why
+      // (Stopped | NotAllowed | Denied | Error). There are no separate kicked/denied events.
+      if (!event.bot_id || name !== 'bot.stopped') return;
       terminalBots.add(event.bot_id);
       waiters.get(event.bot_id)?.();
     },
@@ -64,15 +67,24 @@ export function formatWebhookEvent(payload = {}) {
     || payload.channel?.alternatives?.[0]?.transcript
     || payload.result?.channel?.alternatives?.[0]?.transcript
     || (payload.end_of_turn ? payload.transcript : '');
-  const name = bot_event || event;
+  // Live API sends `event`; `bot_event` is a legacy/doc alias kept only as a fallback.
+  const name = event || bot_event;
   if (heard?.trim()) return `Heard: ${heard.trim()}`;
   if (name === 'bot.in_waiting_room') return '⏳ Waiting to be admitted';
   if (name === 'bot.inmeeting') return '✅ Bot joined the meeting';
   if (name === 'bot.recording') return '✅ Bot is listening';
   if (name === 'bot.leaving') return '⏳ Bot is leaving';
-  if (name === 'bot.stopped') return '✅ MeetStream reports the bot stopped';
-  if (name === 'bot.kicked') return '⚠️ Bot was removed by a meeting participant';
-  if (/denied|failed|rejected|notallowed|error/i.test(name) || /agent|bridge|provider|quota|credit|billing/i.test(message)) {
+  // `bot.stopped` is terminal - bot_status carries the reason. status_code stays 200.
+  if (name === 'bot.stopped') {
+    if (bot_status === 'NotAllowed') return '❌ Never admitted (waiting-room timeout)';
+    if (bot_status === 'Denied') return '❌ The host denied the bot entry';
+    if (bot_status === 'Error') return `❌ Bot ended with an error${message ? `: ${message}` : ''}`;
+    return '✅ MeetStream reports the bot stopped';
+  }
+  // `bot.error` is NON-terminal (e.g. streaming provider upstream issue) - the bot keeps running.
+  if (name === 'bot.error') return `⚠️ ${message || 'Streaming provider error (bot still running)'}`;
+  if (name === 'transcription.failed') return `❌ Transcription failed${message ? `: ${message}` : ''}`;
+  if (/agent|bridge|provider|quota|credit|billing/i.test(message)) {
     return `❌ ${message || bot_status || name}`;
   }
   return null;

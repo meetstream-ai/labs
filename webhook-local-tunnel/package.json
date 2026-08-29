@@ -1,0 +1,27 @@
+{
+  "name": "@meetstream-labs/webhook-local-tunnel",
+  "version": "1.0.0",
+  "description": "Develop MeetStream webhooks locally: ngrok or cloudflared tunnel, wired into callback_url, with an end-to-end delivery self-test.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "create-bot": "node index.js --create-bot"
+  },
+  "keywords": [
+    "meetstream",
+    "webhook",
+    "ngrok",
+    "cloudflared",
+    "tunnel",
+    "local-development"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

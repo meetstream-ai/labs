@@ -8,9 +8,9 @@
  * surfaces interim + final transcripts via onResult().
  *
  * Auto-reconnects with exponential backoff if the socket drops mid-meeting
- * (network blip, Deepgram-side restart, idle timeout, etc.) — see
+ * (network blip, Deepgram-side restart, idle timeout, etc.) - see
  * reconnect-helper.js. Audio sent while reconnecting is dropped (logged),
- * not buffered — buffering live audio risks unbounded memory growth if the
+ * not buffered - buffering live audio risks unbounded memory growth if the
  * outage is long; dropping a few seconds of transcript is the safer default.
  */
 
@@ -74,7 +74,7 @@ export default {
 
       onReconnecting: (msg) => console.log(`  ⚠ Deepgram: ${msg}`),
 
-      onGiveUp: (err) => console.error(`  ✖ Deepgram: ${err.message} — giving up on reconnect`),
+      onGiveUp: (err) => console.error(`  ✖ Deepgram: ${err.message} - giving up on reconnect`),
     });
 
     // Wait for the first connection before returning, so bridge.js knows
@@ -93,10 +93,10 @@ export default {
     if (ws?.readyState === WebSocket.OPEN) {
       ws.send(pcm);
     } else {
-      // Socket is down and reconnecting — drop this frame rather than buffer it.
+      // Socket is down and reconnecting - drop this frame rather than buffer it.
       this.framesDroppedWhileReconnecting++;
       if (this.framesDroppedWhileReconnecting % 50 === 1) {
-        console.log(`  ⚠ Deepgram reconnecting — ${this.framesDroppedWhileReconnecting} frames dropped so far`);
+        console.log(`  ⚠ Deepgram reconnecting - ${this.framesDroppedWhileReconnecting} frames dropped so far`);
       }
     }
   },

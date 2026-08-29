@@ -1,0 +1,25 @@
+{
+  "name": "@meetstream-labs/google-calendar-integration",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Walk through Google OAuth, obtain a refresh token locally, connect the calendar to MeetStream and verify it.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "oauth": "node src/oauth-helper.js"
+  },
+  "keywords": [
+    "meetstream",
+    "google-calendar",
+    "oauth",
+    "meeting-bot"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

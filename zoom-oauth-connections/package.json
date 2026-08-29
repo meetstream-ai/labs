@@ -1,0 +1,28 @@
+{
+  "name": "@meetstream-labs/zoom-oauth-connections",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Walk the hosted Zoom OAuth flow end to end: authorize URL, local callback listener, code exchange, then list, get, and delete stored connections.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "connect": "node index.js connect",
+    "list": "node index.js list"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "zoom",
+    "oauth",
+    "obf"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2"
+  }
+}

@@ -11,11 +11,11 @@ const MAX_RETRIES = 12;
 /**
  * Fetches the formatted post-call transcript for a given transcript_id.
  * @param {string} transcriptId  The transcript_id returned when the bot was created
- * @param {number} attempt       Internal retry counter — do not set manually
+ * @param {number} attempt       Internal retry counter - do not set manually
  */
 async function fetchTranscript(transcriptId, attempt = 1) {
   if (!transcriptId) {
-    console.warn("   No transcript_id available — skipping fetch.");
+    console.warn("   No transcript_id available - skipping fetch.");
     return;
   }
 
@@ -34,18 +34,18 @@ async function fetchTranscript(transcriptId, attempt = 1) {
     printTranscript(data);
     saveTranscript(transcriptId, data);
   } catch (err) {
-    // Transcript may still be processing — retry with a capped attempt count
+    // Transcript may still be processing - retry with a capped attempt count
     if (err.response?.status === 404 || err.response?.status === 202) {
       if (attempt >= MAX_RETRIES) {
         console.error(
-          `  Transcript still not ready after ${MAX_RETRIES} attempts — giving up.`
+          `  Transcript still not ready after ${MAX_RETRIES} attempts - giving up.`
         );
         console.error("   Try fetching it manually later with this transcript_id:");
         console.error(`   ${transcriptId}`);
         return;
       }
       console.log(
-        `  Transcript not ready yet — retrying in 5 seconds... (attempt ${attempt}/${MAX_RETRIES})`
+        `  Transcript not ready yet - retrying in 5 seconds... (attempt ${attempt}/${MAX_RETRIES})`
       );
       setTimeout(() => fetchTranscript(transcriptId, attempt + 1), 5000);
     } else {
@@ -63,10 +63,10 @@ async function fetchTranscript(transcriptId, attempt = 1) {
  *
  * Handles two known shapes:
  *
- *  Shape A — actual API response:
+ *  Shape A - actual API response:
  *    { message: [ { participant: { name }, words: [ { text, start_timestamp: { relative } } ] } ] }
  *
- *  Shape B — docs / older format:
+ *  Shape B - docs / older format:
  *    { transcript: [ { speaker, text, start_time } ] }
  */
 function parseSegments(data) {
@@ -120,8 +120,8 @@ function printTranscript(data) {
 
 /**
  * Saves two files into ./transcripts/:
- *   <id>.json  — raw JSON for developers / integrations
- *   <id>.txt   — clean human-readable transcript for non-technical readers
+ *   <id>.json  - raw JSON for developers / integrations
+ *   <id>.txt   - clean human-readable transcript for non-technical readers
  */
 function saveTranscript(transcriptId, data) {
   const dir = path.join(process.cwd(), "transcripts");

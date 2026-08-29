@@ -1,13 +1,13 @@
 /**
- * MeetStream Labs — Real-Time Transcription
+ * MeetStream Labs - Real-Time Transcription
  * server.js
  *
  * Receives live transcription events from MeetStream while the bot is in the meeting.
  *
  * Endpoints:
- *   POST /webhook          — MeetStream posts transcription events here
- *   GET  /health           — health check
- *   GET  /sessions/:botId  — view committed transcript for a session
+ *   POST /webhook          - MeetStream posts transcription events here
+ *   GET  /health           - health check
+ *   GET  /sessions/:botId  - view committed transcript for a session
  *
  * Usage:
  *   node server.js
@@ -34,7 +34,7 @@ function getSession(botId) {
 // MeetStream posts a new event here for every word/phrase/turn while the bot
 // is in the meeting.
 app.post("/webhook", (req, res) => {
-  // Always ACK immediately — MeetStream does not retry on timeout.
+  // Always ACK immediately - MeetStream does not retry on timeout.
   res.sendStatus(200);
 
   const {
@@ -55,7 +55,7 @@ app.post("/webhook", (req, res) => {
   const session = getSession(bot_id);
 
   // ── Live caption: print to stdout as words are finalized ──────────────────
-  // word_is_final=false means the word may still change — treat as interim.
+  // word_is_final=false means the word may still change - treat as interim.
   // word_is_final=true means this word is locked in.
   if (word_is_final && new_text) {
     const label = formatSpeakerLabel(speakerId, speakerName);

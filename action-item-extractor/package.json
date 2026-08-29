@@ -1,0 +1,28 @@
+{
+  "name": "@meetstream-labs/action-item-extractor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Runs an LLM over a MeetStream transcript to extract action items with owners and due dates, as structured JSON plus a Markdown report.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "action-items",
+    "llm",
+    "openai",
+    "anthropic",
+    "transcription"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

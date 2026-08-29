@@ -1,5 +1,5 @@
 /**
- * MeetStream Labs — Real-Time Transcription (WebSocket)
+ * MeetStream Labs - Real-Time Transcription (WebSocket)
  * create-bot-ws.js
  *
  * Creates a MeetStream bot with live transcription delivered over WebSocket

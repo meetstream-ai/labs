@@ -1,0 +1,25 @@
+{
+  "name": "@meetstream-labs/bot-retention-config",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Create MeetStream bots with a timed recording_config.retention window, or on the API default, and see what expires.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "explain": "node index.js --explain"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "retention",
+    "data-lifecycle"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

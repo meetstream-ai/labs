@@ -1,0 +1,26 @@
+{
+  "name": "@meetstream-labs/notion-meeting-notes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Creates one Notion page per meeting with the MeetStream summary, participants, action items and full transcript.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "notion",
+    "meeting-notes",
+    "transcription"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

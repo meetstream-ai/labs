@@ -1,0 +1,25 @@
+{
+  "name": "@meetstream-labs/calendar-auto-schedule",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hands-free auto-join: put a MeetStream bot in every calendar meeting that has a link, with one enable call.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "calendar",
+    "auto-join",
+    "auto-schedule",
+    "meeting-bot"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

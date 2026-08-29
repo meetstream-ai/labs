@@ -1,5 +1,5 @@
 /**
- * Logger — coloured terminal output for MeetStream Labs
+ * Logger - coloured terminal output for MeetStream Labs
  */
 
 import chalk from "chalk";
@@ -11,7 +11,7 @@ export class Logger {
     console.log(
       chalk.bold.cyan(`
 ╔══════════════════════════════════════════════════════╗
-║         MeetStream Labs — Real-Time Audio            ║
+║         MeetStream Labs - Real-Time Audio            ║
 ║         github.com/meetstream-labs/audio-example     ║
 ╚══════════════════════════════════════════════════════╝
 `)
@@ -33,7 +33,7 @@ export class Logger {
   transcript(speaker, text, _timestamp, words) {
     const confidence = words?.length
       ? (words.reduce((s, w) => s + (w.confidence ?? 1), 0) / words.length).toFixed(2)
-      : "—";
+      : "-";
     console.log(
       `${ts()} ${chalk.bold.yellow(speaker?.padEnd(16) ?? "Unknown")} ` +
       `${chalk.white(text)} ${chalk.dim(`[conf: ${confidence}]`)}`

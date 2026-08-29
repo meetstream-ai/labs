@@ -50,14 +50,14 @@ node ws-server.js
 
 MeetStream needs a publicly reachable URL to POST transcription events to.
 
-**Option A — ngrok**
+**Option A - ngrok**
 
 ```bash
 ngrok http 3000
 # Copy the https://xxxx.ngrok.io URL
 ```
 
-**Option B — Cloudflare Tunnel**
+**Option B - Cloudflare Tunnel**
 
 ```bash
 cloudflared tunnel --url http://localhost:3000
@@ -128,8 +128,8 @@ const PROVIDER = "assemblyai";
 
 | Endpoint | Webhook server | WebSocket server |
 |---|---|---|
-| `POST /webhook` | Receives transcription events | — |
-| `WS /ws` | — | Receives transcription events |
+| `POST /webhook` | Receives transcription events | - |
+| `WS /ws` | - | Receives transcription events |
 | `GET /health` | Health check | Health check |
 | `GET /sessions/:botId` | View committed transcript | View committed transcript |
 
@@ -163,12 +163,12 @@ Each event POSTed to `/webhook` looks like:
 
 | Field | Notes |
 |---|---|
-| `speakerId` | Stable participant ID — use to distinguish speakers with the same name |
+| `speakerId` | Stable participant ID - use to distinguish speakers with the same name |
 | `speakerName` | Display name shown in the meeting |
-| `new_text` | Incremental word or phrase — may be partial |
+| `new_text` | Incremental word or phrase - may be partial |
 | `word_is_final` | `false` = interim, text may still change |
 | `end_of_turn` | `true` = speaker finished their turn, safe to commit |
-| `custom_attributes` | Echoed from your create-bot payload — use for session correlation |
+| `custom_attributes` | Echoed from your create-bot payload - use for session correlation |
 
 Committed turns are stored as:
 

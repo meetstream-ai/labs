@@ -1,0 +1,82 @@
+{
+  "jobs": [
+    {
+      "id": "acme-standup",
+      "meeting_link": "https://meet.google.com/aaa-bbbb-ccc",
+      "bot_name": "Acme Notetaker",
+      "provider": "deepgram",
+      "custom_attributes": { "account_id": "acct_1001", "team": "acme" }
+    },
+    {
+      "id": "acme-qbr",
+      "meeting_link": "https://us02web.zoom.us/j/1234567890",
+      "bot_name": "Acme QBR Recorder",
+      "video_required": true,
+      "provider": "deepgram",
+      "custom_attributes": { "account_id": "acct_1001", "team": "acme" }
+    },
+    {
+      "id": "globex-discovery",
+      "meeting_link": "https://teams.microsoft.com/l/meetup-join/placeholder-1",
+      "bot_name": "Globex Discovery Bot",
+      "provider": "assemblyai",
+      "custom_attributes": { "account_id": "acct_1002", "team": "globex" }
+    },
+    {
+      "id": "globex-live-coach",
+      "meeting_link": "https://meet.google.com/ddd-eeee-fff",
+      "bot_name": "Globex Live Coach",
+      "provider": "deepgram_streaming",
+      "custom_attributes": { "account_id": "acct_1002", "team": "globex" }
+    },
+    {
+      "id": "initech-onboarding",
+      "meeting_link": "https://us02web.zoom.us/j/2233445566",
+      "bot_name": "Initech Onboarding Bot",
+      "provider": "deepgram",
+      "automatic_leave": {
+        "waiting_room_timeout": 300,
+        "everyone_left_timeout": 60,
+        "in_call_recording_timeout": 3600
+      },
+      "custom_attributes": { "account_id": "acct_1003", "team": "initech" }
+    },
+    {
+      "id": "initech-followup",
+      "meeting_link": "https://meet.google.com/ggg-hhhh-iii",
+      "bot_name": "Initech Follow-up Bot",
+      "provider": "meetstream",
+      "custom_attributes": { "account_id": "acct_1003", "team": "initech" }
+    },
+    {
+      "id": "hooli-allhands",
+      "meeting_link": "https://teams.microsoft.com/l/meetup-join/placeholder-2",
+      "bot_name": "Hooli All Hands",
+      "video_required": true,
+      "provider": "deepgram",
+      "custom_attributes": { "account_id": "acct_1004", "team": "hooli" }
+    },
+    {
+      "id": "hooli-scheduled-tomorrow",
+      "meeting_link": "https://meet.google.com/jjj-kkkk-lll",
+      "bot_name": "Hooli Scheduled Bot",
+      "join_at": "2026-12-01T15:00:00Z",
+      "provider": "deepgram",
+      "custom_attributes": { "account_id": "acct_1004", "team": "hooli" }
+    },
+    {
+      "id": "soylent-captions-only",
+      "meeting_link": "https://us02web.zoom.us/j/7788990011",
+      "bot_name": "Soylent Captions Bot",
+      "provider": "meeting_captions",
+      "custom_attributes": { "account_id": "acct_1005", "team": "soylent" }
+    },
+    {
+      "id": "soylent-duplicate-of-allhands",
+      "meeting_link": "https://teams.microsoft.com/l/meetup-join/placeholder-2",
+      "bot_name": "Second bot for the same meeting, demonstrates the 409 dedup conflict",
+      "provider": "deepgram",
+      "custom_attributes": { "account_id": "acct_1005", "team": "soylent" }
+    }
+  ]
+}

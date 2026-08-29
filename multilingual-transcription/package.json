@@ -1,0 +1,28 @@
+{
+  "name": "@meetstream-labs/multilingual-transcription",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Transcribe non-English meetings with MeetStream: per-provider language fields and code formats, Sarvam for Indic languages, auto-detect and translate.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "languages": "node index.js --languages"
+  },
+  "keywords": [
+    "meetstream",
+    "transcription",
+    "multilingual",
+    "sarvam",
+    "indic",
+    "deepgram",
+    "assemblyai"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

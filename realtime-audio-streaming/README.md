@@ -1,4 +1,4 @@
-# MeetStream Labs — Real-Time Audio Streaming
+# MeetStream Labs - Real-Time Audio Streaming
 
 > **Zero-friction example.** Clone → fill in three env vars → `npm start`. No dashboard setup, no OAuth, no port-forwarding configuration.
 
@@ -9,7 +9,7 @@
 A single `node index.js` command:
 
 1. Starts a local Express server (webhook receiver + WebSocket audio sink)
-2. Opens a public **ngrok HTTPS tunnel** automatically — no server needed
+2. Opens a public **ngrok HTTPS tunnel** automatically - no server needed
 3. Calls the **MeetStream API** to send a bot into your meeting
 4. Streams everything live to your terminal:
    - 🤖 Bot lifecycle events (`joining → InMeeting → Stopped`)
@@ -55,8 +55,8 @@ MeetStream Cloud
 ### Prerequisites
 
 - **Node.js 18+** (`node --version`)
-- A **MeetStream API key** — [dashboard.meetstream.ai](https://dashboard.meetstream.ai)
-- A **free ngrok account + authtoken** — [dashboard.ngrok.com](https://dashboard.ngrok.com/get-started/your-authtoken)
+- A **MeetStream API key** - [dashboard.meetstream.ai](https://dashboard.meetstream.ai)
+- A **free ngrok account + authtoken** - [dashboard.ngrok.com](https://dashboard.ngrok.com/get-started/your-authtoken)
 - A live meeting link (Google Meet, Zoom, or Teams)
 
 ### Steps
@@ -99,7 +99,7 @@ That's it. Watch the terminal.
 
 ```
 ╔══════════════════════════════════════════════════════╗
-║         MeetStream Labs — Real-Time Audio            ║
+║         MeetStream Labs - Real-Time Audio            ║
 ╚══════════════════════════════════════════════════════╝
 
 10:42:01 ℹ  Local server listening on port 3000
@@ -157,7 +157,6 @@ Authorization: Token YOUR_API_KEY
 
 {
   "meeting_link": "https://meet.google.com/xxx-xxxx-xxx",
-  "audio_required": true,
   "video_required": false,
   "callback_url": "https://xxxx.ngrok.io/webhook/callback",
   "live_transcription_required": {
@@ -213,7 +212,7 @@ MeetStream connects to `wss://xxxx.ngrok.io/audio` and sends:
 
 ```
 meetstream-labs/
-├─ index.js               # Entry point — server + ngrok + bot orchestration
+├─ index.js               # Entry point - server + ngrok + bot orchestration
 ├─ bridge.js               # Forwards /stream to whichever provider is configured
 ├─ consumer-example.js     # Minimal example of reading /stream directly
 ├─ src/
@@ -239,7 +238,7 @@ meetstream-labs/
 
 | Platform | Notes |
 |---|---|
-| Google Meet | No extra setup required — just a meeting URL |
+| Google Meet | No extra setup required - just a meeting URL |
 | Zoom | Requires Zoom app setup (see [MeetStream Zoom guide](https://docs.meetstream.ai/guides/zoom/zoom-bot-guide)) |
 | Microsoft Teams | Coming soon |
 
@@ -252,14 +251,14 @@ meetstream-labs/
 | `Missing required env var` | Copy `.env.example` → `.env` and fill in all three values |
 | `ngrok tunnel failed` | Check `NGROK_AUTHTOKEN` is correct; free accounts allow 1 tunnel |
 | `Bot stuck in waiting room` | The bot waits up to 10 minutes; admit it if your meeting has a lobby |
-| `No audio frames received` | Ensure `audio_required: true` and the WS URL is `wss://` not `ws://` |
+| `No audio frames received` | Audio is always captured (there is no `audio_required` field on create_bot). Check the WS URL is `wss://` not `ws://`, and publicly reachable |
 | `401 Unauthorized` | Regenerate your MeetStream API key from the dashboard |
 
 ---
 
 ## Connecting any external application
 
-Real-time audio is streamed to external applications through `/stream` — but rather than hardcoding one app, this project uses a **provider plugin system**, so the company can point the live feed at whatever service it wants without touching the core pipeline.
+Real-time audio is streamed to external applications through `/stream` - but rather than hardcoding one app, this project uses a **provider plugin system**, so the company can point the live feed at whatever service it wants without touching the core pipeline.
 
 ```
 MeetStream bot → your server → /stream → bridge.js → [any provider] → results
@@ -271,7 +270,7 @@ MeetStream bot → your server → /stream → bridge.js → [any provider] → 
 
 | Provider | `.env` value | Needs |
 |---|---|---|
-| Console (debug, no network) | `console` | nothing — works immediately |
+| Console (debug, no network) | `console` | nothing - works immediately |
 | Deepgram | `deepgram` | `DEEPGRAM_API_KEY` ([free signup](https://console.deepgram.com/signup), $200 credit) |
 | AssemblyAI | `assemblyai` | `ASSEMBLYAI_API_KEY` ([free signup](https://www.assemblyai.com/dashboard/signup)) |
 | OpenAI GPT-Realtime-Whisper | `openai-whisper` | `OPENAI_API_KEY` ([platform.openai.com](https://platform.openai.com/api-keys)) |
@@ -292,13 +291,13 @@ npm start
 npm run bridge
 ```
 
-That's the entire change required to switch from one external app to another — no code edits.
+That's the entire change required to switch from one external app to another - no code edits.
 
 ### Adding a brand-new external application
 
 The company isn't limited to the two built-in options. To wire up an in-house service, a different STT vendor, an analytics pipeline, or anything else:
 
-1. Create `src/providers/your-app-name.js` exporting an object with three methods — see `src/providers/provider-interface.js` for the exact contract and a worked example
+1. Create `src/providers/your-app-name.js` exporting an object with three methods - see `src/providers/provider-interface.js` for the exact contract and a worked example
 2. Set `STT_PROVIDER=your-app-name` in `.env`
 3. `npm run bridge`
 
@@ -320,19 +319,19 @@ export default {
 };
 ```
 
-Anything that can accept a stream of raw audio bytes and optionally talk back — a transcription API, a sentiment model, a keyword spotter, a custom WebSocket server — can be dropped in as a provider with no changes to `index.js`, `audio.js`, or `broadcaster.js`.
+Anything that can accept a stream of raw audio bytes and optionally talk back - a transcription API, a sentiment model, a keyword spotter, a custom WebSocket server - can be dropped in as a provider with no changes to `index.js`, `audio.js`, or `broadcaster.js`.
 
 ### Verifying it works
 
 ```bash
-npm start            # Terminal 1 — joins the meeting, opens /stream
-npm run bridge        # Terminal 2 — forwards /stream to STT_PROVIDER
+npm start            # Terminal 1 - joins the meeting, opens /stream
+npm run bridge        # Terminal 2 - forwards /stream to STT_PROVIDER
 ```
 
-Speak in the meeting. With `STT_PROVIDER=console` you'll see byte counters proving frames are flowing. With `deepgram` or `assemblyai` you'll see live transcripts — independent, third-party confirmation that the format, timing, and `/stream` broadcast are all correct.
+Speak in the meeting. With `STT_PROVIDER=console` you'll see byte counters proving frames are flowing. With `deepgram` or `assemblyai` you'll see live transcripts - independent, third-party confirmation that the format, timing, and `/stream` broadcast are all correct.
 
 ```
-🔌  MeetStream Labs — External Application Bridge
+🔌  MeetStream Labs - External Application Bridge
 
 Provider     : deepgram
 
@@ -357,7 +356,7 @@ Waiting for meeting audio… speak in the meeting now.
 - [Socket connection](https://docs.meetstream.ai/api-reference/socket-connection)
 - [ngrok Node SDK](https://ngrok.com/docs/using-ngrok-with/node-js/)
 
-## Resilience — what's handled and what isn't
+## Resilience - what's handled and what isn't
 
 This started as an example project and has since had production-readiness gaps closed incrementally. Current state:
 
@@ -366,18 +365,18 @@ This started as an example project and has since had production-readiness gaps c
 | MeetStream API retry on 429/5xx | ✅ Exponential backoff, respects `Retry-After` | `src/meetstream.js` |
 | MeetStream API non-retryable errors fail fast | ✅ Bad auth/request errors don't waste time retrying | `src/meetstream.js` |
 | Provider socket reconnect (Deepgram) | ✅ Auto-reconnect with backoff, drops frames (not buffers) while down | `src/providers/reconnect-helper.js` |
-| Provider socket reconnect (AssemblyAI, OpenAI) | ⚠️ Not yet wired — follow the Deepgram pattern to add | `src/providers/*.js` |
+| Provider socket reconnect (AssemblyAI, OpenAI) | ⚠️ Not yet wired - follow the Deepgram pattern to add | `src/providers/*.js` |
 | Slow `/stream` consumer backpressure | ✅ Disconnected if buffered output exceeds 2MB | `src/broadcaster.js` |
 | Max concurrent `/stream` consumers | ✅ Capped via `MAX_STREAM_CLIENTS` (default 10) | `index.js` |
 | Uncaught exception / unhandled rejection safety | ✅ Removes bot + closes tunnel before exiting, instead of leaving an orphaned bot in the meeting | `index.js` |
 | Malformed webhook payload handling | ✅ Validated before use, logged and ignored rather than crashing | `index.js` |
-| ngrok tunnel drop detection | ⚠️ Detected and logged loudly; **not auto-healed** — recovering requires a new public URL, which means re-creating the bot. Manual restart needed. | `index.js` |
-| Webhook authenticity verification | ❌ Not implemented — anyone who discovers your ngrok URL could POST fake events. Low risk for short-lived demo tunnels, real risk for anything long-running or sensitive. | — |
-| Horizontal scaling / multiple bots per process | ❌ Single bot per process by design — running multiple meetings means multiple process instances | — |
+| ngrok tunnel drop detection | ⚠️ Detected and logged loudly; **not auto-healed** - recovering requires a new public URL, which means re-creating the bot. Manual restart needed. | `index.js` |
+| Webhook authenticity verification | ❌ Not implemented - anyone who discovers your ngrok URL could POST fake events. Low risk for short-lived demo tunnels, real risk for anything long-running or sensitive. | - |
+| Horizontal scaling / multiple bots per process | ❌ Single bot per process by design - running multiple meetings means multiple process instances | - |
 
 ### Taking this further toward real production use
 
 The two gaps most worth closing next, in order of impact:
 
-1. **Webhook signature verification** — check whether MeetStream signs webhook payloads (HMAC header or similar) and verify it before trusting the body. Right now anyone who finds your ngrok URL can POST fabricated transcript/lifecycle events.
-2. **ngrok auto-recovery** — on tunnel drop, the cleanest fix is: detect it (already done), then automatically `removeBot` + `createBot` again with a fresh tunnel URL, accepting the bot briefly leaves and rejoins the meeting. Not implemented here since it changes bot behavior mid-meeting in a way you may not want happening silently.
+1. **Webhook signature verification** - check whether MeetStream signs webhook payloads (HMAC header or similar) and verify it before trusting the body. Right now anyone who finds your ngrok URL can POST fabricated transcript/lifecycle events.
+2. **ngrok auto-recovery** - on tunnel drop, the cleanest fix is: detect it (already done), then automatically `removeBot` + `createBot` again with a fresh tunnel URL, accepting the bot briefly leaves and rejoins the meeting. Not implemented here since it changes bot behavior mid-meeting in a way you may not want happening silently.

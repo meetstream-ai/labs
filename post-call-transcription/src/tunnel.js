@@ -3,7 +3,7 @@ const ngrok = require("@ngrok/ngrok");
 /**
  * Starts an ngrok tunnel on the given port and returns the public HTTPS URL.
  *
- * Requires NGROK_AUTHTOKEN in .env — free at https://dashboard.ngrok.com
+ * Requires NGROK_AUTHTOKEN in .env - free at https://dashboard.ngrok.com
  *
  * @param {number} port  Local port to expose
  * @returns {Promise<string>}  Public HTTPS URL e.g. "https://abc123.ngrok-free.app"

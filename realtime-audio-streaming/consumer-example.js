@@ -45,7 +45,7 @@ ws.on("message", (raw) => {
   const buf = Buffer.isBuffer(raw) ? raw : Buffer.from(raw);
 
   // ── Text frame: server handshake ─────────────────────────────────────────
-  if (buf[0] === 0x7b) {  // '{' — JSON
+  if (buf[0] === 0x7b) {  // '{' - JSON
     try {
       const msg = JSON.parse(buf.toString());
       if (msg.type === "ready") {

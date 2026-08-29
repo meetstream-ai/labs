@@ -1,0 +1,23 @@
+{
+  "name": "@meetstream-labs/quickstart-first-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Create a MeetStream bot, poll its status until the session ends, and print the result.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "quickstart"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

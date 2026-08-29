@@ -22,12 +22,12 @@ function startWebhookServer(port, onReady) {
   app.post("/webhook", (req, res) => {
     if (process.env.WEBHOOK_SECRET) {
       if (!verifySignature(req)) {
-        console.warn("   Webhook signature mismatch — request rejected.");
+        console.warn("   Webhook signature mismatch - request rejected.");
         return res.status(401).json({ error: "Invalid signature" });
       }
     }
 
-    // Acknowledge immediately — MeetStream does not retry on non-2xx
+    // Acknowledge immediately - MeetStream does not retry on non-2xx
     res.status(200).json({ received: true });
 
     handleEvent(req.body);
@@ -51,7 +51,7 @@ function handleEvent(payload) {
       console.log(`  [${bot_id}] Bot is joining the meeting…`);
       break;
     case "bot.inmeeting":
-      console.log(`  [${bot_id}] Bot is IN the meeting — recording started.`);
+      console.log(`  [${bot_id}] Bot is IN the meeting - recording started.`);
       break;
     case "bot.stopped":
       handleBotStopped(payload);
@@ -72,12 +72,12 @@ function handleEvent(payload) {
 
 function handleBotStopped({ bot_id, bot_status, message }) {
   const emoji = { Stopped: " ", NotAllowed: " ", Denied: " ", Error: " " }[bot_status] ?? " ";
-  console.log(`${emoji}  [${bot_id}] Bot stopped — status: ${bot_status}`);
+  console.log(`${emoji}  [${bot_id}] Bot stopped - status: ${bot_status}`);
   if (message) console.log(`   Reason: ${message}`);
   if (bot_status === "Stopped") {
     console.log("   Waiting for transcription.processed event…\n");
   } else {
-    console.log("   Bot did not complete normally — no transcript to fetch.\n");
+    console.log("   Bot did not complete normally - no transcript to fetch.\n");
   }
 }
 

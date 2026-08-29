@@ -1,0 +1,27 @@
+{
+  "name": "@meetstream-labs/crm-hubspot-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Attaches a MeetStream call summary, action items and transcript to the matching HubSpot contact and their deals as a note.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "hubspot",
+    "crm",
+    "sales",
+    "engagement"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

@@ -3,11 +3,18 @@ import assert from 'node:assert/strict';
 import { createBotEventTracker, formatWebhookEvent } from '../src/webhookServer.js';
 
 test('shows useful bot events and hides routine noise', () => {
+  // Live API sends `event` (not `bot_event`).
+  assert.equal(formatWebhookEvent({ event: 'bot.inmeeting' }), '✅ Bot joined the meeting');
+  assert.equal(formatWebhookEvent({ event: 'bot.stopped' }), '✅ MeetStream reports the bot stopped');
+  // bot.stopped is the ONE terminal event - bot_status carries the reason.
+  assert.match(formatWebhookEvent({ event: 'bot.stopped', bot_status: 'NotAllowed' }), /admitted/);
+  assert.match(formatWebhookEvent({ event: 'bot.stopped', bot_status: 'Denied' }), /denied/i);
+  assert.match(formatWebhookEvent({ event: 'bot.stopped', bot_status: 'Error', message: 'Join failed' }), /Join failed/);
+  // bot.error is non-terminal.
+  assert.match(formatWebhookEvent({ event: 'bot.error', message: 'Provider quota exceeded' }), /quota/);
+  assert.equal(formatWebhookEvent({ event: 'audio.processed' }), null);
+  // legacy `bot_event` alias still tolerated
   assert.equal(formatWebhookEvent({ bot_event: 'bot.inmeeting' }), '✅ Bot joined the meeting');
-  assert.equal(formatWebhookEvent({ bot_event: 'bot.stopped' }), '✅ MeetStream reports the bot stopped');
-  assert.match(formatWebhookEvent({ bot_event: 'bot.failed', message: 'Join failed' }), /Join failed/);
-  assert.match(formatWebhookEvent({ bot_event: 'agent.error', message: 'Provider quota exceeded' }), /quota/);
-  assert.equal(formatWebhookEvent({ bot_event: 'audio.processed' }), null);
 });
 
 test('shows live transcription in the terminal', () => {
@@ -21,8 +28,8 @@ test('shows live transcription in the terminal', () => {
 test('confirms only the matching bot terminal event', async () => {
   const tracker = createBotEventTracker();
   const waiting = tracker.waitForTerminal('bot-1', 100);
-  tracker.handle({ bot_event: 'bot.stopped', bot_id: 'bot-2' });
-  tracker.handle({ bot_event: 'bot.stopped', bot_id: 'bot-1' });
+  tracker.handle({ event: 'bot.stopped', bot_id: 'bot-2' });
+  tracker.handle({ event: 'bot.stopped', bot_id: 'bot-1' });
   await waiting;
 });
 

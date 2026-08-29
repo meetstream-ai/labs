@@ -1,0 +1,28 @@
+{
+  "name": "@meetstream-labs/teams-meeting-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Microsoft Teams meeting bot with MeetStream: joining a Teams meeting, lobby and admission behaviour, and what differs from Zoom and Google Meet.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "listen": "node index.js listen",
+    "check": "node index.js check"
+  },
+  "keywords": [
+    "meetstream",
+    "microsoft-teams",
+    "meeting-bot",
+    "webhooks",
+    "transcription"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

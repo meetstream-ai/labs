@@ -1,0 +1,24 @@
+{
+  "name": "@meetstream-labs/list-and-manage-bots",
+  "version": "1.0.0",
+  "private": true,
+  "description": "List, filter and sort every MeetStream bot, and make an active bot leave its meeting.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "active": "node index.js --active"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "management"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
