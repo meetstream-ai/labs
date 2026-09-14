@@ -37,6 +37,37 @@ natural language, for example:
 - "send this message into the meeting"
 - "schedule a bot for this calendar event"
 
+## Read the relevant reference
+
+Load only the reference needed for the current request:
+
+- For installing OpenClaw, configuring the MeetStream account/workspace,
+  platform prerequisites, or running a first bot, read
+  `{baseDir}/references/PRODUCT-AND-SETUP.md`.
+- For bot payloads, transcription providers, recordings, retention,
+  automatic-leave behavior, storage, live controls, or API error diagnosis,
+  read `{baseDir}/references/OPERATIONS.md`.
+- For creating or updating a hosted MIA agent, choosing realtime versus
+  pipeline mode, configuring voice/STT/wake words/avatars, or attaching MCP
+  and custom-function tools, read `{baseDir}/references/MIA.md`.
+- For connecting Google or Outlook Calendar, OAuth requirements, recurring
+  events, scheduled-bot maintenance, or auto-scheduling, read
+  `{baseDir}/references/CALENDARS.md`.
+- For lifecycle callbacks, artifact readiness, live transcription delivery,
+  workspace endpoints, or signature verification, read
+  `{baseDir}/references/WEBHOOKS.md`.
+- For a developer-hosted WebSocket audio/video/control bridge, frame decoding,
+  bidirectional speech, or reconnect/session design, read
+  `{baseDir}/references/STREAMING.md`.
+- For an endpoint or request schema not covered by a dedicated script, read
+  `{baseDir}/references/API-REFERENCE.md`, then inspect only the applicable
+  path and component in `{baseDir}/references/openapi.json`. Prefer the focused
+  guides when they document newer fields missing from the OpenAPI snapshot.
+
+Do not load the full documentation index or OpenAPI file for ordinary bot
+operations. `{baseDir}/references/DOCS-INDEX.md` is only a discovery aid when
+the focused references do not answer the request.
+
 ## Commands
 
 ### List available MIA agents
@@ -142,6 +173,21 @@ Calendar connection is an administrative OAuth setup. This script operates on
 an already connected calendar. Confirm the exact event before scheduling or
 unscheduling a bot.
 
+### Advanced documented API operations
+
+```bash
+{baseDir}/scripts/api-request.sh METHOD /relative/path [--body-file FILE|-] [--idempotency-key UUID]
+```
+
+Use this only after reading the applicable focused reference above. It covers
+documented operations without dedicated scripts, including MIA configuration,
+calendar connections and recurring schedules, pause/resume, custom storage,
+re-transcription, image display, and data deletion. Build the exact JSON body
+in a file or pipe it on standard input; never put credentials in process
+arguments. The wrapper validates basic input but not the complete endpoint
+schema, so surface API validation errors rather than guessing alternative
+fields or retrying a mutation blindly.
+
 ## Output conventions
 
 - Report the `bot_id` back to the user after `send-bot.sh` so they can refer
@@ -154,6 +200,8 @@ unscheduling a bot.
 
 ## Setup
 
+Read `{baseDir}/references/PRODUCT-AND-SETUP.md` for prerequisites, platform
+configuration, installation, verification, and the first-bot walkthrough.
 Run `{baseDir}/install.sh` once to set this up end-to-end: it installs the
 skill into your OpenClaw workspace, installs `curl`/`jq` if missing, stores
 your MeetStream API key in a local `.env` (auto-loaded by every script),

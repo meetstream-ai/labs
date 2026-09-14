@@ -169,6 +169,11 @@ ms_request() {
     exit 1
   fi
 
+  if [[ "$http_code" == "204" && ! -s "$tmp" ]]; then
+    printf '{}\n'
+    rm -f "$tmp"
+    return 0
+  fi
   if ! jq -e . >/dev/null 2>&1 <"$tmp"; then
     echo "error: MeetStream API returned a non-JSON success response for $method $path" >&2
     rm -f "$tmp"

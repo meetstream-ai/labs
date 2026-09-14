@@ -38,7 +38,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 usage() {
-  sed -n '2,25p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,32p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 
 link=""
@@ -108,8 +108,8 @@ if [[ -n "$retention_hours" && ! "$retention_hours" =~ ^[1-9][0-9]*$ ]]; then
   echo "error: --retention-hours must be a positive integer" >&2
   exit 64
 fi
-if [[ ! "$max_recording_seconds" =~ ^[1-9][0-9]*$ ]]; then
-  echo "error: --max-seconds must be a positive integer" >&2
+if [[ ! "$max_recording_seconds" =~ ^[1-9][0-9]{0,4}$ ]] || (( max_recording_seconds < 600 || max_recording_seconds > 18000 )); then
+  echo "error: --max-seconds must be an integer from 600 to 18000" >&2
   exit 64
 fi
 if [[ -n "$idempotency_key" && ! "$idempotency_key" =~ ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$ ]]; then
@@ -121,12 +121,12 @@ transcript_provider_json="{}"
 case "$transcription_provider" in
   "") ;;
   deepgram) transcript_provider_json="$(jq -n --arg language "${language:-en}" '{deepgram:{model:"nova-3",language:$language,diarize:true}}')" ;;
-  assemblyai) transcript_provider_json="$(jq -n --arg language "${language:-en_us}" '{assemblyai:{speech_models:["best"],language_code:$language,speaker_labels:true}}')" ;;
-  sarvam) transcript_provider_json="$(jq -n --arg language "${language:-en-IN}" '{sarvam:{model:"saarika:v2",language_code:$language,mode:"batch",with_diarization:true}}')" ;;
+  assemblyai) transcript_provider_json="$(jq -n --arg language "${language:-en_us}" '{assemblyai:{speech_models:["universal-2"],language_code:$language,speaker_labels:true}}')" ;;
+  sarvam) transcript_provider_json="$(jq -n --arg language "${language:-en-IN}" '{sarvam:{model:"saaras:v3",language_code:$language,mode:"transcribe",with_diarization:true}}')" ;;
   meetstream) transcript_provider_json="$(jq -n --arg language "${language:-auto}" '{meetstream:{language:$language,translate:false}}')" ;;
   jigsawstack) transcript_provider_json="$(jq -n --arg language "${language:-auto}" '{jigsawstack:{language:$language,translate:false,by_speaker:true}}')" ;;
   meeting_captions) transcript_provider_json='{"meeting_captions":{}}' ;;
-  deepgram_streaming) transcript_provider_json="$(jq -n --arg language "${language:-en}" '{deepgram_streaming:{model:"nova-3",language:$language}}')" ;;
+  deepgram_streaming) transcript_provider_json="$(jq -n --arg language "${language:-en}" '{deepgram_streaming:{model:"nova-2",language:$language}}')" ;;
   assemblyai_streaming) transcript_provider_json='{"assemblyai_streaming":{}}' ;;
   *)
     echo "error: unsupported --transcription provider '$transcription_provider'" >&2
@@ -136,6 +136,11 @@ esac
 
 if [[ "$transcription_provider" == *_streaming && -z "$live_transcript_webhook" ]]; then
   echo "error: streaming transcription requires --live-transcript with a public HTTPS webhook" >&2
+  exit 64
+fi
+
+if [[ "$transcription_provider" == "meeting_captions" && "$link" == *zoom.us/* ]]; then
+  echo "error: meeting_captions is supported only on Google Meet and Microsoft Teams" >&2
   exit 64
 fi
 

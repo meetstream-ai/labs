@@ -7,8 +7,9 @@ your computer.
 
 You need:
 
-- OpenClaw installed, onboarded, and connected to an OpenAI model.
+- OpenClaw installed, onboarded, and connected to a supported model provider.
 - A MeetStream account: <https://meetstream.ai>
+- Bash, curl, jq, and Python 3 (Python runs the installer tests).
 - Your MeetStream API key: <https://app.meetstream.ai/api-key>
 - This project folder, unzipped as `openclaw-x-meetstream-skill`.
 
@@ -21,7 +22,7 @@ checks, and restarts the OpenClaw Gateway. Never put the key in a source file.
 
    ```bash
    curl -fsSL https://openclaw.ai/install.sh | bash
-   openclaw onboard
+   openclaw onboard --install-daemon
    ```
 
 2. Open the `openclaw-x-meetstream-skill` folder in Finder.
@@ -51,7 +52,7 @@ the skill uses.
 
    ```bash
    curl -fsSL https://openclaw.ai/install.sh | bash
-   openclaw onboard
+   openclaw onboard --install-daemon
    ```
 
    See the [official Windows/WSL2 guide](https://docs.openclaw.ai/windows) if
@@ -93,3 +94,31 @@ API behavior.
 - “Schedule a bot for my weekly standup.”
 
 Only send or remove a bot when you are authorized to affect that meeting.
+
+## Verify setup and run your first recording bot
+
+Run `openclaw gateway status`, `openclaw skills list`, then
+`openclaw dashboard` to open the chat UI. Start a new chat after installing.
+The installer installs five sibling skills in the selected workspace. If the
+agent uses a sandbox, ensure Bash/curl/jq and credentials are available there;
+host-only environment injection does not populate a sandbox automatically.
+
+Choose the intended workspace in the MeetStream dashboard and create its API
+key. Google Meet and Teams need no platform integration for guest joins; Zoom
+requires a Meeting SDK General App and credentials under Integrations → Zoom.
+The host still controls admission and Zoom recording permission.
+
+In OpenClaw, say:
+
+> Use MeetStream to join <your actual meeting URL> as Meeting Notetaker,
+> record audio, transcribe with Deepgram, and retain it for 24 hours.
+
+Keep the returned bot ID. Admit the bot, verify recording status, then ask to
+remove that bot when finished. Request its transcript after processing finishes.
+An empty MIA agent list is normal: recording bots do not need a MIA configuration.
+To make a speaking agent, configure provider keys and create one in the dashboard
+MIA tab first; see [MIA setup](references/MIA.md).
+
+See [product and platform setup](references/PRODUCT-AND-SETUP.md),
+[calendar OAuth and automation](references/CALENDARS.md), and the
+[complete live documentation index](references/DOCS-INDEX.md).

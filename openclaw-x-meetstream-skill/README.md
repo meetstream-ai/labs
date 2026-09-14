@@ -3,7 +3,7 @@
 An OpenClaw skill for operating the [MeetStream](https://meetstream.ai)
 meeting-bot API with natural language. For the shortest installation path,
 see [QUICKSTART.md](./QUICKSTART.md). This file is the technical reference;
-for a narrative walkthrough, see [blog.md](./blog.md).
+for product setup and advanced operations, see [the handbook](./references/PRODUCT-AND-SETUP.md).
 
 ## Install in one sentence
 
@@ -163,9 +163,8 @@ This same "refuse on ambiguity, don't pick one" pattern is used again in
 `remove-bot.sh --current` (see below) — it's the skill's central safety
 property for any action with real-world side effects.
 
-When a MIA `agent_config_id` is selected, the payload also includes
-MeetStream's documented agent bridge and live-audio WebSocket endpoints, so
-the agent is actually connected when the bot joins.
+When a MIA `agent_config_id` is selected, MeetStream supplies its hosted bridge
+connections automatically. Do not send custom WebSocket URLs for hosted MIA.
 
 Request body is assembled with `jq -n --arg`/`--argjson`, never string
 interpolation, so meeting links, bot names, chat messages, and
@@ -219,8 +218,8 @@ Orchestrates first-time setup:
    config key is empty, or `--workspace` if passed explicitly).
 2. Copy skill files into `<workspace>/skills/meetstream`, or update in
    place (preserving any existing `.env`) if already installed there.
-3. Check for `curl`/`jq`; install via Homebrew if missing and Homebrew is
-   available, otherwise print manual install instructions.
+3. Check for `curl`/`jq`; install via Homebrew or apt when available, otherwise print manual
+   install instructions. Python 3 is required for the offline installer checks.
 4. Resolve the API key from (in priority order): safe `--api-key-stdin`, an
    already-existing `.env`, the caller's exported
    `MEETSTREAM_API_KEY`, or an interactive hidden prompt. The installer
@@ -236,7 +235,7 @@ Orchestrates first-time setup:
 ```
 agent → send-bot.sh --link <url> --name "Standup Bot" --agent-name standup
           → GET /mia                         (resolve agent name → id)
-          → POST /bots/create_bot             (join, with agent_config_id + MIA bridge URLs)
+          → POST /bots/create_bot             (join, with agent_config_id; hosted wiring is automatic)
         → bot_id printed, agent reports it back to user
 ```
 
@@ -304,8 +303,7 @@ every push and PR.
 ## Security model
 
 - **Credential handling**: key is read from env/`.env` only, sent once per
-  request as an `Authorization: Token …` header, never logged or written
-  anywhere by any script.
+  request as an `Authorization: Token …` header, never logged. The installer stores the key in a mode-0600 `.env` file.
 - **No silent destructive actions**: `send-bot.sh` (joins a meeting — a
   real, visible action) and `remove-bot.sh` (ends a bot's participation)
   both require unambiguous input, and refuse to guess when more than one

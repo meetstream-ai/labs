@@ -39,7 +39,7 @@ if [[ -z "$transcript_id" ]]; then
 fi
 
 if [[ -z "$transcript_id" ]]; then
-  echo "Transcript is not ready for bot $bot_id. Wait for transcription.processed, then try again." >&2
+  echo "Transcript is not ready for bot $bot_id. Inspect bot detail and transcriptions. Native captions use bot_details.caption_file; streaming providers do not emit transcription.processed. For post-call providers, retry after processing completes." >&2
   exit 1
 fi
 ms_validate_bot_id "$transcript_id"
