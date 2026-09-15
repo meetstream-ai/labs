@@ -290,7 +290,7 @@ Minimal request:
 {
   "meeting_url": "https://meet.google.com/abc-defg-hij",
   "hermes": {
-    "base_url": "http://127.0.0.1:8080/v1",
+    "base_url": "http://127.0.0.1:8642/v1",
     "api_key": "your-hermes-api-server-key"
   },
   "meetstream": {
@@ -305,7 +305,7 @@ Expanded shape:
 {
   "meeting_url": "https://meet.google.com/abc-defg-hij",
   "hermes": {
-    "base_url": "http://127.0.0.1:8080/v1",
+    "base_url": "http://127.0.0.1:8642/v1",
     "api_key": "secret",
     "model": "hermes-agent",
     "mode": "auto",
@@ -360,7 +360,7 @@ For `voice` or `hybrid`, add:
 | `MIA_HERMES_WEBHOOK_SECRET` | Optional | HMAC secret for signed lifecycle webhooks when signing is enabled in MeetStream. |
 | `MEETSTREAM_API_KEY` | Yes | MeetStream API key from the dashboard. |
 | `MEETSTREAM_MIA_CONFIG_ID` | Optional | Existing MIA configuration to attach. If omitted, the bridge resolves/creates one. |
-| `HERMES_GATEWAY_URL` | No | Defaults to `http://127.0.0.1:8080/v1`. |
+| `HERMES_GATEWAY_URL` | Recommended | Set to `http://127.0.0.1:8642/v1` for a current local Hermes installation. The bridge retains a legacy `8080` fallback when this variable is omitted. |
 | `HERMES_API_KEY` | Required unless found in `~/.hermes/.env` | Bearer key for Hermes. |
 | `HERMES_MODEL` | No | Defaults to `hermes-agent`. |
 | `HERMES_API_MODE` | No | `auto` (default), `responses`, or `chat_completions`. |
@@ -380,8 +380,10 @@ Hermes enables its API server when a strong `API_SERVER_KEY` is present. A typic
 ```dotenv
 API_SERVER_KEY=<at-least-16-character-random-secret>
 API_SERVER_HOST=127.0.0.1
-API_SERVER_PORT=8080
+API_SERVER_PORT=8642
 ```
+
+`API_SERVER_HOST` and `API_SERVER_PORT` are optional when using these defaults. The port is the same across supported operating systems and is not macOS-specific.
 
 Generate a secret with:
 
@@ -389,22 +391,24 @@ Generate a secret with:
 openssl rand -hex 32
 ```
 
-Install/start the supervised gateway:
+Check and start the supervised gateway:
 
 ```bash
-hermes gateway install
 hermes gateway status
+hermes gateway start
 ```
+
+Skip `hermes gateway start` when status already reports that the service is running. If no supervised service is installed, run `hermes gateway install` once before starting it. Do not run a second foreground `hermes gateway` process while the supervised service is active.
 
 Verify it without printing the secret:
 
 ```bash
-curl http://127.0.0.1:8080/health
+curl http://127.0.0.1:8642/health
 ```
 
 ### Find the Hermes URL and port
 
-`http://127.0.0.1:8080/v1` is only the default. Hermes can use a different port if its own configuration says so. Check the running service first:
+`http://127.0.0.1:8642/v1` is the current Hermes default. Hermes can use a different port if its own configuration says so. Check the running service first:
 
 ```bash
 hermes gateway status
@@ -422,7 +426,7 @@ For example, `API_SERVER_HOST=127.0.0.1` and `API_SERVER_PORT=9000` means:
 HERMES_GATEWAY_URL=http://127.0.0.1:9000/v1
 ```
 
-If Hermes runs on another machine, use that machine's reachable host instead, for example `http://192.168.1.50:8080/v1`. The bridge host must be able to reach Hermes. Keeping Hermes on loopback is appropriate when both processes run on the same machine.
+If Hermes runs on another machine, use that machine's reachable host instead, for example `http://192.168.1.50:8642/v1`. The bridge host must be able to reach Hermes. Keeping Hermes on loopback is appropriate when both processes run on the same machine.
 
 ## MIA configuration
 

@@ -60,7 +60,7 @@ Open `.env` in a text editor. Fill in these important lines:
 ```dotenv
 NGROK_AUTHTOKEN=your-ngrok-token
 MEETSTREAM_API_KEY=your-meetstream-api-key
-HERMES_GATEWAY_URL=http://127.0.0.1:8080/v1
+HERMES_GATEWAY_URL=http://127.0.0.1:8642/v1
 MEETING_URL=https://meet.google.com/abc-defg-hij
 ```
 
@@ -78,27 +78,27 @@ Hermes needs its private API gateway running. The one-time Hermes configuration 
 ```dotenv
 API_SERVER_KEY=a-long-random-private-key
 API_SERVER_HOST=127.0.0.1
-API_SERVER_PORT=8080
+API_SERVER_PORT=8642
 ```
 
 Start or verify Hermes:
 
 ```bash
-hermes gateway install
 hermes gateway status
+hermes gateway start
 ```
 
-If status says the gateway is supervised and running, Hermes is ready.
+If status says the gateway is supervised and running, Hermes is ready. `hermes gateway start` is only needed when it is not already running. If Hermes reports that no supervised service is installed, run `hermes gateway install` once and then `hermes gateway start`.
 
 ### If the default Hermes address does not work
 
-The usual address is `http://127.0.0.1:8080/v1`, but the port can differ. Check it without exposing your secret key:
+The current Hermes default is `http://127.0.0.1:8642/v1` on every supported operating system; it is not macOS-specific. The port can be overridden. Check explicit overrides without exposing your secret key:
 
 ```bash
 rg '^API_SERVER_(HOST|PORT)=' ~/.hermes/.env
 ```
 
-If it shows `API_SERVER_PORT=9000`, set this in the project's `.env`:
+If no host or port is printed, Hermes is using its defaults. If it shows `API_SERVER_PORT=9000`, set this in the project's `.env`:
 
 ```dotenv
 HERMES_GATEWAY_URL=http://127.0.0.1:9000/v1
@@ -115,7 +115,7 @@ npm run doctor
 npm start
 ```
 
-Do not use Docker for this local workflow. `npm start` runs the Node bridge directly on your computer and reaches local Hermes at `http://127.0.0.1:8080/v1`.
+Do not use Docker for this local workflow. `npm start` runs the Node bridge directly on your computer and reaches local Hermes at `http://127.0.0.1:8642/v1`.
 
 ## Check everything without joining
 
