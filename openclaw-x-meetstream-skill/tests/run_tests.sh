@@ -38,6 +38,19 @@ check_contains() {
   fi
 }
 
+echo "== OpenClaw skill metadata tests =="
+while IFS= read -r skill_file; do
+  description="$(sed -n 's/^description:[[:space:]]*//p' "$skill_file" | head -n 1)"
+  if [[ -n "$description" && ${#description} -le 160 ]]; then
+    echo "PASS: $(basename "$(dirname "$skill_file")") description is within OpenClaw's 160-character limit"
+    pass=$((pass+1))
+  else
+    echo "FAIL: $(basename "$(dirname "$skill_file")") description is missing or exceeds OpenClaw's 160-character limit"
+    fail=$((fail+1))
+  fi
+done < <(find "$SKILL_DIR" -name SKILL.md -type f -print)
+echo
+
 # --- start mock server ---
 python3 "$TEST_DIR/mock_server.py" 0 "$PORT_FILE" &
 SERVER_PID=$!

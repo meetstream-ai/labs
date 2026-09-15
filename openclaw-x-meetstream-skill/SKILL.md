@@ -1,6 +1,6 @@
 ---
 name: meetstream
-description: Build and operate MeetStream meeting bots: recording, transcription, MIA agents, calendar scheduling, live chat, transcripts, summaries, media, and lifecycle management.
+description: Build and operate MeetStream meeting bots and MIA agents for recording, transcription, calendars, live chat, summaries, media, and lifecycle tasks.
 homepage: https://docs.meetstream.ai
 metadata: { "openclaw": { "emoji": "🎙️", "requires": { "bins": ["curl", "jq"] }, "primaryEnv": "MEETSTREAM_API_KEY" } }
 ---
