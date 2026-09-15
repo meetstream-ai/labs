@@ -1,0 +1,7 @@
+.env
+.git
+.venv
+dist
+node_modules
+*.tgz
+npm-debug.log*
