@@ -1,6 +1,6 @@
-# bot-retention-config
+# Configure Recording Retention for MeetStream Bots
 
-Create MeetStream bots with an explicit `recording_config.retention` window, or with none so they inherit the API default, and understand exactly what expires and when.
+Create MeetStream API meeting bots for Zoom, Google Meet and Microsoft Teams with an explicit `recording_config.retention` window, or with none so they inherit the API default of 30 days, and understand exactly which recordings and transcripts expire and when.
 
 ```bash
 npm install
@@ -9,11 +9,28 @@ node index.js --explain          # semantics only, no API key needed
 node index.js --mode timed --hours 72
 ```
 
+## How it works
+
+1. Builds a `POST /bots/create_bot` body from `.env` and the CLI flags.
+2. In `timed` mode adds `recording_config.retention = { type: "timed", hours }`; in `default` mode sends no retention block.
+3. `--dry-run` prints the body and stops. Otherwise it creates the bot (201).
+4. Reads `GET /bots/{id}/detail` and shows the retention block the API actually stored.
+
 ## Prerequisites
 
 - Node.js 18 or newer
 - A MeetStream API key from https://app.meetstream.ai
-- A meeting link
+- A Zoom, Google Meet or Microsoft Teams meeting link
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/bot-retention-config
+npm install
+cp .env.example .env
+node index.js --explain
+```
 
 ## Usage
 
@@ -96,26 +113,41 @@ After creating a bot the template reads `GET /bots/{id}/detail`, which echoes ba
 | Deletes data | yes | yes | no |
 | Reversible | no | no | n/a |
 
-`data_deletion` is the documented webhook for the explicit delete call. See the `delete-bot-data` template.
+`data_deletion` is the documented webhook for the explicit delete call and for retention expiry. See the [delete-bot-data](../delete-bot-data) template.
 
-## Configuration
+## Environment variables
 
-| Variable | Required | Default | Notes |
+| Name | Required | Default | Meaning |
 |---|---|---|---|
-| `MEETSTREAM_API_KEY` | yes | | Not needed for `--explain` or `--dry-run` |
+| `MEETSTREAM_API_KEY` | yes | | API key, sent as `Authorization: Token <key>`. Not needed for `--explain` or `--dry-run` |
 | `MEETING_LINK` | yes | | Full Zoom / Meet / Teams URL |
 | `RETENTION_MODE` | no | `timed` | `timed` or `default`, overridden by `--mode` |
 | `RETENTION_HOURS` | no | `72` | Overridden by `--hours` |
-| `BOT_NAME` | no | `Retention Demo Bot` | |
+| `BOT_NAME` | no | `Retention Demo Bot` | Display name in the meeting |
 | `VIDEO_REQUIRED` | no | `false` | `true` records video too |
-| `MEETSTREAM_API_BASE_URL` | no | production | Override for testing |
+| `MEETSTREAM_API_BASE_URL` | no | `https://api.meetstream.ai/api/v1` | Override for testing |
 
 ## Troubleshooting
 
-**`API error 400` mentioning retention** - `hours` must be a positive number, and `type` must be `"timed"`. Check the block is nested under `recording_config`.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required config: MEETSTREAM_API_KEY, MEETING_LINK` | `.env` not filled in | `cp .env.example .env` and set both values. |
+| HTTP 401 | No API key was sent | Set `MEETSTREAM_API_KEY`. |
+| HTTP 403 | Key rejected | Copy the whole key from the dashboard. |
+| HTTP 400 mentioning retention | `hours` not a positive number, `type` not `"timed"`, or block not under `recording_config` | Run `--dry-run` and compare against the JSON above. |
+| HTTP 409 | A `deduplication_key` was reused for a different request | Use a new key or the same body. |
+| HTTP 429 | Rate limited | Back off and retry. |
+| HTTP 507 | Idempotent replay | This is success; the original bot is returned. |
+| `detail` shows no retention block after `--mode timed` | Block was not accepted | Re-run with `--dry-run` and check the nesting. |
+| Recording vanished earlier than expected | Bot inherited the default window (720 hours) or a shorter workspace setting | Retention is per bot and fixed at creation; set it explicitly. |
+| You need an expired recording back | No restore path exists | Download artifacts before the window closes. |
 
-**detail shows no retention block after `--mode timed`** - the block was not accepted. Re-run with `--dry-run` and compare the JSON against the shape above.
+## Related
 
-**A recording vanished earlier than expected** - the bot was created without a retention block and inherited the default window (720 hours) or your workspace's setting. Retention is per bot and is fixed at creation.
-
-**You need it back** - you cannot get it back. There is no restore path for expired or deleted artifacts.
+- [Usage and retention](https://docs.meetstream.ai/guides/features/usage-and-retention)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Create bot payload reference](https://docs.meetstream.ai/api-reference/create-bot-payload-reference)
+- [Get bot details](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-details)
+- [Delete bot data](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/delete-bot-data)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [delete-bot-data](../delete-bot-data), [audio-recording-downloader](../audio-recording-downloader), [video-recording-downloader](../video-recording-downloader)

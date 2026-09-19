@@ -1,16 +1,55 @@
-# Microsoft Teams Meeting Bot
+# Send a Meeting Bot into Microsoft Teams with the MeetStream API
 
-Send a MeetStream bot into a Microsoft Teams meeting, follow its lifecycle over webhooks, and understand what Teams does differently from Zoom and Google Meet.
+Send a MeetStream meeting bot into a Microsoft Teams meeting with the MeetStream API, follow its recording and transcription lifecycle over webhooks, and understand what Teams does differently from Zoom and Google Meet: lobby admission, timeouts, native captions and signed-in bots.
+
+## What it does
+
+- `node index.js` validates the config, starts a webhook receiver, calls `POST /bots/create_bot` with a Teams link and a `callback_url`, then prints every lifecycle event until `bot.done`.
+- `node index.js check` validates your config and prints the exact `create_bot` body without calling the API.
+- `node index.js listen` runs the webhook receiver on its own.
+- Every `automatic_leave` value is range-checked locally, `create_bot` carries an `Idempotency-Key`, and a `507` replay is treated as success.
+
+## Prerequisites
+
+- Node.js 18 or newer (built-in `fetch`)
+- A MeetStream API key from <https://app.meetstream.ai>
+- A Microsoft Teams meeting join link, exactly as it appears in the invite
+- A publicly reachable webhook URL: `ngrok http 3000`, then put the https origin in `PUBLIC_WEBHOOK_URL`
+
+## Setup
 
 ```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/teams-meeting-bot
 npm install
 cp .env.example .env      # MEETSTREAM_API_KEY, MEETING_LINK, PUBLIC_WEBHOOK_URL
+node index.js check       # validates config, no API call
 node index.js
 ```
 
-`node index.js check` validates your config and prints the exact `create_bot` body without calling the API. `node index.js listen` runs the webhook receiver on its own.
+## Environment variables
 
-You need a publicly reachable webhook URL: `ngrok http 3000`, then put the https origin in `PUBLIC_WEBHOOK_URL`.
+| Variable | Required | Meaning |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY` | yes (not for `check` / `listen`) | API key, sent as `Authorization: Token <key>`. |
+| `MEETING_LINK` | yes | Teams join link (`teams.microsoft.com` or `teams.live.com`). |
+| `PUBLIC_WEBHOOK_URL` | yes for `node index.js` | Public https origin; `callback_url` = this + `WEBHOOK_PATH`. |
+| `PORT` | no | Local webhook port. Default `3000`. |
+| `WEBHOOK_PATH` | no | Path the receiver listens on. Default `/webhook`. |
+| `WEBHOOK_SECRET` | no | Enables HMAC verification. Per-bot `callback_url` deliveries are not signed; only set this for a workspace endpoint. |
+| `NOTIFY_WEBHOOK_URL` | no | Alerts are also POSTed here as JSON. |
+| `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Notetaker`. |
+| `VIDEO_REQUIRED` | no | Record video as well as audio. Default `false`. |
+| `JOIN_AT` | no | ISO 8601 time to join later; sets `join_at`. |
+| `WAITING_ROOM_TIMEOUT` | no | Seconds to wait for admission. Teams range 60-1800, API default 600. |
+| `NO_ONE_JOINED_TIMEOUT` | no | Leave if nobody joins. Range 60-1800, API default 600. |
+| `EVERYONE_LEFT_TIMEOUT` | no | Leave once the count hits zero. Range 60-1800, API default 300. |
+| `VOICE_INACTIVITY_TIMEOUT` | no | Leave after a stretch of silence. Range 60-1800. |
+| `IN_CALL_RECORDING_TIMEOUT` | no | Hard cap on recording. Range 600-18000, API default 14400. |
+| `TRANSCRIPT_PROVIDER` | no | `deepgram`, `assemblyai`, `sarvam`, `jigsawstack`, `meetstream` or `meeting_captions`. Unset means no transcript. |
+| `TRANSCRIPT_LANGUAGE` | no | Language for the provider. Default `en`. |
+| `RETENTION_HOURS` | no | `recording_config.retention.hours`. Unset means the API default of 720 (30 days). |
+| `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 
 ---
 
@@ -58,7 +97,7 @@ Beyond that, the precise admission rules - who counts as an organiser, which ten
 | `waiting_room_timeout` range | 60-1800 (default 600) | 60-1200 (default 600) | 60-600 (default 600) |
 | Other timeout defaults | `no_one_joined_timeout` 600, `everyone_left_timeout` 300 | - | `no_one_joined_timeout` 600, `everyone_left_timeout` 300 |
 | `recording_permission_denied_timeout` | Ignored | 60-300, default 60 | Ignored |
-| Signed-in / authenticated bot identity | Not applicable - the `google_meet` block is Meet-only | `zoom.zak_url` (as a signed-in user) or `zoom.obf_url` (on behalf of a user in the call), minted by your own server: see [`zoom-authenticated-joins`](../zoom-authenticated-joins) | `google_meet.login_required` signed-in bots |
+| Signed-in / authenticated bot identity | `teams.login_required` with a registered `teams_login_domain` (Microsoft 365 work/school accounts, one concurrent bot per account; the bot uses the account's own display name): see [`teams-signed-in-bots-setup`](../teams-signed-in-bots-setup) | `zoom.zak_url` (as a signed-in user) or `zoom.obf_url` (on behalf of a user in the call), minted by your own server: see [`zoom-authenticated-joins`](../zoom-authenticated-joins) | `google_meet.login_required` signed-in bots |
 | Per-participant audio | Partial isolation - speaker-attributed capture via the browser bot, same stream-capture model as Google Meet | **Full isolation** - dedicated raw PCM stream per participant | Partial isolation, up to 3 concurrent speaker streams |
 | Per-participant video | Webcam up to 854×480 @ 800 kbps; screen share up to 1280×720 @ 2 Mbps; 1 concurrent screen share | Webcam 640×360 fixed @ 300 kbps; screen share at native resolution @ 1.5 Mbps; 1 concurrent | Webcam up to 854×480 @ 800 kbps; screen share up to 1280×720 @ 2 Mbps; **multiple** concurrent screen shares |
 | Video segmenting | A webcam dimension change starts a new segment (as does a screen-share resolution change) | - | - |
@@ -155,23 +194,33 @@ Deliveries to a per-bot `callback_url` are **not signed**; signature verificatio
 
 ## Troubleshooting
 
-**Bot sits in the lobby and is never admitted** - the run ends with `bot.stopped` / `bot_event: "bot.notallowed"`, then `bot.done`. Someone with admission rights has to let it in, or the meeting's lobby policy has to allow it. Raise `WAITING_ROOM_TIMEOUT` (up to 1800) if the bot simply arrives before anyone else.
-
-**HTTP 400 from create_bot** - an out-of-range `automatic_leave` value (`waiting_room_timeout` 60-1800 on Teams, `in_call_recording_timeout` at least 600), or a malformed link.
-
-**`transcript_id` is null** - expected if you used `meeting_captions`, or if you set no post-call provider at all.
-
-**A participant's video split into several files** - on Teams a webcam dimension change (or a screen-share resolution change) starts a new segment. Segments are chronologically ordered with `segment_index`.
-
-**Nothing arrives at the webhook** - `PUBLIC_WEBHOOK_URL` must be reachable from the internet. Check the tunnel and the printed `callback_url`; `GET /healthz` confirms the server is up.
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `Configuration error: Missing required environment variable MEETSTREAM_API_KEY` | No `.env` or empty key. | `cp .env.example .env` and paste your key. |
+| `PUBLIC_WEBHOOK_URL is required` | No public URL for the receiver. | Run `ngrok http 3000` and paste the https origin. |
+| `MEETSTREAM_LINK ... does not look like a Microsoft Teams link` | The link is not on `teams.microsoft.com` / `teams.live.com`. | Copy the join URL from the invite, query string included. |
+| `MeetStream 401` / `403` | No key sent, or the key was rejected. | Check the key is complete and active for this workspace. |
+| `MeetStream 400` from `create_bot` | Out-of-range `automatic_leave` value (`waiting_room_timeout` 60-1800 on Teams, `in_call_recording_timeout` at least 600), a malformed link, or an unregistered `teams_login_domain`. | Fix the value; register the domain first for signed-in bots. |
+| `MeetStream 409` / `429` on a signed-in join | The pinned account is busy, or every account in the domain is in use. | Register more accounts, or set `strict_email: false`. |
+| Bot sits in the lobby and is never admitted | The run ends with `bot.stopped` / `bot_event: "bot.notallowed"`, then `bot.done`. | Someone with admission rights has to let it in; raise `WAITING_ROOM_TIMEOUT` (up to 1800) if the bot arrives before anyone else. |
+| `bot_event: "bot.denied"` | Someone explicitly rejected the join request. | Ask the organiser to admit the bot next time. |
+| `MeetStream 507` | Idempotent replay of an earlier `create_bot`. | Nothing to fix; the original bot is returned. |
+| `transcript_id` is null | Expected with `meeting_captions`, or with no post-call provider at all. | Set a post-call `TRANSCRIPT_PROVIDER` if you need a transcript resource. |
+| A participant's video split into several files | On Teams a webcam dimension change (or a screen-share resolution change) starts a new segment. | Segments are chronologically ordered with `segment_index`. |
+| Nothing arrives at the webhook | `PUBLIC_WEBHOOK_URL` is not reachable from the internet. | Check the tunnel and the printed `callback_url`; `GET /healthz` confirms the server is up. |
+| `Port 3000 is already in use` | Another process owns the port. | Set `PORT` to a free port and update the tunnel. |
 
 ---
 
-## Docs
+## Related
 
-- [Microsoft Teams Bots](https://docs.meetstream.ai/guides/platforms/microsoft-teams)
-- [Automatic Leave Configurations](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
-- [Webhooks and Events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
-- [Outlook Calendar Setup](https://docs.meetstream.ai/guides/calendar-integrations/outlook-calendar-setup)
+- [Microsoft Teams bots](https://docs.meetstream.ai/guides/platforms/microsoft-teams)
+- [Teams signed-in bots](https://docs.meetstream.ai/guides/app-integrations/teams-signed-in-bots)
+- [Automatic leave configuration](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Webhook signature verification](https://docs.meetstream.ai/guides/webhooks/webhook-signature-verification)
+- [Outlook Calendar setup](https://docs.meetstream.ai/guides/calendar-integrations/outlook-calendar-setup)
 - [Per-participant audio](https://docs.meetstream.ai/guides/transcription-recordings/per-participant-audio) and [video](https://docs.meetstream.ai/guides/transcription-recordings/per-participant-video)
-- [Debugging Bots](https://docs.meetstream.ai/guides/help/debugging-bots)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Debugging bots](https://docs.meetstream.ai/guides/help/debugging-bots)
+- Templates: [teams-signed-in-bots-setup](../teams-signed-in-bots-setup/README.md), [zoom-meeting-bot](../zoom-meeting-bot/README.md), [outlook-calendar-integration](../outlook-calendar-integration/README.md), [webhook-handler-complete](../webhook-handler-complete/README.md)

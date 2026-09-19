@@ -234,7 +234,9 @@ export function applyEvent(record, envelope) {
   if (!STATES[to]) {
     return { moved: false, from, to: from, note: `unknown target state "${to}", ignored` };
   }
-  if (STATES[from].terminal) {
+  // An unknown `from` (stale state file) ranks below everything, so any event may move it.
+  const fromMeta = STATES[from] ?? { rank: -1, terminal: false };
+  if (fromMeta.terminal) {
     // `deleted` is the one thing that may follow a terminal state.
     if (to === 'deleted') {
       record.state = 'deleted';
@@ -249,7 +251,7 @@ export function applyEvent(record, envelope) {
       note: `already terminal in "${from}", ignoring ${event}`,
     };
   }
-  if (STATES[to].rank < STATES[from].rank) {
+  if (STATES[to].rank < fromMeta.rank) {
     // Out-of-order or duplicate delivery. Never walk backwards.
     return {
       moved: false,
@@ -274,7 +276,7 @@ export function applyEvent(record, envelope) {
 /** Human-readable outcome for a finished bot, or null while it is still running. */
 export function summarizeOutcome(record) {
   const meta = STATES[record.state];
-  if (!meta.terminal) return null;
+  if (!meta?.terminal) return null;
   return {
     state: record.state,
     outcome: meta.outcome,

@@ -1,6 +1,6 @@
-# Teams Signed-In Bots - Setup
+# Set Up Microsoft Teams Signed-In Bots with the MeetStream API
 
-Set up MeetStream Microsoft Teams signed-in bots end to end: the Microsoft 365 tenant checklist, login domain and bot account registration, day-to-day account management, and a `create_bot` request with `teams.login_required`.
+Set up MeetStream signed-in meeting bots for Microsoft Teams end to end: the Microsoft 365 tenant checklist, login domain and bot account registration through the MeetStream API (`/teams-login-domains`, `/teams-logins`), day-to-day account management, and a `create_bot` request with `teams.login_required` so the bot joins as a real Microsoft 365 user.
 
 ```bash
 npm install
@@ -54,22 +54,39 @@ Three rules shape everything else:
 
 ---
 
-## Configuration
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/teams-signed-in-bots-setup
+npm install
+cp .env.example .env              # fill in MEETSTREAM_API_KEY, TEAMS_LOGIN_DOMAIN, the bot accounts
+node index.js                     # prints the Microsoft 365 checklist and every command
+node index.js setup --dry-run     # shows every request it would send, passwords redacted
+node index.js setup               # registers the domain and accounts, then shows lease status
+```
+
+## Environment variables
 
 Everything comes from `.env` (see `.env.example`).
 
-| Variable | Used by | Notes |
+| Variable | Required | Meaning |
 | --- | --- | --- |
-| `MEETSTREAM_API_KEY` | all API calls | Not needed with `--dry-run`. |
-| `TEAMS_LOGIN_DOMAIN` | everything | The part after the @ in the bot emails, e.g. `bots.acme.com`. `--domain` overrides it. |
-| `TEAMS_DOMAIN_NAME` | `register-domain` | Optional label. |
-| `TEAMS_BOT_ACCOUNTS` | `add-accounts` | Comma-separated bot emails. |
-| `TEAMS_BOT_PASSWORD_1`, `_2`, ... | `add-accounts` | Password for the 1st, 2nd, ... email in `TEAMS_BOT_ACCOUNTS`. Unset = hidden prompt. |
-| `TEAMS_NEW_PASSWORD` | `rotate-password` | Optional. Unset = hidden prompt, typed twice. |
-| `MEETING_LINK` | `create-bot` | A `teams.microsoft.com` meeting link. |
-| `SIGN_IN_EMAIL` | `create-bot`, `verify` | Optional. Pin one account. |
-| `STRICT_EMAIL` | `create-bot`, `verify` | Optional, API default `true`. Only matters with `SIGN_IN_EMAIL`. |
-| `BOT_NAME`, `VIDEO_REQUIRED`, `WAITING_ROOM_TIMEOUT`, `CALLBACK_URL` | `create-bot` | `WAITING_ROOM_TIMEOUT` is 60-1800 on Teams. |
+| `MEETSTREAM_API_KEY` | yes (not with `--dry-run`) | API key, sent as `Authorization: Token <key>` |
+| `MEETSTREAM_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
+| `TEAMS_LOGIN_DOMAIN` | yes | The part after the @ in the bot emails, e.g. `bots.acme.com`; `--domain` overrides it |
+| `TEAMS_DOMAIN_NAME` | no | Label for the domain entry (`register-domain`) |
+| `TEAMS_BOT_ACCOUNTS` | for `add-accounts` | Comma-separated bot emails |
+| `TEAMS_BOT_PASSWORD_1`, `_2`, ... | no | Password for the 1st, 2nd, ... email in `TEAMS_BOT_ACCOUNTS`; unset = hidden prompt |
+| `TEAMS_NEW_PASSWORD` | no | New password for `rotate-password`; unset = hidden prompt, typed twice |
+| `MEETING_LINK` | for `create-bot` | A `teams.microsoft.com` meeting link |
+| `SIGN_IN_EMAIL` | no | Pin one account (`create-bot`, `verify`) |
+| `STRICT_EMAIL` | no | API default `true`; only matters with `SIGN_IN_EMAIL` |
+| `BOT_NAME` / `BOT_IMAGE_URL` | no | Only shown if the bot joins as a guest; a signed-in Teams bot uses the Microsoft account's name and picture, and the CLI warns if `BOT_IMAGE_URL` is set |
+| `VIDEO_REQUIRED` | no | `true` records video as well as audio (default `false`) |
+| `WAITING_ROOM_TIMEOUT` | no | Lobby wait in seconds, 60-1800 on Teams (default `600`) |
+| `CALLBACK_URL` | no | Per-bot webhook URL for lifecycle events |
+| `DEBUG` | no | Set to anything to print stack traces on unexpected errors |
 
 **Passwords** are only read from environment variables or a no-echo prompt. They are never accepted as CLI flags (they would land in shell history), never printed, redacted as `[redacted]` in `--dry-run` output, and scrubbed out of any API error message. The API never returns them.
 
@@ -224,14 +241,11 @@ src/errors.js     documented status codes -> what to do next
 
 ---
 
-## Related templates
+## Related
 
-- `teams-meeting-bot` - Teams lifecycle, lobby and timeout behaviour for guest bots
-- `google-signed-in-bots-setup` and `google-login-management` - the Google Meet equivalent
-
-## Docs
-
-- [Microsoft Teams Bots](https://docs.meetstream.ai/guides/platforms/microsoft-teams)
-- [Create Bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
-- [Automatic Leave Configurations](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
-- [Errors](https://docs.meetstream.ai/errors)
+- [Teams signed-in bots guide](https://docs.meetstream.ai/guides/app-integrations/teams-signed-in-bots)
+- [Microsoft Teams platform guide](https://docs.meetstream.ai/guides/platforms/microsoft-teams)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Automatic leave configuration](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Related templates: [../teams-meeting-bot](../teams-meeting-bot) (Teams lifecycle, lobby and timeout behaviour for guest bots); [../google-signed-in-bots-setup](../google-signed-in-bots-setup) and [../google-login-management](../google-login-management) (the Google Meet equivalent)

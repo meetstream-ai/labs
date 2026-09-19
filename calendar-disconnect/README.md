@@ -1,6 +1,6 @@
-# calendar-disconnect
+# Disconnect a Google or Outlook Calendar from the MeetStream API
 
-Tear down a calendar integration with `POST /calendar/disconnect`. This is destructive and irreversible, so the template previews exactly what will be deleted and requires a typed confirmation.
+Tear down a Google Calendar or Outlook calendar integration with the MeetStream API's `POST /calendar/disconnect`, which stops calendar sync and cancels every meeting bot still scheduled to join Zoom, Google Meet or Microsoft Teams calls. This is destructive and irreversible, so the template previews exactly what will be deleted and requires a typed confirmation.
 
 ```bash
 npm install
@@ -25,6 +25,26 @@ What survives: bots that have **already run**. Their recordings, transcripts and
 - Node.js 18 or newer.
 - A MeetStream API key from <https://app.meetstream.ai>.
 - A connected calendar. If nothing is connected, `preview` tells you so.
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/calendar-disconnect
+npm install
+cp .env.example .env      # fill in MEETSTREAM_API_KEY
+node index.js preview
+```
+
+## Environment variables
+
+| Name | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key from <https://app.meetstream.ai>, sent as `Authorization: Token <key>`. |
+| `MEETSTREAM_API_BASE_URL` | no | API base URL. Default `https://api.meetstream.ai/api/v1`. |
+| `GOOGLE_CLIENT_ID` | no | Google OAuth client id. Only sent when all three Google values are set. |
+| `GOOGLE_CLIENT_SECRET` | no | Google OAuth client secret. Never printed. |
+| `GOOGLE_REFRESH_TOKEN` | no | Google OAuth refresh token. Never printed. |
 
 ## Usage
 
@@ -156,17 +176,25 @@ Disconnecting is a large hammer. Depending on what you actually want:
 
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-|---|---|
-| API error 400 with `next_steps` | Several connections and no scope. Re-run with `--provider` and `--account-id`. |
-| API error 404 | Nothing is connected, so there is nothing to disconnect. Run `preview`. |
-| `preview` shows no calendars | No connection exists, or the API key belongs to a different account. |
-| Prompt refuses to accept input | stdin is not a TTY. Use `--yes`. |
-| Bots still joined after disconnecting | They had already started. Only `Scheduled` bots are cancelled. |
-| Need the event history back | Not recoverable. Use `--keep-events` next time. |
+| Symptom | Cause | Fix |
+|---|---|---|
+| `MEETSTREAM_API_KEY is not set` | `.env` missing or blank | `cp .env.example .env` and fill in the key. |
+| API error 401 | No API key was sent | Set `MEETSTREAM_API_KEY`. |
+| API error 403 | Key rejected or belongs to another workspace | Copy the whole key from the dashboard. |
+| API error 400 with `next_steps` | Several connections and no scope | Re-run with `--provider` and `--account-id`. |
+| API error 404 | Nothing is connected | Run `preview` first; there is nothing to disconnect. |
+| API error 429 | Rate limited | Back off and retry. |
+| `preview` shows no calendars | No connection exists, or the key belongs to a different account | Check the key and workspace. |
+| Prompt refuses to accept input | stdin is not a TTY | Use `--yes`. |
+| Bots still joined after disconnecting | They had already started | Only `Scheduled` bots are cancelled; use `remove_bot` on live ones. |
+| Need the event history back | Not recoverable | Use `--keep-events` next time. |
 
-## Related templates
+## Related
 
-- `google-calendar-integration` / `outlook-calendar-integration` reconnect afterwards.
-- `manage-scheduled-bots` cancels bots without dismantling the connection.
-- `calendar-auto-schedule` turns auto-join off without dismantling the connection.
+- [Disconnect calendar](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/disconnect-calendar)
+- [Get calendars](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/get-calendars)
+- [List scheduled bots](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/list-scheduled-bots)
+- [Google Calendar OAuth setup](https://docs.meetstream.ai/guides/calendar-integrations/google-calendar-oauth-setup)
+- [Outlook calendar setup](https://docs.meetstream.ai/guides/calendar-integrations/outlook-calendar-setup)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [google-calendar-integration](../google-calendar-integration) and [outlook-calendar-integration](../outlook-calendar-integration) reconnect afterwards; [manage-scheduled-bots](../manage-scheduled-bots) cancels bots without dismantling the connection; [calendar-auto-schedule](../calendar-auto-schedule) turns auto-join off without dismantling it.

@@ -1,6 +1,6 @@
-# zoom-authenticated-joins
+# Authenticated Zoom Joins with ZAK and OBF Tokens for MeetStream Bots
 
-Host the Zoom token URL that MeetStream bots call at join time, so a bot joins Zoom as a signed-in user (ZAK) or on behalf of a user already in the meeting (OBF) instead of as a guest.
+Host the Zoom OAuth grant and the token URL that MeetStream API bots call at join time, so a meeting bot joins Zoom as a signed-in user (ZAK) or on behalf of a user already in the meeting (OBF) instead of as a guest stuck in the waiting room. Zoom only; Google Meet and Microsoft Teams have their own signed-in bot flows.
 
 ```bash
 npm install
@@ -68,17 +68,25 @@ Use one Zoom **General App** for both halves: the Meeting SDK app the bot runs a
 
 Until the Zoom app is approved for production, it only works for a limited set of users. See the development vs production notes in [`zoom-meeting-bot`](../zoom-meeting-bot).
 
+## Prerequisites
+
+- Node.js 18 or newer
+- A Zoom General App with Meeting SDK enabled and the `user:read:zak` / `user:read:token` scopes (see above)
+- A public https tunnel to this machine (`ngrok` or `cloudflared`); MeetStream bots run in AWS and cannot reach `localhost`
+- A MeetStream API key from <https://app.meetstream.ai> for `create-bot`
+
 ## Setup
 
-1. `npm install`
-2. `cp .env.example .env`
-3. Fill in `ZOOM_CLIENT_ID`, `ZOOM_CLIENT_SECRET`, and a long `MINT_SHARED_SECRET` (`openssl rand -hex 32`)
-4. Start a tunnel to `PORT` (default 3000). MeetStream bots run in AWS and cannot reach `localhost`, so the mint URL has to be public https:
-   - `ngrok http 3000`, or
-   - `cloudflared tunnel --url http://localhost:3000` (no account, new URL every run, so re-register the redirect URL on Zoom each time)
-5. Put the tunnel's https URL in `PUBLIC_BASE_URL` (no trailing slash)
-6. `node index.js`
-7. Add `MEETSTREAM_API_KEY` when you are ready to run `create-bot`
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/zoom-authenticated-joins
+npm install
+cp .env.example .env         # ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET, MINT_SHARED_SECRET (openssl rand -hex 32)
+ngrok http 3000              # second terminal; put the https URL in PUBLIC_BASE_URL, no trailing slash
+node index.js                # token server
+```
+
+`cloudflared tunnel --url http://localhost:3000` also works, but it gives a new URL every run, so re-register the redirect URL on the Zoom app each time. Add `MEETSTREAM_API_KEY` when you are ready to run `create-bot`.
 
 ## Run
 
@@ -149,9 +157,9 @@ Both return `{ "token": "..." }`. OBF tokens are short-lived and single-use, so 
 - **Auth on the mint URL.** A shared secret is the simplest option. A per-user or per-bot HMAC over `user_id` (and an expiry) limits the damage if one URL leaks.
 - **Multiple instances.** OAuth `state` and the access-token cache are in memory. Move them to a shared store (Redis, your DB) if you run more than one instance.
 
-## Configuration
+## Environment variables
 
-| Variable | Required | Default | Notes |
+| Name | Required | Default | Meaning |
 |---|---|---|---|
 | `ZOOM_CLIENT_ID` | server | | Zoom General App |
 | `ZOOM_CLIENT_SECRET` | server | | Zoom General App |
@@ -165,36 +173,33 @@ Both return `{ "token": "..." }`. OBF tokens are short-lived and single-use, so 
 
 ## Troubleshooting
 
-**`Pass only one of zoom.zak_url or zoom.obf_url`** - both were sent. Pick one per bot.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing ... in .env` | Placeholders still in `.env` | Copy `.env.example` to `.env` and replace every placeholder. |
+| MeetStream 401 / 403 on `create-bot` | `MEETSTREAM_API_KEY` missing or rejected | Set or regenerate it; header is `Authorization: Token <key>`. |
+| MeetStream 400: `Pass only one of zoom.zak_url or zoom.obf_url` | Both URLs were sent | Pick one per bot. |
+| MeetStream 400: `use_zoom_obf is no longer supported` | Old code still sends `use_zoom_obf` or `zoom_oauth_connection_user_id` | Remove them and send `zoom.zak_url` or `zoom.obf_url`. |
+| MeetStream 507 on `create-bot` | Idempotent replay | Treated as success; the original bot is returned. |
+| `must use https` / `must include a host` | `PUBLIC_BASE_URL` is `http://`, `localhost`, or malformed | Use the tunnel's https URL. |
+| Bot fails at join: `OBF token is required but could not be fetched` (same for a failing `zak_url`) | Your mint URL returned non-2xx; check this server's `[mint]` log line for the bot id | See the mint-URL rows below. |
+| Mint URL `400` | `meeting_number` was on the `obf_url` you passed to `create_bot` and arrived twice, or `user_id` is missing | Drop `meeting_number` from the URL; MeetStream appends it. |
+| Mint URL `401` | `auth` does not match `MINT_SHARED_SECRET` | Was the secret rotated after the bot was created? Recreate the bot. |
+| Mint URL `404` | That `user_id` never completed `/zoom/connect` | Have the user connect. |
+| Mint URL `409` | The Zoom grant is dead (app revoked, or refresh token expired unused) | Have them connect again. |
+| Mint URL `502` | Zoom refused to mint | Check scopes (`user:read:zak`, `user:read:token`) and that Meeting SDK is enabled for OBF. |
+| No `[mint]` log line at all | Tunnel is down, or `PUBLIC_BASE_URL` points at an old tunnel URL | Restart the tunnel and update `.env`. |
+| OBF bot is never admitted, or disappears | The parent user must already be in the meeting; Zoom removes the bot when they leave | If they join late, raise `automatic_leave.waiting_room_timeout`. |
+| Zoom says "Invalid redirect" before the consent screen | Redirect URL on the Zoom app does not match `ZOOM_REDIRECT_URI` byte for byte | Fix scheme, host, path and trailing slash. With cloudflared the host changes every run. |
+| "Link expired" after approving in Zoom | `state` was not issued by this process (server restarted, or an old tab) | Start again from `/zoom/connect`. |
 
-**`must use https` / `must include a host`** - `PUBLIC_BASE_URL` is `http://`, `localhost`, or malformed. Use the tunnel's https URL.
+## Related
 
-**`use_zoom_obf is no longer supported`** - old code is still sending `use_zoom_obf` or `zoom_oauth_connection_user_id`. Remove them and send `zoom.zak_url` or `zoom.obf_url`.
-
-**Bot fails at join with `OBF token is required but could not be fetched`** - your URL returned non-2xx at join time (the same causes apply to a failing `zak_url`). Check this server's `[mint]` log line for the bot id. Usual causes:
-- `400`: `meeting_number` was on the `obf_url` you passed to `create_bot` and arrived twice, or `user_id` is missing
-- `401`: `auth` does not match `MINT_SHARED_SECRET` (secret rotated after the bot was created?)
-- `404`: that `user_id` never completed `/zoom/connect`
-- `409`: the Zoom grant is dead (user revoked the app, or the refresh token expired unused). Have them connect again
-- `502`: Zoom refused to mint. Check scopes (`user:read:zak`, `user:read:token`) and that Meeting SDK is enabled for OBF
-- no log line at all: the tunnel is down or `PUBLIC_BASE_URL` points at an old tunnel URL
-
-**OBF bot is never admitted, or disappears** - the parent user must already be in the meeting, and Zoom removes the bot when they leave. If they join late, raise `automatic_leave.waiting_room_timeout` on `create_bot`.
-
-**Zoom says "Invalid redirect" before the consent screen** - the redirect URL on the Zoom app does not match `ZOOM_REDIRECT_URI` byte for byte (scheme, host, path, trailing slash). With cloudflared the host changes every run.
-
-**"Link expired" after approving in Zoom** - the `state` was not issued by this process (server restarted, or an old tab). Start again from `/zoom/connect`.
-
-**`Missing ... in .env`** - copy `.env.example` to `.env` and replace every placeholder.
-
-## Reference
-
-- [Zoom Authenticated Bots (ZAK and OBF)](https://docs.meetstream.ai/guides/app-integrations/zoom-authenticated-bots)
-- [Zoom Marketplace App Setup](https://docs.meetstream.ai/guides/app-integrations/zoom-marketplace-app-setup)
+- [Zoom authenticated bots (ZAK and OBF)](https://docs.meetstream.ai/guides/app-integrations/zoom-authenticated-bots)
+- [Zoom Marketplace app setup](https://docs.meetstream.ai/guides/app-integrations/zoom-marketplace-app-setup)
+- [Zoom app production submission](https://docs.meetstream.ai/guides/app-integrations/zoom-app-production-submission)
+- [Zoom platform guide](https://docs.meetstream.ai/guides/platforms/zoom)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Error codes](https://docs.meetstream.ai/errors)
 - [Zoom: OBF FAQ](https://developers.zoom.us/docs/meeting-sdk/obf-faq/)
 - [Zoom: OAuth for apps](https://developers.zoom.us/docs/integrations/oauth/)
-
-## Next
-
-- [`zoom-meeting-bot`](../zoom-meeting-bot) handles Zoom's recording-permission flow once the bot is in
-- [`webhook-local-tunnel`](../webhook-local-tunnel) covers running a public https URL for local development
+- Labs: [zoom-meeting-bot](../zoom-meeting-bot) handles Zoom's recording-permission flow once the bot is in; [webhook-local-tunnel](../webhook-local-tunnel) covers running a public https URL for local development; [google-signed-in-bots-setup](../google-signed-in-bots-setup) and [teams-signed-in-bots-setup](../teams-signed-in-bots-setup) are the equivalents for the other platforms

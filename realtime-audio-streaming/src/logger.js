@@ -42,17 +42,32 @@ export class Logger {
 
   /**
    * Bot lifecycle / participant event
-   * { bot_id, event, bot_status, message, status_code, ... }
+   * { bot_id, event, bot_event, bot_status, message, status_code, ... }
+   *
+   * `event` is the generic name; `bot_event` is the specific one and, on a
+   * terminal `bot.stopped` delivery, carries the reason (bot.stopped,
+   * bot.kicked, bot.notallowed, bot.denied, bot.failed). `bot.done` is the
+   * final event on every path, streaming bots included.
    */
   event(payload) {
-    const { event, bot_status, message, status_code } = payload;
+    const { event, bot_event, bot_status, message, status_code } = payload;
 
     const statusColor =
       status_code === 200 ? chalk.green :
       status_code === 102 ? chalk.yellow :
       chalk.red;
 
-    const label = (event ?? bot_status ?? "event").padEnd(28);
+    let label = bot_event ?? event ?? bot_status ?? "event";
+    if (event === "bot.stopped" && !bot_event) {
+      // Fallback only when bot_event is missing: bot_status, case-insensitive.
+      const status = String(bot_status ?? "").toLowerCase();
+      label =
+        status === "notallowed" ? "bot.notallowed" :
+        status === "denied" ? "bot.denied" :
+        status === "error" || status === "failed" ? "bot.failed" :
+        "bot.stopped";
+    }
+    label = label.padEnd(28);
     console.log(
       `${ts()} ${statusColor(label)} ${chalk.dim(message ?? "")}`
     );

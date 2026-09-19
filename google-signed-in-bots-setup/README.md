@@ -1,6 +1,6 @@
-# Google Signed-In Bots - Setup
+# Set Up Google Signed-In Meet Bots with the MeetStream API
 
-Set up MeetStream Google signed-in bots end to end: the Google Workspace SAML SSO profile, the certificate pair, the domain registration call, and a `create_bot` request with `google_meet.login_required`.
+Set up MeetStream Google signed-in bots end to end, so a meeting bot joins Google Meet logged into a real Google Workspace account instead of as an anonymous guest, and skips the lobby when that account is on the invite. Covers the Workspace SAML SSO profile, the certificate pair, the domain registration call, and a `create_bot` request with `google_meet.login_required`. Google Meet only; Zoom and Microsoft Teams have their own signed-in flows.
 
 ```bash
 npm install
@@ -22,7 +22,7 @@ Use it when:
 - Meetings start without a host available to admit a guest.
 - You want a verified name and avatar instead of "Unknown".
 
-This is a **Google Meet only** feature. Zoom and Teams bots ignore the `google_meet` block.
+This is a **Google Meet only** feature. Zoom and Teams bots ignore the `google_meet` block. For Teams see [teams-signed-in-bots-setup](../teams-signed-in-bots-setup); for Zoom see [zoom-authenticated-joins](../zoom-authenticated-joins).
 
 ---
 
@@ -34,9 +34,42 @@ This is a **Google Meet only** feature. Zoom and Teams bots ignore the `google_m
 - `openssl` on your PATH.
 - A MeetStream API key from [app.meetstream.ai](https://app.meetstream.ai).
 
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/google-signed-in-bots-setup
+npm install
+cp .env.example .env      # fill in MEETSTREAM_API_KEY and GOOGLE_LOGIN_DOMAIN
+node index.js             # checklist
+node index.js gen-cert    # then follow "Configuration, step by step" below
+```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY` | yes (except `gen-cert`) | API key, sent as `Authorization: Token <key>`. |
+| `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
+| `CERT_DIR` | no | Where `gen-cert` writes `key.pem` and `cert.pem`. Default `./certs`. |
+| `CERT_SUBJECT` | no | OpenSSL subject, e.g. `/CN=yourdomain.com/O=Your Company/C=US`. Unset: openssl prompts interactively. |
+| `CERT_DAYS` | no | Certificate validity in days. Default `3650`. |
+| `GOOGLE_DOMAIN_USER_ID` | `register-domain` | `user_id` body field of `POST /google-login-domains`. |
+| `GOOGLE_DOMAIN_NAME` | `register-domain` | `name` body field, a label for the entry. |
+| `GOOGLE_LOGIN_MODE` | no | `always` or `if_required`. Unset: API default. |
+| `GOOGLE_LOGIN_DOMAIN` | `verify`, `create-bot` | The Workspace domain you configured. Goes into `google_meet.google_login_domain`. |
+| `SIGN_IN_EMAIL` | no | Pin one login under the domain. Unset: MeetStream picks one round-robin. |
+| `STRICT_EMAIL` | no | With `SIGN_IN_EMAIL` only. API default `true`: fail if that account is busy or unhealthy. `false`: fall back to any available login in the domain. |
+| `MEETING_LINK` | `create-bot` | The `meet.google.com` link to join. |
+| `BOT_NAME` | no | Sent as `bot_name`. Meet shows the Google account's own name, not this. Default `MeetStream Signed-In Bot`. |
+| `VIDEO_REQUIRED` | no | `true` records video as well as audio. Default `false`. |
+| `WAITING_ROOM_TIMEOUT` | no | `automatic_leave.waiting_room_timeout`, 60-600 seconds. Unset: API default 600. |
+| `CALLBACK_URL` | no | Per-bot webhook URL for lifecycle events. |
+| `DEBUG` | no | Set to any value to print full stack traces on unexpected errors. |
+
 ---
 
-## Setup, step by step
+## Configuration, step by step
 
 This is a one-time setup per domain. Steps 1-4 happen in Google, step 5 on your machine, steps 6-8 in MeetStream.
 
@@ -46,7 +79,7 @@ Go to [admin.google.com](https://admin.google.com) and sign in as a super admin 
 
 ### 2. Find the SSO settings
 
-Navigate to **Security → Authentication → SSO with third-party IdPs**.
+Navigate to **Security -> Authentication -> SSO with third-party IdPs**.
 
 ### 3. Open the legacy SSO profile
 
@@ -92,7 +125,7 @@ Upload `cert.pem` as the verification certificate on the Google legacy SSO profi
 
 ### 6. Open the MeetStream integration
 
-In the [MeetStream dashboard](https://app.meetstream.ai/integrations), go to **Integrations → Google Signed-In Bots**.
+In the [MeetStream dashboard](https://app.meetstream.ai/integrations), go to **Integrations -> Google Signed-In Bots**.
 
 ### 7. Add your domain
 
@@ -158,9 +191,9 @@ The signed-in switch is the `google_meet` block on `POST /bots/create_bot`:
 | Field | Meaning |
 | --- | --- |
 | `login_required` | `true` turns on signed-in mode. Omit the whole block for a normal anonymous bot. |
-| `google_login_domain` | The domain you configured in step 7. Required. |
+| `google_login_domain` | The domain you configured in step 7. Required when `login_required` is true. |
 | `sign_in_email` | Optional. Pin one specific login. Omit and MeetStream distributes bots across the domain's logins round-robin. |
-| `strict_email` | Optional. Fail rather than silently fall back to another login. |
+| `strict_email` | Optional, only with `sign_in_email`. Default `true`: fail if that account is busy or unhealthy. `false`: fall back to any available login in the domain. |
 
 **Add `sign_in_email` to the Google Calendar invite.** That is what makes Meet treat the bot as an invited participant and skip the lobby. Signing in alone gets you a named participant; being on the invite gets you past the waiting room.
 
@@ -181,7 +214,7 @@ logins = peak concurrent Google Meet sessions / 20
 
 Round up, and leave headroom for spikes. A peak of 100 concurrent Meet bots means at least 5 logins. Each login needs its own certificate upload (step 8).
 
-`node index.js status` shows `login_count`, `active_login_count`, and per-login `active_sessions` so you can see how close you are to saturating them. For day-to-day CRUD on domains and logins, see the `google-login-management` template.
+`node index.js status` shows `login_count`, `active_login_count`, and per-login `active_sessions` so you can see how close you are to saturating them. For day-to-day CRUD on domains and logins, see the [google-login-management](../google-login-management) template.
 
 ---
 
@@ -201,30 +234,28 @@ Nothing in `src/certs.js` transmits the key material - the pair is generated loc
 
 ## Troubleshooting
 
-**`verify` says the domain is not configured (404)**
-The domain is registered against a different API key or workspace, or was never added. Run `node index.js status` to see what this key actually has.
-
-**Bot still lands in the waiting room**
-Signing in is not the same as being invited. Add the exact `sign_in_email` address to the calendar event. Also confirm the host has not restricted meeting access to a narrower group.
-
-**Bot shows the wrong name**
-Expected - Google Meet renders the signed-in account's display name and avatar. Change the Google account's profile, not `bot_name`.
-
-**`bot.notallowed` / `bot_status: "NotAllowed"`**
-The bot waited and was never admitted before `waiting_room_timeout`. **`Denied`** means a host explicitly rejected it. See the `gmeet-lobby-handling` template for a webhook handler that distinguishes and reacts to both.
-
-**A login shows `last_test_status` other than success**
-The SSO profile or the certificate for that mail ID is wrong. Re-check step 4 (both URLs plus domain-specific issuer) and re-upload `cert.pem` / `key.pem` for that login.
-
-**401 / 403 from the API**
-401 means no key was sent, 403 means the key is not valid for this workspace. The header must be `Authorization: Token <key>`.
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `Missing required environment variable MEETSTREAM_API_KEY` | No `.env`, or an empty key. Only `gen-cert` runs without it. | `cp .env.example .env` and paste your key. |
+| 401 / 403 from the API | 401: no key was sent. 403: the key is not valid for this workspace. | The header must be `Authorization: Token <key>`; regenerate the key if 403 persists. |
+| `verify` says the domain is not configured (404) | The domain is registered against a different API key or workspace, or was never added. | Run `node index.js status` to see what this key actually has, then add it in the dashboard or with `register-domain`. |
+| 400 on `create-bot` | `google_login_domain` missing while `login_required` is true, or `waiting_room_timeout` outside 60-600. | Set `GOOGLE_LOGIN_DOMAIN`; check the timeout. |
+| `"..." is not a meet.google.com link` | Signed-in bots are Google Meet only. | Use a `meet.google.com` link, or the Teams / Zoom templates for those platforms. |
+| Bot still lands in the waiting room | Signing in is not the same as being invited. | Add the exact `sign_in_email` address to the calendar event. Also confirm the host has not restricted meeting access to a narrower group. |
+| Bot shows the wrong name | Expected: Google Meet renders the signed-in account's display name and avatar. | Change the Google account's profile, not `bot_name`. |
+| `bot.stopped` with `bot_event: bot.notallowed` | The bot waited and was never admitted before `waiting_room_timeout`. `bot.denied` means a host explicitly rejected it. | See [gmeet-lobby-handling](../gmeet-lobby-handling) for a webhook handler that distinguishes and reacts to both. |
+| A login shows `last_test_status` other than success | The SSO profile or the certificate for that mail ID is wrong. | Re-check step 4 (both URLs plus domain-specific issuer) and re-upload `cert.pem` / `key.pem` for that login. |
+| `key.pem or cert.pem already exists` | `gen-cert` refuses to overwrite a pair that may already be uploaded. | Pass `--force` only if you will re-upload on both sides, or change `CERT_DIR`. |
 
 ---
 
-## Docs
+## Related
 
 - [Google Signed-In Bots](https://docs.meetstream.ai/guides/app-integrations/google-signed-in-bots)
-- [Google Meet Lobby & Admission](https://docs.meetstream.ai/guides/app-integrations/gmeet-lobby-admission)
+- [Google Meet Lobby and Admission](https://docs.meetstream.ai/guides/app-integrations/gmeet-lobby-admission)
 - [Google Meet Bots](https://docs.meetstream.ai/guides/platforms/google-meet)
-- [Google signed-in bot API reference](https://docs.meetstream.ai/api-reference/api-endpoints/google-signed-in-bots/create-google-domain)
+- [Create Google domain](https://docs.meetstream.ai/api-reference/api-endpoints/google-signed-in-bots/create-google-domain)
+- [List Google logins](https://docs.meetstream.ai/api-reference/api-endpoints/google-signed-in-bots/list-google-logins)
 - [Create Bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Automatic leave configuration](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
+- Sibling templates: [google-login-management](../google-login-management), [gmeet-lobby-handling](../gmeet-lobby-handling), [teams-signed-in-bots-setup](../teams-signed-in-bots-setup), [zoom-authenticated-joins](../zoom-authenticated-joins)

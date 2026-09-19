@@ -1,6 +1,6 @@
-# live-captions-overlay
+# Live Meeting Captions in the Terminal with the MeetStream API
 
-Live meeting captions in your terminal, streamed from MeetStream over a webhook while the meeting is still running.
+Live captions for a Zoom, Google Meet or Microsoft Teams meeting, rendered in your terminal while the meeting is still running. A MeetStream meeting bot joins with `live_transcription_required` and a streaming transcription provider, and POSTs each transcript chunk to a webhook on this machine.
 
 ```bash
 cp .env.example .env      # add MEETSTREAM_API_KEY and PUBLIC_URL
@@ -60,9 +60,9 @@ The template checks the provider before calling the API and explains the problem
 This is the trade-off, and it surprises people:
 
 ```
-bot.joining → bot.in_waiting_room → bot.inmeeting → bot.recording
-            → bot.leaving → bot.stopped → manifest.completed / audio.processed
-            → bot.done
+bot.joining -> bot.in_waiting_room -> bot.inmeeting -> bot.recording
+            -> bot.leaving -> bot.stopped -> manifest.completed / audio.processed
+            -> bot.done
                (no transcription.processed in between for streaming-only bots)
 ```
 
@@ -73,7 +73,7 @@ So the live chunks arriving at your webhook are the only transcript you get. If 
 Two ways to have both:
 
 - **Persist the chunks yourself** as they arrive. This template keeps them in memory for the overlay; in production, write each chunk to a durable store inside the `/live` handler before doing anything else.
-- **Re-transcribe afterwards.** The audio is recorded regardless of which transcript provider you chose. After `audio.processed`, run `POST /bots/{bot_id}/transcribe` with a post-call provider and you get a proper transcript with a real `transcript_id`. See the `re-transcribe-audio` template.
+- **Re-transcribe afterwards.** The audio is recorded regardless of which transcript provider you chose. After `audio.processed`, run the transcribe-bot-audio endpoint with a post-call provider and you get a proper transcript with a real `transcript_id`. See the [re-transcribe-audio](../re-transcribe-audio) template.
 
 ## Prerequisites
 
@@ -84,6 +84,9 @@ Two ways to have both:
 ## Setup
 
 ```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/live-captions-overlay
+npm install
 cp .env.example .env
 ```
 
@@ -91,14 +94,40 @@ Set `MEETSTREAM_API_KEY`. Start a tunnel and set `PUBLIC_URL` to its HTTPS URL:
 
 ```bash
 ngrok http 3000
-# → https://abc123.ngrok-free.app
+# -> https://abc123.ngrok-free.app
 ```
 
 ```
 PUBLIC_URL=https://abc123.ngrok-free.app
 ```
 
-The template appends the paths itself: `/live` for chunks, `/webhook` for lifecycle events.
+The template appends the paths itself: `/live` for chunks, `/webhook` for lifecycle events. Then:
+
+```bash
+node index.js https://meet.google.com/xxx-xxxx-xxx
+```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
+| `PUBLIC_URL` | yes | Public HTTPS base URL for this server. `/live` and `/webhook` are appended. |
+| `MEETING_LINK` | one of | Meeting to join. The first CLI argument overrides it. |
+| `PORT` | no | Local listen port. Default `3000`. |
+| `PROVIDER` | no | Must be a `*_streaming` provider. Default `deepgram_streaming`. |
+| `LANGUAGE` | no | Language code in the provider's format. Unset: provider default. |
+| `DEEPGRAM_MODEL` | no | `deepgram_streaming` model. Default `nova-3`. |
+| `TRANSCRIPTION_MODE` | no | `sentence` or `word` for Deepgram (default `sentence`); default `raw` for AssemblyAI. |
+| `ENDPOINTING_MS` | no | Deepgram silence threshold that closes an utterance. Default `300`. |
+| `ASSEMBLYAI_SPEECH_MODEL` | no | `assemblyai_streaming` `speech_model`; omitted when unset. |
+| `SAMPLE_RATE` | no | `assemblyai_streaming` audio sample rate. Default `48000`. |
+| `ENCODING` | no | `assemblyai_streaming` audio encoding. Default `pcm_s16le`. |
+| `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Captions Bot`. |
+| `CAPTION_LINES` | no | Committed lines kept on screen. Default `10`. |
+| `RETENTION_HOURS` | no | `recording_config.retention.hours`. Default `24` here; the API default when omitted is 720. |
+| `REMOVE_BOT_ON_EXIT` | no | `false` leaves the bot in the meeting on Ctrl-C. Default `true`. |
+| `MEETSTREAM_API_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 
 ## Run
 
@@ -151,44 +180,31 @@ Worth knowing:
 
 **Both handlers ACK immediately** and do their work after responding. A slow webhook handler stalls the delivery pipeline and you start dropping captions.
 
-## Configuration
-
-| Variable | Default | Purpose |
-|---|---|---|
-| `MEETSTREAM_API_KEY` | - | Required. Sent as `Authorization: Token <key>`. |
-| `MEETING_LINK` | - | Meeting to join. The first CLI argument overrides it. |
-| `PUBLIC_URL` | - | Required. Public HTTPS base URL for this server. |
-| `PORT` | `3000` | Local listen port. |
-| `PROVIDER` | `deepgram_streaming` | Must be a `*_streaming` provider. |
-| `LANGUAGE` | - | Language code in the provider's format. |
-| `DEEPGRAM_MODEL` | `nova-3` | `deepgram_streaming` model. |
-| `TRANSCRIPTION_MODE` | `sentence` / `raw` | `sentence` or `word` for Deepgram. |
-| `ENDPOINTING_MS` | `300` | Deepgram silence threshold that closes an utterance. |
-| `ASSEMBLYAI_SPEECH_MODEL` | - | `assemblyai_streaming`; omitted when unset. |
-| `SAMPLE_RATE` / `ENCODING` | `48000` / `pcm_s16le` | `assemblyai_streaming` audio format. |
-| `BOT_NAME` | `MeetStream Captions Bot` | Display name in the meeting. |
-| `CAPTION_LINES` | `10` | Committed lines kept on screen. |
-| `RETENTION_HOURS` | `24` | `recording_config.retention.hours`. |
-| `REMOVE_BOT_ON_EXIT` | `true` | Remove the bot on Ctrl-C. |
-
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-|---|---|
-| `HTTP 400` on `create_bot` | `live_transcription_required` was paired with a post-call provider. Use the `_streaming` variant. |
-| No captions, but the bot is in the meeting | MeetStream cannot reach `PUBLIC_URL`. Check the tunnel is up and `curl https://<your-url>/health` returns `{"status":"ok"}`. |
-| `PUBLIC_URL must be an https:// URL` | MeetStream requires HTTPS. `localhost` and plain `http://` cannot receive webhooks. |
-| Captions arrive, then stop | Check for `bot.error` notes in the panel - a streaming provider dropped its connection. The bot keeps running and usually recovers. |
-| Bot never joins | Watch for `bot.in_waiting_room`. Someone has to admit it. |
-| `bot stopped (bot.notallowed, 500)` | Nobody admitted the bot before the waiting-room timeout. |
-| Captions are choppy, one or two words at a time | `TRANSCRIPTION_MODE=word`. Use `sentence` for readable captions. |
-| Captions lag several seconds behind | Raise `ENDPOINTING_MS` for fewer, longer utterances, or lower it for faster, more fragmented ones. |
-| `GET /transcript/{id}` returns 202 forever afterwards | Expected. Streaming-only bots have no post-call transcript. Use `re-transcribe-audio`. |
-| Panel flickers or garbles | The overlay repaints a TTY. Piping output to a file automatically switches to append-only lines. |
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY is not set` | No `.env`, or an empty key. | `cp .env.example .env` and paste your key. |
+| HTTP 401 / 403 | No key was sent, or the key was rejected. | The header is `Authorization: Token <key>`; regenerate the key if 403 persists. |
+| `HTTP 400` on `create_bot` | `live_transcription_required` was paired with a post-call provider. | Use the `_streaming` variant. |
+| `PUBLIC_URL must be an https:// URL` | MeetStream requires HTTPS. `localhost` and plain `http://` cannot receive webhooks. | Start `ngrok http 3000` and use its https URL. |
+| `Port 3000 is already in use` | Another process owns the port. | Stop it or set `PORT`. |
+| No captions, but the bot is in the meeting | MeetStream cannot reach `PUBLIC_URL`. | Check the tunnel is up and `curl https://<your-url>/health` returns `{"status":"ok"}`. |
+| Captions arrive, then stop | A streaming provider dropped its connection (`bot.error`). The bot keeps running and usually recovers. | Watch the panel notes; nothing to restart. |
+| Bot never joins | It is in the waiting room (`bot.in_waiting_room`). | Someone has to admit it. |
+| `bot stopped (bot.notallowed, 500)` | Nobody admitted the bot before the waiting-room timeout. | Admit it faster, or raise `automatic_leave.waiting_room_timeout`. |
+| Captions are choppy, one or two words at a time | `TRANSCRIPTION_MODE=word`. | Use `sentence` for readable captions. |
+| Captions lag several seconds behind | Utterances are long. | Lower `ENDPOINTING_MS` for faster, more fragmented captions, or raise it for fewer, longer ones. |
+| `GET /transcript/{id}` returns 202 forever afterwards | Expected. Streaming-only bots have no post-call transcript. | Use [re-transcribe-audio](../re-transcribe-audio). |
+| Panel flickers or garbles | The overlay repaints a TTY. | Pipe output to a file; it automatically switches to append-only lines. |
 
-## Related templates
+## Related
 
-- `re-transcribe-audio` - turn a streaming-only bot's audio into a durable transcript
-- `realtime-transcription` - live transcription over WebSocket instead of webhook
-- `multi-provider-transcription` - the post-call side of the provider list
-- `transcript-fetcher` - post-call retrieval, and why 202 needs a cap
+- [Live transcription](https://docs.meetstream.ai/guides/transcription-recordings/live-transcription)
+- [Deepgram streaming](https://docs.meetstream.ai/guides/transcription-recordings/providers/deepgram-streaming)
+- [AssemblyAI streaming](https://docs.meetstream.ai/guides/transcription-recordings/providers/assemblyai-streaming)
+- [Meeting captions provider](https://docs.meetstream.ai/guides/transcription-recordings/providers/meeting-captions)
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Create bot payload reference](https://docs.meetstream.ai/api-reference/create-bot-payload-reference)
+- [Transcribe bot audio](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/transcribe-bot-audio)
+- Sibling templates: [re-transcribe-audio](../re-transcribe-audio) turns a streaming-only bot's audio into a durable transcript; [realtime-transcription](../realtime-transcription) does live transcription over WebSocket instead of a webhook; [multi-provider-transcription](../multi-provider-transcription) is the post-call side of the provider list; [transcript-fetcher](../transcript-fetcher) covers post-call retrieval and why 202 needs a cap.

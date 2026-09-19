@@ -1,12 +1,18 @@
-# Send Image Bot
+# Send Images and GIFs into Meetings with the MeetStream API
 
-Put an image or animated GIF into a meeting: either into the chat, or as the bot's own camera feed.
+Put an image or animated GIF into a Zoom, Google Meet or Microsoft Teams meeting through a MeetStream API bot: either into the meeting chat with `POST /bots/{bot_id}/send_image`, or as the bot's own camera feed over a control WebSocket with `sendimg_url` / `sendimg`.
 
 ```bash
 npm install
 cp .env.example .env    # add MEETSTREAM_API_KEY
 node index.js --bot-id <bot_id> --img-url https://example.com/chart.png
 ```
+
+## What it does
+
+- **Chat mode** (default): validates that `img_url` is a public http(s) URL, then calls `send_image` on a bot that is already in a meeting.
+- **Video-frame mode**: starts a local control WebSocket, exposes it publicly (`PUBLIC_URL` or ngrok), creates a bot with `socket_connection_url`, and on the bot's `ready` handshake sends `sendimg_url` (hosted image) or `sendimg` (base64 local file), optionally cycling a slideshow.
+- `--dry-run` validates and prints the request without calling the API.
 
 ## The one rule: `img_url` must be a PUBLIC URL
 
@@ -44,6 +50,16 @@ Animated GIFs are supported: pass a `.gif` URL like any other image.
 - A MeetStream API key ([app.meetstream.ai](https://app.meetstream.ai))
 - Chat mode: a bot already in a meeting
 - Video-frame mode: a meeting link, plus `PUBLIC_URL` or `NGROK_AUTHTOKEN`
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/send-image-bot
+npm install
+cp .env.example .env    # add MEETSTREAM_API_KEY
+node index.js --help
+```
 
 ## Usage
 
@@ -152,27 +168,31 @@ send-image-bot/
 | `PUBLIC_URL` | video-frame mode | An https:// address already pointing at this process |
 | `NGROK_AUTHTOKEN` | video-frame mode | Opens a tunnel automatically |
 | `PORT` | no | Local control-server port, default `3000` |
-| `BOT_NAME` | no | Default display name for created bots |
+| `BOT_NAME` | no | Default display name for created bots. Default `MeetStream Labs Image Bot` |
+| `MEETSTREAM_BASE_URL` | no | API base URL. Default `https://api.meetstream.ai/api/v1` |
+| `NO_COLOR` | no | Set to anything to disable coloured terminal output |
 
 ## Troubleshooting
 
-| Problem | Fix |
-|---|---|
-| `img_url cannot be a data: URI` | Host the image publicly and pass the link. `send_image` has no base64 form. |
-| `img_url points at a private address` | `localhost`, `192.168.x.x` and `*.local` are unreachable from MeetStream |
-| `400` from `send_image` | The field is `img_url`, not `image_url`. Check `display_duration` is an integer. |
-| `404` | Wrong bot id, or the bot has already left the meeting |
-| Image posts but shows broken | The URL must return the image bytes directly. A Google Drive or Dropbox *share page* is HTML, not an image: use the direct-file link. |
-| Video-frame mode: no handshake | The bot never reached the meeting, or your `wss://` URL is not publicly reachable. Check `GET /bots/{bot_id}/status`. |
-| Camera stays blank | `sendimg`/`sendimg_url` replace the bot's video. If the platform has not granted the bot a camera slot yet, wait for `bot.inmeeting`. |
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing MEETSTREAM_API_KEY` | `.env` not created or key blank | `cp .env.example .env` and fill it in. |
+| `401` / `403` from the API | Key missing or rejected | `Authorization: Token <key>`, not `Bearer`. Regenerate if it still fails. |
+| `img_url cannot be a data: URI` | `send_image` has no base64 form | Host the image publicly and pass the link. |
+| `img_url points at a private address` | `localhost`, `192.168.x.x` and `*.local` are unreachable from MeetStream | Use a public URL. |
+| `400` from `send_image` | Wrong field name or type | The field is `img_url`, not `image_url`; `display_duration` must be an integer. |
+| `404` | Wrong bot id, or the bot already left | Check `GET /bots/{bot_id}/status`. |
+| `429` / `5xx` | Rate limit or transient error | The client retries with backoff. |
+| `507` from `create_bot` | Idempotent replay | Treated as success; the earlier bot is used. |
+| Image posts but shows broken | URL returns HTML (a Drive or Dropbox share page), not image bytes | Use the direct-file link. |
+| Video-frame mode: no handshake | Bot never reached the meeting, or the `wss://` URL is not publicly reachable | Check `GET /bots/{bot_id}/status` and the tunnel. |
+| Camera stays blank | The platform has not granted the bot a camera slot yet | Wait for `bot.inmeeting`, then send. |
 
 ## Related
 
-- [`send-chat-message`](../send-chat-message): text into the meeting chat
-- [`websocket-bot-control`](../websocket-bot-control): the full control channel (audio, chat, interrupt, images)
-
-## Resources
-
+- [Send image](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/send-image)
+- [Chat and visuals](https://docs.meetstream.ai/guides/features/chat-and-visuals)
 - [Meeting control and command patterns](https://docs.meetstream.ai/guides/websockets/meeting-control-patterns)
-- [Create Bot endpoint](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
-- [MeetStream docs](https://docs.meetstream.ai)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [send-chat-message](../send-chat-message) (text into the meeting chat), [websocket-bot-control](../websocket-bot-control) (the full control channel: audio, chat, interrupt, images)

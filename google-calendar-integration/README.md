@@ -1,14 +1,6 @@
-# google-calendar-integration
+# Connect Google Calendar to the MeetStream API with OAuth
 
-Connect a Google Calendar to MeetStream: get an OAuth refresh token with the bundled local helper, call `POST /calendar/create_calendar`, then verify with `GET /calendar`.
-
-```bash
-npm install
-cp .env.example .env      # fill in MEETSTREAM_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
-npm run oauth             # one-time: opens the consent flow, prints your refresh token
-# paste GOOGLE_REFRESH_TOKEN into .env, then:
-node index.js
-```
+Connect a Google Calendar to MeetStream so meeting bots can be scheduled onto its Zoom, Google Meet and Microsoft Teams events: get a Google OAuth refresh token with the bundled local helper, register it with `POST /calendar/create_calendar`, then verify the calendar integration with `GET /calendar`.
 
 ## What it does
 
@@ -21,6 +13,31 @@ node index.js
 - Node.js 18 or newer (uses the built-in `fetch`).
 - A MeetStream API key from <https://app.meetstream.ai>.
 - A Google account. A personal Gmail account is fine, Workspace is not required.
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/google-calendar-integration
+npm install
+cp .env.example .env      # fill in MEETSTREAM_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+npm run oauth             # one time: opens the consent flow, prints your refresh token
+# paste GOOGLE_REFRESH_TOKEN into .env, then:
+node index.js
+```
+
+Part 1 below covers the Google Cloud Console work that has to happen before `npm run oauth` can succeed.
+
+## Environment variables
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
+| `GOOGLE_CLIENT_ID` | yes | OAuth 2.0 client id (Web application) from Google Cloud Console. |
+| `GOOGLE_CLIENT_SECRET` | yes | The client secret for that OAuth client. |
+| `GOOGLE_REFRESH_TOKEN` | yes for `node index.js` | Produced by `npm run oauth`. Long-lived. |
+| `OAUTH_PORT` | no | Port the local OAuth helper listens on. Default `3000`. Changing it changes the redirect URI. |
+| `MEETSTREAM_API_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 
 ## Part 1: Google Cloud Console setup (one time)
 
@@ -128,21 +145,23 @@ Calling `create_calendar` again with updated credentials replaces the existing c
 
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-|---|---|
-| `redirect_uri_mismatch` in the browser | The URI in Google Cloud Console does not match `http://localhost:<OAUTH_PORT>/api/google/oauth-callback` exactly. Check for a trailing slash or `127.0.0.1` instead of `localhost`. |
-| `access_denied` on the consent screen | Your Google account is not in the **Test users** list while the consent screen is in Testing status. |
-| Helper prints "No refresh token" | You have already consented before. Revoke at <https://myaccount.google.com/permissions> and retry. |
-| API error 401 | `MEETSTREAM_API_KEY` is not set. |
-| API error 403 | The API key was rejected. Copy the whole key, no surrounding whitespace. |
-| API error 400 on `create_calendar` | Almost always a credential field name (must be `google_`-prefixed), or a refresh token that Google has already revoked. Re-run `npm run oauth`. |
-| `calendars` list is empty | The Google Calendar API is not enabled on the project, or the token was minted without the `calendar.readonly` scope. |
-| Port 3000 in use | Set `OAUTH_PORT` in `.env` and add the matching redirect URI in Google Cloud Console. |
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required environment variables` | `.env` is missing or a value is empty. | `cp .env.example .env` and fill it in; run `npm run oauth` for the refresh token. |
+| `redirect_uri_mismatch` in the browser | The URI in Google Cloud Console does not match `http://localhost:<OAUTH_PORT>/api/google/oauth-callback` exactly. | Check for a trailing slash or `127.0.0.1` instead of `localhost`. |
+| `access_denied` on the consent screen | Your Google account is not in the **Test users** list while the consent screen is in Testing status. | Add it under OAuth consent screen > Test users. |
+| Helper prints "No refresh token" | You have already consented before; Google only issues one on first consent. | Revoke at <https://myaccount.google.com/permissions> and retry. |
+| API error 401 | No API key was sent. | Check `.env` is loaded from the directory you ran `node` in. |
+| API error 403 | The API key was rejected. | Copy the whole key, no surrounding whitespace. |
+| API error 400 on `create_calendar` | A credential field name (must be `google_`-prefixed), or a refresh token that Google has already revoked. | Re-run `npm run oauth` and paste the new token. |
+| `calendars` list is empty | The Google Calendar API is not enabled on the project, or the token was minted without the `calendar.readonly` scope. | Enable the API, revoke, and re-run `npm run oauth`. |
+| Port 3000 in use | Another process owns the port. | Set `OAUTH_PORT` in `.env` and add the matching redirect URI in Google Cloud Console. |
 
-## Related templates
+## Related
 
-- `calendar-event-sync` reads the events that this connection exposes.
-- `calendar-schedule-bot` puts a bot on one specific event.
-- `calendar-auto-schedule` turns on hands-free auto-join for every meeting.
-- `calendar-disconnect` tears the connection down again.
-- `outlook-calendar-integration` is the same flow for Microsoft 365.
+- [Google Calendar OAuth setup guide](https://docs.meetstream.ai/guides/calendar-integrations/google-calendar-oauth-setup)
+- [Create calendar](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/create-calendar)
+- [Get calendars](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/get-calendars)
+- [Scheduling bots](https://docs.meetstream.ai/guides/features/scheduling-bots)
+- [Error reference](https://docs.meetstream.ai/errors)
+- Templates: [calendar-event-sync](../calendar-event-sync/README.md) reads the events this connection exposes; [calendar-schedule-bot](../calendar-schedule-bot/README.md) puts a bot on one event; [calendar-auto-schedule](../calendar-auto-schedule/README.md) turns on auto-join for every meeting; [calendar-disconnect](../calendar-disconnect/README.md) tears the connection down; [outlook-calendar-integration](../outlook-calendar-integration/README.md) is the same flow for Microsoft 365.

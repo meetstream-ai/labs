@@ -74,7 +74,8 @@ function handleLifecycle(payload) {
       break;
     case "bot.stopped": {
       // Every ending arrives as event "bot.stopped". The reason is in
-      // bot_event; status_code is 200 for a clean exit or kick, 500 otherwise.
+      // bot_event; status_code is 200 for a clean exit or kick, 500 for
+      // notallowed / denied and usually 500 for failed.
       const reason = terminalReason(payload);
       overlay.setStatus(`bot stopped (${reason}${statusCode ? `, ${statusCode}` : ""})`);
       overlay.note(explainStop(reason, message));
@@ -186,12 +187,35 @@ async function shutdown(code = 0) {
   process.exit(code);
 }
 
+function printUsage() {
+  console.log(
+    [
+      "Usage: node index.js <meeting_link>",
+      "",
+      "Live captions in the terminal from a MeetStream bot with live_transcription_required.",
+      "Needs MEETSTREAM_API_KEY and PUBLIC_URL (a public https tunnel to this machine) in .env.",
+      "The meeting link can also come from MEETING_LINK. See .env.example for every option.",
+    ].join("\n"),
+  );
+}
+
 async function main() {
+  const arg = process.argv[2];
+  if (arg === "--help" || arg === "-h" || arg === "help") {
+    printUsage();
+    return;
+  }
+
   requireApiKey();
 
-  const meetingLink = process.argv[2] || process.env.MEETING_LINK || "";
+  const meetingLink = arg || process.env.MEETING_LINK || "";
   if (!meetingLink) {
     console.error("Provide a meeting link: `node index.js <meeting_link>` or set MEETING_LINK.");
+    process.exit(1);
+  }
+
+  if (!Number.isInteger(PORT) || PORT <= 0) {
+    console.error(`PORT must be a positive integer. Got: ${process.env.PORT}`);
     process.exit(1);
   }
 

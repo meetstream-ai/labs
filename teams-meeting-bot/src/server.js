@@ -61,7 +61,8 @@ export function startWebhookServer({ port, path = '/webhook', secret, onEvent })
       return;
     }
 
-    // Acknowledge immediately. Slow handlers cause redeliveries.
+    // Acknowledge immediately. MeetStream does not retry a failed delivery, so
+    // never let slow processing turn into a dropped event.
     res.status(200).json({ received: true });
 
     Promise.resolve()

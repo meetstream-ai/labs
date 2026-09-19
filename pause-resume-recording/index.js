@@ -41,6 +41,12 @@ const HELP = `
 `;
 
 async function main() {
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    console.log('Usage: node index.js');
+    console.log('  Reads .env: MEETSTREAM_API_KEY plus MEETING_LINK (new bot) or BOT_ID (existing bot).');
+    console.log('  Interactive keys once running:' + HELP);
+    return;
+  }
   const apiKey = requireEnv('MEETSTREAM_API_KEY');
   const existingBotId = optionalEnv('BOT_ID');
   const meetingLink = optionalEnv('MEETING_LINK');

@@ -8,12 +8,14 @@ import { log } from './logger.js';
  * The webhook receiver.
  *
  * Contract with MeetStream:
- *   - ACK fast. Return 2xx as soon as the delivery is recorded. Slow handlers
- *     cause redelivery, which is why the dedupe layer exists.
- *   - ACK duplicates with 200 too. Returning an error on a duplicate just makes
- *     MeetStream retry it again.
- *   - Only return a non-2xx when you genuinely want a redelivery (for example
- *     your datastore is down and you cannot record the delivery at all).
+ *   - ACK fast. Return 2xx as soon as the delivery is recorded. MeetStream does
+ *     not retry a failed or timed-out delivery, so a slow handler risks losing
+ *     the event outright.
+ *   - ACK duplicates with 200 too. Duplicates come from your own
+ *     infrastructure (tunnel or proxy replays, queue re-drives), not from
+ *     MeetStream, and the dedupe layer makes them a no-op.
+ *   - A non-2xx does not trigger a redelivery. Return one only to make the
+ *     failure visible in logs; the raw body is what you replay from.
  */
 export function createServer({ webhookPath = '/webhook', streamingOnly = false } = {}) {
   const app = express();
@@ -83,11 +85,13 @@ export function createServer({ webhookPath = '/webhook', streamingOnly = false }
     try {
       result = dispatch(env, { state, raw: req.body, expectStreamingOnly });
     } catch (err) {
-      // The handler blew up. Roll the dedupe claim back so a redelivery can
-      // retry the work, and ask for that redelivery with a 500.
+      // The handler blew up. Roll the dedupe claim back so a replay of this
+      // body (from your own queue or logs; MeetStream will not resend it) can
+      // retry the work, and log the raw body so there is something to replay.
       deliveries.seen.delete(key);
       log.error(`handler threw for ${env.event}/${env.botId}: ${err.message}`);
-      return res.status(500).json({ message: 'Handler error, please redeliver.' });
+      log.error(`raw body for replay: ${JSON.stringify(req.body)}`);
+      return res.status(500).json({ message: 'Handler error. MeetStream does not redeliver; replay from logs.' });
     }
 
     if (result.handled) stats.handled += 1;

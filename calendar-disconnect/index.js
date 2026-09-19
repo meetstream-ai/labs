@@ -37,6 +37,7 @@ function parseFlags(argv) {
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--yes" || arg === "-y") flags.yes = true;
+    else if (arg === "--help" || arg === "-h") flags.help = true;
     else if (arg === "--keep-events") flags.keepEvents = true;
     else if (arg === "--provider") flags.provider = argv[++i];
     else if (arg === "--account-id") flags.accountId = argv[++i];
@@ -175,11 +176,21 @@ async function cmdDisconnect(flags) {
   console.log("\nTo reconnect, use google-calendar-integration or outlook-calendar-integration.");
 }
 
-async function main() {
-  requireApiKey();
+const USAGE =
+  "Usage: node index.js [preview|disconnect] [--provider p] [--account-id a] [--keep-events] [--yes]";
 
+async function main() {
   const { flags, positional } = parseFlags(process.argv.slice(2));
   const command = positional[0] ?? "preview";
+
+  if (flags.help || command === "help") {
+    console.log(USAGE);
+    console.log("  preview      show what a disconnect would remove (read only)");
+    console.log("  disconnect   tear down the calendar connection (asks you to type \"disconnect\")");
+    return;
+  }
+
+  requireApiKey();
 
   switch (command) {
     case "preview":
@@ -191,7 +202,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error("Usage: node index.js [preview|disconnect] [--provider p] [--account-id a] [--keep-events] [--yes]");
+      console.error(USAGE);
       process.exit(1);
   }
 }

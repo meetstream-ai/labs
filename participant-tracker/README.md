@@ -1,7 +1,6 @@
-# Participant Tracker
+# Track Meeting Attendance with MeetStream Participant Webhooks
 
-Track who joined and left a meeting - live over webhooks or reconstructed
-afterwards - and build an attendance report.
+Track who joined and left a Zoom, Google Meet or Microsoft Teams meeting, live over MeetStream's `participant_events.join` / `.leave` webhooks or reconstructed afterwards from `GET /bots/{id}/detail`, and build a per-person attendance report with attended time, share of the meeting, rejoins, first join and last leave.
 
 ```bash
 cp .env.example .env   # add MEETSTREAM_API_KEY, then either BOT_ID or MEETING_LINK + PUBLIC_URL
@@ -43,6 +42,41 @@ last leave, and whether the figure is exact or estimated.
   ```
   Put the https address in `PUBLIC_URL`.
 
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/participant-tracker
+npm install
+cp .env.example .env   # MEETSTREAM_API_KEY plus BOT_ID, or MEETING_LINK + PUBLIC_URL
+node index.js
+```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
+| `BOT_ID` | report mode | Rebuild attendance for a bot that already ran. Wins over `MEETING_LINK`. |
+| `MEETING_LINK` | live mode | Zoom, Google Meet or Teams link to send a bot into. |
+| `PUBLIC_URL` | live mode | Public `https://` base that forwards to `PORT`. `/webhook` and `/participants` are registered under it. |
+| `PORT` | no | Local webhook port. Default `3000`. |
+| `WEBHOOK_DRAIN_MS` | no | How long to keep listening after the meeting ends so trailing events land. Default `5000`. |
+| `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Attendance Bot`. |
+| `TRANSCRIPT_LANGUAGE` | no | Language for the Deepgram post-call provider. Default `en`. |
+| `RETENTION_HOURS` | no | `recording_config.retention.hours`. Default `72`; the API default when omitted is 720. |
+| `WAITING_ROOM_TIMEOUT` | no | `automatic_leave.waiting_room_timeout`, seconds. Default `600`. |
+| `EVERYONE_LEFT_TIMEOUT` | no | `automatic_leave.everyone_left_timeout`, seconds. Default `600`. |
+| `IN_CALL_RECORDING_TIMEOUT` | no | `automatic_leave.in_call_recording_timeout`, seconds. Default `14400`; API minimum 600. |
+| `IDEMPOTENCY_KEY` | no | `Idempotency-Key` for `create_bot`. Unset: a fresh UUID per run. A replay returns HTTP 507, treated as success. |
+| `STATUS_POLL_INTERVAL_MS` | no | Delay between `GET /bots/{id}/status` polls. Default `15000`. |
+| `STATUS_POLL_MAX_ATTEMPTS` | no | Status poll cap. Default `240`. |
+| `OUTPUT_DIR` | no | Where `attendance-<bot_id>.json` is written. Default `./output`. |
+| `REQUEST_TIMEOUT_MS` | no | Per-request timeout. Default `30000`. |
+| `MAX_RETRIES` | no | Retries on network errors and 429/5xx. 4xx is never retried. Default `3`. |
+| `RETRY_BASE_DELAY_MS` | no | Backoff base. Default `1000`. |
+| `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
+
 ## How the webhooks are wired
 
 MeetStream delivers these on two separate channels, so the server exposes two
@@ -74,16 +108,18 @@ mode has nothing to replay.
 
 ### The two envelope shapes
 
-Bot lifecycle events use the standard envelope - key is **`event`**, and
-`bot_id` is top level:
+Bot lifecycle events use the standard envelope: `event` is always present,
+most deliveries also carry `bot_event` with the specific name, every one
+carries an ISO 8601 `timestamp`, and `bot_id` is top level:
 
 ```json
-{ "event": "bot.inmeeting", "bot_id": "...", "bot_status": "InMeeting",
-  "message": "...", "status_code": 200, "custom_attributes": {} }
+{ "event": "bot.inmeeting", "bot_event": "bot.inmeeting", "bot_id": "...",
+  "bot_status": "InMeeting", "message": "...", "status_code": 200,
+  "timestamp": "2026-05-26T10:04:11.120Z", "custom_attributes": {} }
 ```
 
 Participant events do not. They nest everything under `data`, and there is
-**no top-level `bot_id`** - it lives at `data.bot.id`:
+**no top-level `bot_id`**, `bot_status` or `bot_event` - the bot id lives at `data.bot.id`:
 
 ```json
 {
@@ -109,8 +145,14 @@ end up with an empty attendance report.
 
 The run ends on whichever comes first:
 
-1. the `bot.stopped` webhook (`status_code` is **200 regardless of reason** -
-   the reason is in `bot_status`: `Stopped`, `NotAllowed`, `Denied`, `Error`),
+1. the `bot.stopped` webhook. Every ending arrives as `event: "bot.stopped"`;
+   the reason is in `bot_event`: `bot.stopped` (clean exit, `status_code` 200),
+   `bot.kicked` (200), `bot.notallowed` (500), `bot.denied` (500), `bot.failed`
+   (usually 500). The template branches on `bot_event` and falls back to a
+   case-insensitive `bot_status` only when it is missing, because a kick and a
+   clean exit both report `Stopped`. Post-call events (`audio.processed`,
+   `transcription.processed`, `bot.done`) keep arriving afterwards; attendance
+   does not need them,
 2. `GET /bots/{id}/status` reaching a terminal status, or
 3. Ctrl+C, which sends `GET /bots/{id}/remove_bot` (yes, GET) and reports what
    it has.
@@ -170,18 +212,26 @@ and the raw event log.
 
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-| --- | --- |
-| `PUBLIC_URL is required in live mode` | Start a tunnel and set `PUBLIC_URL` to its https address. |
-| No `[participants]` lines at all | The tunnel is not reaching you (`curl $PUBLIC_URL/health`), or `realtime_endpoints` was not accepted on create. |
-| Lifecycle events arrive, participant events do not | `callback_url` is fine but `realtime_endpoints` is not - check the URL and the `events` array. |
-| "No participants were recorded" | Bot never joined, or events never arrived. Check `GET /bots/{id}/status`. |
-| Report mode finds zero events | The bot was created without `realtime_endpoints`, so nothing was stored. Only the roster is available. |
-| HTTP 400 on create | An unreachable `realtime_endpoints` URL, or `in_call_recording_timeout` below its 600 second minimum. |
-| HTTP 401 / 403 | No key sent, or the key is inactive for this workspace. |
-| Everyone shows as "Unknown" | The platform did not expose display names. `full_name` falls back to `name`, then to `Unknown`. |
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY is not set` | No `.env`, or an empty key. | `cp .env.example .env` and paste your key. |
+| HTTP 401 / 403 | No key sent, or the key is inactive for this workspace. | The header is `Authorization: Token <key>`; regenerate the key if 403 persists. |
+| `PUBLIC_URL is required in live mode` | No tunnel URL. | Start a tunnel and set `PUBLIC_URL` to its https address. |
+| No `[participants]` lines at all | The tunnel is not reaching you, or `realtime_endpoints` was not accepted on create. | `curl $PUBLIC_URL/health`; check the create response. |
+| Lifecycle events arrive, participant events do not | `callback_url` is fine but `realtime_endpoints` is not. | Check the URL and the `events` array. |
+| "No participants were recorded" | Bot never joined, or events never arrived. | Check `GET /bots/{id}/status`. |
+| Report mode finds zero events | The bot was created without `realtime_endpoints`, so nothing was stored. | Only the roster is available; re-run live with the subscription. |
+| HTTP 400 on create | An unreachable `realtime_endpoints` URL, or `in_call_recording_timeout` below its 600 second minimum. | Fix the URL or the timeout. |
+| HTTP 404 in report mode | Wrong `BOT_ID`, or the recording expired via its retention window. | Confirm the id in the dashboard. |
+| Meeting finished with `bot.notallowed` / `bot.denied` | Never admitted from the waiting room / host refused. Nothing was recorded. | Admit the bot, or ask the host to allow it. |
+| Everyone shows as "Unknown" | The platform did not expose display names. | `full_name` falls back to `name`, then to `Unknown`; nothing to fix client-side. |
 
-## Resources
+## Related
 
-- [MeetStream docs](https://docs.meetstream.ai)
-- [API reference](https://docs.meetstream.ai/api-reference)
+- [Participants and speaker timeline](https://docs.meetstream.ai/guides/features/participants-and-speaker-timeline)
+- [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
+- [Get bot details](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-details)
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Local webhook server](https://docs.meetstream.ai/guides/webhooks/local-webhook-server)
+- [Automatic leave configuration](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
+- Sibling templates: [speaker-timeline-analytics](../speaker-timeline-analytics), [webhook-handler-complete](../webhook-handler-complete), [meeting-chat-logger](../meeting-chat-logger), [webhook-local-tunnel](../webhook-local-tunnel)

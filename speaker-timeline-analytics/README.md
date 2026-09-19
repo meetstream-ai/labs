@@ -1,8 +1,6 @@
-# Speaker Timeline Analytics
+# Speaker Talk-Time Analytics from the MeetStream Speaker Timeline
 
-Turn a MeetStream speaker timeline into conversation metrics - talk-time per
-speaker, turn counts, the longest monologue, and overlapping speech - rendered
-as an ASCII bar chart in your terminal.
+Turn a MeetStream API speaker timeline from a Zoom, Google Meet or Microsoft Teams meeting bot into conversation metrics - talk-time per speaker, turn counts, the longest monologue, and overlapping speech - rendered as an ASCII bar chart in your terminal.
 
 ```bash
 cp .env.example .env   # add your MEETSTREAM_API_KEY and a BOT_ID or MEETING_LINK
@@ -34,6 +32,43 @@ Two modes, chosen by your `.env`:
 - Node.js 18 or newer (uses the built-in `fetch`)
 - A MeetStream API key - <https://app.meetstream.ai>
 - A bot that has finished a meeting, or a live meeting link to send one into
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/speaker-timeline-analytics
+npm install
+cp .env.example .env   # MEETSTREAM_API_KEY plus BOT_ID or MEETING_LINK
+node index.js
+```
+
+## Environment variables
+
+| Name | Required | Default | Meaning |
+| --- | --- | --- | --- |
+| `MEETSTREAM_API_KEY` | yes | | API key, sent as `Authorization: Token <key>`. |
+| `BOT_ID` | one of | | Analyse a bot that already ran. Wins over `MEETING_LINK`. |
+| `MEETING_LINK` | one of | | Send a new bot into this meeting, wait, then analyse. |
+| `BOT_NAME` | no | `MeetStream Analytics Bot` | Display name when creating a bot. |
+| `TRANSCRIPT_LANGUAGE` | no | `en` | Transcript language for the created bot. |
+| `RETENTION_HOURS` | no | `72` | `recording_config.retention.hours`. API default without it is 720. |
+| `WAITING_ROOM_TIMEOUT` | no | `600` | `automatic_leave.waiting_room_timeout`, seconds. |
+| `EVERYONE_LEFT_TIMEOUT` | no | `600` | `automatic_leave.everyone_left_timeout`, seconds. |
+| `IN_CALL_RECORDING_TIMEOUT` | no | `14400` | `automatic_leave.in_call_recording_timeout`, seconds. API minimum 600. |
+| `IDEMPOTENCY_KEY` | no | | UUID sent as `Idempotency-Key` on `create_bot`; a replay returns 507. |
+| `STATUS_POLL_INTERVAL_MS` | no | `15000` | Delay between `GET /bots/{id}/status` polls while waiting for the meeting to end. |
+| `STATUS_POLL_MAX_ATTEMPTS` | no | `240` | Cap on status polls. |
+| `TIMELINE_POLL_INTERVAL_MS` | no | `10000` | Delay between `get_speaker_timeline` polls while it returns 202. |
+| `TIMELINE_POLL_MAX_ATTEMPTS` | no | `20` | Cap on timeline polls. |
+| `AUDIO_BYTES_PER_SAMPLE` | no | `2` | Bytes per PCM sample used to convert byte offsets to seconds. |
+| `AUDIO_CHANNELS` | no | `1` | Audio channels for the same conversion. |
+| `BAR_WIDTH` | no | `30` | Width of the ASCII bars, in characters. |
+| `OUTPUT_DIR` | no | `./output` | Where the JSON files are written. |
+| `REQUEST_TIMEOUT_MS` | no | `30000` | Per-request timeout. |
+| `MAX_RETRIES` | no | `3` | Retries on 429 / 5xx. |
+| `RETRY_BASE_DELAY_MS` | no | `1000` | Base backoff delay. |
+| `MEETSTREAM_BASE_URL` | no | `https://api.meetstream.ai/api/v1` | Override for a non-production environment. |
 
 ## The one thing to understand: bytes, not seconds
 
@@ -122,18 +157,24 @@ Files:
 
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-| --- | --- |
-| `MEETSTREAM_API_KEY is not set` | `cp .env.example .env` and paste your key. |
-| HTTP 401 / 403 | No key sent, or the key is inactive for this workspace. |
-| HTTP 404 | Wrong bot id, or the data expired via its retention window. |
-| Still 202 after the poll cap | Audio processing has not finished. Re-run later with `BOT_ID`, or raise `TIMELINE_POLL_MAX_ATTEMPTS`. |
-| "The speaker timeline is empty" | The bot never joined, nobody spoke, or processing is still running. Check `GET /bots/{id}/status`. |
-| Durations look wrong, shares look right | The encoding assumption is off for your account. Adjust `AUDIO_BYTES_PER_SAMPLE` / `AUDIO_CHANNELS`. |
-| "absolute durations cannot be computed" | No chunk carried a positive `sampleRate`. Byte-based shares are still valid. |
-| All speech attributed to "Unknown speaker" | The chunks carry no `speakerName`. Enable diarization on the transcript provider. |
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY is not set` | `.env` missing or key blank | `cp .env.example .env` and paste your key. |
+| HTTP 401 / 403 | No key sent, or the key is inactive for this workspace | Set or regenerate `MEETSTREAM_API_KEY`. |
+| HTTP 404 | Wrong bot id, or the data expired via its retention window | Check the id; download artifacts before retention ends. |
+| Still 202 after the poll cap | Audio processing has not finished | Re-run later with `BOT_ID`, or raise `TIMELINE_POLL_MAX_ATTEMPTS`. |
+| HTTP 429 / 5xx | Rate limit or transient error | Retried with backoff up to `MAX_RETRIES`. |
+| HTTP 507 on `create_bot` | Idempotent replay of the same `IDEMPOTENCY_KEY` | Treated as success; the original bot is used. |
+| "The speaker timeline is empty" | The bot never joined, nobody spoke, or processing is still running | Check `GET /bots/{id}/status`. |
+| Durations look wrong, shares look right | The encoding assumption is off for your account | Adjust `AUDIO_BYTES_PER_SAMPLE` / `AUDIO_CHANNELS`. |
+| "absolute durations cannot be computed" | No chunk carried a positive `sampleRate` | Byte-based shares are still valid. |
+| All speech attributed to "Unknown speaker" | The chunks carry no `speakerName` | Enable diarization on the transcript provider. |
 
-## Resources
+## Related
 
-- [MeetStream docs](https://docs.meetstream.ai)
-- [API reference](https://docs.meetstream.ai/api-reference)
+- [Get speaker timeline](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-speaker-timeline)
+- [Participants and speaker timeline](https://docs.meetstream.ai/guides/features/participants-and-speaker-timeline)
+- [Diarization](https://docs.meetstream.ai/guides/transcription-recordings/diarization)
+- [Get bot status](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-status)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [speaker-diarization](../speaker-diarization), [participant-tracker](../participant-tracker), [meeting-analytics-dashboard](../meeting-analytics-dashboard)

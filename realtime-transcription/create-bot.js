@@ -25,8 +25,10 @@ if (!API_KEY || !WEBHOOK_URL || !MEETING_URL) {
 }
 
 // ─── Provider config ──────────────────────────────────────────────────────────
-// Set PROVIDER to "deepgram" or "assemblyai"
-const PROVIDER = "deepgram";
+// PROVIDER=deepgram (default) or PROVIDER=assemblyai. Both are *_streaming
+// providers: live_transcription_required needs one, and a streaming-only bot
+// produces no post-call transcript.
+const PROVIDER = (process.env.PROVIDER || "deepgram").trim();
 
 const providers = {
   deepgram: {

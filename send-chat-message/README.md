@@ -1,12 +1,19 @@
-# Send Chat Message
+# Send Chat Messages into Live Meetings with the MeetStream API
 
-A CLI that posts chat messages into a live meeting as your MeetStream bot: one message on demand, or a timed announcement plan that fires at fixed offsets after the bot joins.
+A CLI that posts chat messages into a live Zoom, Google Meet or Microsoft Teams meeting as your MeetStream bot, using `POST /bots/{bot_id}/send_message`: one message on demand, or a timed announcement plan that fires at fixed offsets after the bot joins. Pure REST, no webhook or tunnel needed.
 
 ```bash
 npm install
 cp .env.example .env    # add MEETSTREAM_API_KEY
 node index.js --bot-id <bot_id> --message "Recording has started"
 ```
+
+## What it does
+
+1. Uses an existing bot (`--bot-id`) or creates one for `--meeting-link` with `POST /bots/create_bot`.
+2. Polls `GET /bots/{bot_id}/status` every 3s until the bot is `InMeeting` or `Recording`; a message sent while it is still `Joining` has nowhere to land.
+3. Sends each message at its offset with `POST /bots/{bot_id}/send_message`. A failed send is logged and the plan continues.
+4. Removes a bot it created with `GET /bots/{bot_id}/remove_bot` when the plan finishes, and on Ctrl+C.
 
 ## Prerequisites
 
@@ -18,10 +25,23 @@ No public URL, no tunnel, no webhook. This template is pure REST.
 
 ## Setup
 
-1. `npm install`
-2. `cp .env.example .env`
-3. Put your key in `MEETSTREAM_API_KEY`.
-4. Run one of the commands below.
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/send-chat-message
+npm install
+cp .env.example .env    # put your key in MEETSTREAM_API_KEY
+node index.js --help
+```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY` | yes (except `--dry-run` and `--help`) | API key, sent as `Authorization: Token <key>`. |
+| `BOT_NAME` | no | Default display name when this CLI creates a bot. Override with `--bot-name`. Default `MeetStream Labs Announcer`. |
+| `WAIT_TIMEOUT_SECONDS` | no | Default join wait. Override with `--wait-timeout`. Default `600`. |
+| `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
+| `NO_COLOR` | no | Set to any value to disable ANSI colours in the log output. |
 
 ## Usage
 
@@ -97,16 +117,14 @@ Authorization: Token YOUR_API_KEY
 
 Everything else is timing:
 
-1. **Create a bot** (`--meeting-link` mode only) via `POST /bots/create_bot`.
-2. **Wait for it to be live.** `GET /bots/{bot_id}/status` is polled every 3s until the status is `InMeeting` or `Recording`. A message sent while the bot is still `Joining` has nowhere to land. If the bot hits `Stopped`, `NotAllowed` (waiting-room timeout) or `Denied` (host refused) the run aborts with that reason.
+1. **Create a bot** (`--meeting-link` mode only) via `POST /bots/create_bot`, with `meeting_link`, `bot_name` and `automatic_leave` (`in_call_recording_timeout` at its 600 second minimum or above).
+2. **Wait for it to be live.** `GET /bots/{bot_id}/status` is polled every 3s until the status is `InMeeting` or `Recording`. If the bot reaches `Stopped`, `NotAllowed` (waiting-room timeout), `Denied` (host refused) or a failure status (`FAILED` / `ERROR` / `Failed`, compared case-insensitively) the run aborts with that reason.
 3. **Fire the plan.** Offsets are absolute from the moment the bot went live, not cumulative: `0 / 300 / 600` sends at exactly those three points.
 4. **Clean up.** A bot this CLI created is removed at the end via `GET /bots/{bot_id}/remove_bot` (yes, a GET), and also on Ctrl+C. `--stay` opts out. A bot you passed in with `--bot-id` is never removed.
 
 A single failed send is logged and the plan continues. One rejected message should not cancel the rest of the announcements.
 
-Requests carry an `Idempotency-Key`, so a retried send comes back as HTTP `507` and is treated as success rather than posting the message twice.
-
-## Project structure
+Requests carry an `Idempotency-Key`, so a retried send comes back as HTTP `507` and is treated as success rather than posting the message twice. 429 and 5xx are retried with backoff (honouring `Retry-After`); 4xx is never retried.
 
 ```
 send-chat-message/
@@ -122,13 +140,19 @@ send-chat-message/
 └─ README.md
 ```
 
-## Environment variables
+## Troubleshooting
 
-| Variable | Required | Description |
+| Symptom | Cause | Fix |
 |---|---|---|
-| `MEETSTREAM_API_KEY` | yes | From the MeetStream dashboard |
-| `BOT_NAME` | no | Default display name when creating a bot |
-| `WAIT_TIMEOUT_SECONDS` | no | Default join wait, `600` |
+| `Missing MEETSTREAM_API_KEY` | No `.env`, or an empty key. | Copy `.env.example` to `.env` and fill it in. |
+| `401` / `403` | No key was sent, or the key was rejected. | The header is `Authorization: Token <key>`, not `Bearer`. Regenerate the key if it still fails. |
+| `404` on send_message | Wrong bot id, or the bot has already left. | Check `GET /bots/{bot_id}/status`. |
+| `400` on create_bot | Bad `meeting_link`, or `in_call_recording_timeout` below 600. | Check the link. |
+| Bot never reaches the meeting | It is waiting in the lobby. | Admit it from the waiting room, or raise `--wait-timeout`. |
+| `Bot reached terminal status "NotAllowed"` | It timed out in the lobby and gave up. | Admit it faster next time. |
+| `Bot reached terminal status "Denied"` | The host refused entry. | Ask the host to admit the bot. |
+| `Provide exactly one of --bot-id or --meeting-link` | Both or neither were given. | Pass one. |
+| Messages send but nobody sees them | The bot is not yet a full participant, or the chat panel is closed. | Check the platform's chat panel, and that the bot left the lobby. |
 
 ## Related
 
@@ -142,19 +166,9 @@ There are two other ways to put text into a meeting, and they are not interchang
 
 The WebSocket route is worth it when you are already holding a control channel open and want sub-second delivery or streaming partial text. For scheduled announcements, REST is simpler.
 
-## Troubleshooting
-
-| Problem | Fix |
-|---|---|
-| `Missing MEETSTREAM_API_KEY` | Copy `.env.example` to `.env` and fill it in |
-| `404` on send_message | Wrong bot id, or the bot has already left. Check `GET /bots/{bot_id}/status`. |
-| `401` / `403` | The header is `Authorization: Token <key>`, not `Bearer`. Regenerate the key if it still fails. |
-| Bot never reaches the meeting | Admit it from the waiting room, or raise `--wait-timeout` |
-| `Bot reached terminal status "NotAllowed"` | It timed out in the lobby and gave up |
-| Messages send but nobody sees them | Check the meeting platform's chat panel is open, and that the bot is a full participant rather than still in the lobby |
-
-## Resources
-
-- [Send message endpoint](https://docs.meetstream.ai/api-reference)
-- [Create Bot endpoint](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
-- [MeetStream docs](https://docs.meetstream.ai)
+- [Send message](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/send-message)
+- [Chat and visuals](https://docs.meetstream.ai/guides/features/chat-and-visuals)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Get bot status](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-status)
+- [Remove bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/remove-bot)
+- [Automatic leave configuration](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)

@@ -1,6 +1,6 @@
-# Google Meet Lobby Handling
+# Handle the Google Meet Waiting Room for MeetStream Bots
 
-Send a bot into a Google Meet, watch what the waiting room does to it, and react: nudge a human while it waits, retry when it times out, and stop cleanly when a host says no.
+Send a MeetStream API meeting bot into a Google Meet, watch what the waiting room does to it over webhooks, and react: nudge a human while it waits, retry when the lobby times out (`bot.notallowed`), and stop cleanly when a host denies it (`bot.denied`). Google Meet only; the same webhook model applies to Zoom and Microsoft Teams but their lobby rules differ.
 
 ```bash
 npm install
@@ -11,6 +11,47 @@ node index.js
 You need a publicly reachable webhook URL. In another terminal: `ngrok http 3000`, then put the https origin in `PUBLIC_WEBHOOK_URL`.
 
 Want to watch events without creating a bot? `node index.js listen`.
+
+## Prerequisites
+
+- Node.js 18 or newer.
+- A MeetStream API key from <https://app.meetstream.ai>.
+- A Google Meet link you can host or get admitted to.
+- A public HTTPS tunnel to this machine (`ngrok http 3000` or `cloudflared tunnel --url http://localhost:3000`).
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/gmeet-lobby-handling
+npm install
+cp .env.example .env
+ngrok http 3000            # in another terminal; paste the https origin into PUBLIC_WEBHOOK_URL
+node index.js
+```
+
+## Environment variables
+
+| Name | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
+| `MEETSTREAM_BASE_URL` | no | API base URL. Default `https://api.meetstream.ai/api/v1`. |
+| `MEETING_LINK` | yes | The `meet.google.com` link to join. |
+| `BOT_NAME` | no | Display name for anonymous bots. Default `MeetStream Notetaker`. Ignored for signed-in bots. |
+| `VIDEO_REQUIRED` | no | Record video as well as audio. Default `false`. |
+| `PORT` | no | Local port for the webhook receiver. Default `3000`. |
+| `WEBHOOK_PATH` | no | Path the receiver listens on. Default `/webhook`. |
+| `PUBLIC_WEBHOOK_URL` | yes | Public HTTPS origin of this server; `callback_url` is `PUBLIC_WEBHOOK_URL + WEBHOOK_PATH`. |
+| `WEBHOOK_SECRET` | no | HMAC secret. Only for workspace webhook endpoints; per-bot `callback_url` deliveries are not signed. |
+| `NOTIFY_WEBHOOK_URL` | no | Alerts are POSTed here as JSON in addition to stdout. |
+| `WAITING_ROOM_TIMEOUT` | no | Seconds to wait for admission, 60-600. Default `300`. |
+| `LOBBY_ALERT_SECONDS` | no | Nudge a human after this many seconds in the lobby. `0` disables. Default `60`. |
+| `MAX_JOIN_ATTEMPTS` | no | Total sends on lobby timeout, 1-5. Default `2`. |
+| `RETRY_DELAY_SECONDS` | no | Wait before re-sending after a timeout. Default `30`. |
+| `RETRY_TIMEOUT_ESCALATION` | no | Seconds added to the timeout on each retry, capped at 600. Default `120`. |
+| `GOOGLE_LOGIN_DOMAIN` | no | Join as a signed-in Google account from this domain. |
+| `SIGN_IN_EMAIL` | no | Pin one signed-in account. Put it on the calendar invite to skip the lobby. |
+| `STRICT_EMAIL` | no | With `SIGN_IN_EMAIL`, `true` fails if that account is busy instead of falling back. Default `false`. |
 
 ---
 
@@ -169,25 +210,30 @@ Deliveries to a per-bot `callback_url` - what this template uses - are **not sig
 
 ## Troubleshooting
 
-**Nothing arrives at the webhook** - `PUBLIC_WEBHOOK_URL` has to be reachable from the internet. Check the tunnel is up and that the printed `callback_url` is the one you expect. `GET /healthz` on the server confirms it is listening.
-
-**HTTP 400 on create_bot** - almost always an out-of-range `automatic_leave` value. On Google Meet `waiting_room_timeout` must be 60-600.
-
-**`bot.in_waiting_room` forever, no admission prompt visible** - the person looking is probably not the host or a co-host. Ask the organiser to check the People panel, and check **Host controls → Meeting access** allows link participants to ask to join. Isolate it by opening [meet.new](https://meet.new) (you are the host there) and sending a bot at it.
-
-**Repeated `Denied`** - someone is actively rejecting the bot. Talk to the organiser, or switch to an invited signed-in bot.
-
-**Bot joins but is named "Unknown"** - Meet's name resolver takes about 10 seconds to populate. Participant IDs are stable from the first moment.
-
-**`bot.kicked`** - a participant removed the bot mid-meeting. It arrives as `bot.stopped` with `bot_event: "bot.kicked"` and `bot_status: "Stopped"`, so only `bot_event` tells it apart from a clean exit. This template reports it as a kick and does not retry.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Configuration error: MEETING_LINK is required` / `PUBLIC_WEBHOOK_URL is required` | `.env` not filled in | `cp .env.example .env` and set both, plus `MEETSTREAM_API_KEY`. |
+| HTTP 401 | No API key sent | Set `MEETSTREAM_API_KEY`. |
+| HTTP 403 | Key rejected | Copy the whole key from the dashboard. |
+| HTTP 400 on `create_bot` | Out-of-range `automatic_leave` value | On Google Meet `waiting_room_timeout` must be 60-600. |
+| HTTP 429 or 5xx | Rate limit or transient error | The client backs off and retries; slow down parallel runs. |
+| HTTP 507 | Idempotent replay | Treated as success; the original bot is returned. |
+| Nothing arrives at the webhook | `PUBLIC_WEBHOOK_URL` not reachable from the internet | Check the tunnel is up and the printed `callback_url` is right. `GET /healthz` confirms the server is listening. |
+| `bot.in_waiting_room` forever, no admission prompt visible | The person looking is not the host or a co-host | Ask the organiser to check the People panel and that **Host controls > Meeting access** lets link participants ask to join. Isolate by opening [meet.new](https://meet.new) (you are the host) and sending a bot there. |
+| `bot.stopped` with `bot_event: bot.notallowed` (500) | Lobby timeout, nobody admitted the bot | The template retries with a longer timeout up to `MAX_JOIN_ATTEMPTS`; use a signed-in bot on the invite to skip the lobby. |
+| Repeated `bot.denied` (500) | Someone is actively rejecting the bot | Talk to the organiser, or switch to an invited signed-in bot. Never retried. |
+| `bot.stopped` with `bot_event: bot.kicked` (200) | A participant removed the bot mid-meeting; `bot_status` is `Stopped` just like a clean exit | Only `bot_event` tells it apart. Reported as a kick, not retried. |
+| Bot joins but is named "Unknown" | Meet's name resolver takes about 10 seconds | Participant IDs are stable from the first moment; wait. |
 
 ---
 
-## Docs
+## Related
 
-- [Google Meet Lobby & Admission Troubleshooting](https://docs.meetstream.ai/guides/app-integrations/gmeet-lobby-admission)
-- [Google Meet Bots](https://docs.meetstream.ai/guides/platforms/google-meet)
-- [Automatic Leave Configurations](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
-- [Webhooks and Events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
-- [Verifying Webhook Signatures](https://docs.meetstream.ai/guides/webhooks/webhook-signature-verification)
-- [Google Signed-In Bots](https://docs.meetstream.ai/guides/app-integrations/google-signed-in-bots)
+- [Google Meet lobby and admission troubleshooting](https://docs.meetstream.ai/guides/app-integrations/gmeet-lobby-admission)
+- [Google Meet bots](https://docs.meetstream.ai/guides/platforms/google-meet)
+- [Automatic leave configuration](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Webhook signature verification](https://docs.meetstream.ai/guides/webhooks/webhook-signature-verification)
+- [Google signed-in bots](https://docs.meetstream.ai/guides/app-integrations/google-signed-in-bots)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [google-signed-in-bots-setup](../google-signed-in-bots-setup), [webhook-handler-complete](../webhook-handler-complete), [bot-status-monitor](../bot-status-monitor)

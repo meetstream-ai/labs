@@ -1,6 +1,6 @@
-# manage-scheduled-bots
+# List, Reschedule and Cancel Scheduled MeetStream Bots
 
-Admin CLI for bots that have not joined yet: list them with `GET /calendar/scheduled_bots`, change them with `PATCH /calendar/scheduled_bots/{bot_id}`, cancel them with `DELETE /calendar/scheduled_bots/{bot_id}`.
+Admin CLI for MeetStream API meeting bots that have not joined their Zoom, Google Meet or Microsoft Teams call yet: list them with `GET /calendar/scheduled_bots`, change the join time, name or custom attributes with `PATCH /calendar/scheduled_bots/{bot_id}`, and cancel them with `DELETE /calendar/scheduled_bots/{bot_id}`.
 
 ```bash
 npm install
@@ -24,6 +24,24 @@ node index.js list
 - Node.js 18 or newer.
 - A MeetStream API key from <https://app.meetstream.ai>.
 - At least one scheduled bot. Create one with `calendar-schedule-bot`, `calendar-auto-schedule`, or `create_bot` with a future `join_at`.
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/manage-scheduled-bots
+npm install
+cp .env.example .env      # fill in MEETSTREAM_API_KEY
+node index.js list
+```
+
+## Environment variables
+
+| Name | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key from <https://app.meetstream.ai>, sent as `Authorization: Token <key>`. |
+| `LIST_LIMIT` | no | Default page size for `list`, 1 to 100. Default `100`. `--limit` overrides it. |
+| `MEETSTREAM_API_BASE_URL` | no | API base URL. Default `https://api.meetstream.ai/api/v1`. |
 
 ## Usage
 
@@ -118,17 +136,24 @@ To remove a bot **and** stop the calendar event re-creating one, unschedule the 
 
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-|---|---|
-| Bot is not in `list` | It has already joined, or was cancelled, or sits past the 100 row limit. `show` still queries live status by id. |
-| API error 404 on patch or delete | Wrong bot id, or the bot already ran. Only future bots can be edited. |
-| API error 400 on patch | The join time is in the past or not valid ISO 8601. The template checks both before sending, so a 400 here usually means a partial patch with no `scheduled_join_time`. |
-| Rescheduled, but it joined at the old time anyway | The calendar event moved it back. Push notifications keep bots aligned with their event. Unschedule the event if you want manual control. |
-| API error 401 / 403 | `MEETSTREAM_API_KEY` missing or rejected. |
-| `cancel-all` deleted less than expected | Bots that started while the loop was running can no longer be deleted. Re-run `list`. |
+| Symptom | Cause | Fix |
+|---|---|---|
+| `MEETSTREAM_API_KEY is not set` | `.env` missing or blank | `cp .env.example .env` and fill in the key. |
+| API error 401 | No API key sent | Set `MEETSTREAM_API_KEY`. |
+| API error 403 | Key rejected | Copy the whole key from the dashboard. |
+| Bot is not in `list` | It already joined, was cancelled, or sits past the 100 row limit | `show <botId>` still queries live status by id. |
+| API error 404 on patch or delete | Wrong bot id, or the bot already ran | Only future bots can be edited; check `list`. |
+| API error 400 on patch | Join time in the past or not ISO 8601; the template checks both first, so usually a partial patch with no `scheduled_join_time` | Pass `--time` as well. |
+| API error 429 | Rate limited | Back off and retry; `cancel-all` is sequential for this reason. |
+| Rescheduled, but it joined at the old time anyway | The calendar event moved it back; push notifications keep bots aligned with their event | Unschedule the event if you want manual control. |
+| `cancel-all` deleted less than expected | Bots that started while the loop ran can no longer be deleted | Re-run `list`. |
 
-## Related templates
+## Related
 
-- `calendar-schedule-bot` creates the bots this CLI manages.
-- `calendar-auto-schedule` creates them in bulk.
-- `calendar-recurring-events` creates one per occurrence of a series.
+- [List scheduled bots](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/list-scheduled-bots)
+- [Reschedule bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/reschedule-bot)
+- [Delete scheduled bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/delete-scheduled-bot)
+- [Scheduling bots](https://docs.meetstream.ai/guides/features/scheduling-bots)
+- [Get bot status](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-status)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [calendar-schedule-bot](../calendar-schedule-bot) creates the bots this CLI manages; [calendar-auto-schedule](../calendar-auto-schedule) creates them in bulk; [calendar-recurring-events](../calendar-recurring-events) creates one per occurrence of a series; [scheduled-bot-join-at](../scheduled-bot-join-at) schedules one-off bots with `join_at`.

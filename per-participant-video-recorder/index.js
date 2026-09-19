@@ -22,14 +22,17 @@ import {
  * (MeetStream's `bot.stopped` webhook), or because you press Ctrl+C
  * locally.
  *
- * Real MeetStream webhook events (per https://docs.meetstream.ai) are:
+ * Webhook events this app acts on (the full lifecycle is bot.joining ->
+ * bot.in_waiting_room -> bot.inmeeting -> bot.recording -> bot.leaving ->
+ * bot.stopped -> audio.processed / manifest.completed -> video.processed ->
+ * bot.done, with the stop reason in `bot_event`):
  *   bot.joining, bot.inmeeting, bot.stopped,
  *   audio.processed, video.processed, transcription.processed, data_deletion
  *
  * After `bot.stopped`, per-participant media isn't necessarily ready yet -
  * MeetStream needs a short window to process it. Rather than depend
- * entirely on `video.processed` arriving (webhook delivery is explicitly
- * documented as best-effort, non-retried on failure), this app also does a
+ * entirely on `video.processed` arriving (webhook deliveries are not
+ * retried), this app also does a
  * bounded, interval-based check of `get_recording_streams` until the media
  * is actually available.
  */

@@ -1,8 +1,8 @@
-# MeetStream Labs
+# MeetStream Labs: meeting bot sample apps for Zoom, Google Meet and Microsoft Teams
 
-Open source, runnable templates for the [MeetStream API](https://meetstream.ai) - the meeting bot API for Zoom, Google Meet and Microsoft Teams.
+Open source, runnable Node.js templates for the [MeetStream API](https://meetstream.ai), the meeting bot API that joins Zoom, Google Meet and Microsoft Teams calls to record, transcribe, stream and act on them. Every template is a small, complete app: an AI notetaker, a real-time transcription server, a webhook handler, a calendar auto-join, a voice agent that talks in the meeting, a CRM or Slack sync, and so on.
 
-**64 templates covering every endpoint in the API.** Each folder is standalone: clone it, add your API key, run it.
+**64 templates covering every endpoint in the API.** Each folder stands alone: clone it, add your API key, run it.
 
 ```bash
 git clone https://github.com/meetstream-ai/labs.git
@@ -12,7 +12,19 @@ cp .env.example .env      # add your MEETSTREAM_API_KEY
 node index.js
 ```
 
-Get an API key at [app.meetstream.ai](https://app.meetstream.ai/api-key). Node 18+ required.
+Get an API key at [app.meetstream.ai](https://app.meetstream.ai/api-key). Node 18+ required. Building with a coding agent? Point it at the [Agent Quickstarts](https://docs.meetstream.ai/build-with-ai/agent-quickstarts) and the [MeetStream MCP server](https://docs.meetstream.ai/build-with-ai/meetstream-mcp-server), then tell it to start from one of the templates below.
+
+## What you can build with these
+
+| Goal | Start with |
+|---|---|
+| Record a meeting and get a transcript and AI summary afterwards | [post-call-transcription](./post-call-transcription), [ai-meeting-summary](./ai-meeting-summary), [ai-meeting-notetaker-email](./ai-meeting-notetaker-email) |
+| Live transcription, captions or audio while the meeting is running | [realtime-transcription](./realtime-transcription), [live-captions-overlay](./live-captions-overlay), [realtime-audio-streaming](./realtime-audio-streaming) |
+| A bot on every calendar meeting automatically | [calendar-auto-schedule](./calendar-auto-schedule), [google-calendar-integration](./google-calendar-integration), [outlook-calendar-integration](./outlook-calendar-integration) |
+| An AI voice agent that listens and talks in the call | [MIA-chat-agent](./MIA-chat-agent), [mia-voice-agent-pipeline](./mia-voice-agent-pipeline), [mia-wake-word-assistant](./mia-wake-word-assistant) |
+| Push meeting notes into HubSpot, Slack or Notion | [crm-hubspot-sync](./crm-hubspot-sync), [slack-meeting-summary](./slack-meeting-summary), [notion-meeting-notes](./notion-meeting-notes) |
+| Production-grade webhooks, retries and idempotency | [webhook-handler-complete](./webhook-handler-complete), [error-handling-and-retries](./error-handling-and-retries), [idempotency-and-dedup](./idempotency-and-dedup) |
+| Signed-in bots for locked-down Google Meet, Teams or Zoom meetings | [google-signed-in-bots-setup](./google-signed-in-bots-setup), [teams-signed-in-bots-setup](./teams-signed-in-bots-setup), [zoom-authenticated-joins](./zoom-authenticated-joins) |
 
 ---
 
@@ -168,9 +180,16 @@ These are the details that most commonly go wrong when integrating. Every templa
 
 Have a use case to share? Open a pull request. Templates follow a consistent layout: `README.md`, `.env.example`, `package.json`, `.gitignore`, `index.js`, and `src/*.js`.
 
+## License
+
+MIT, see [LICENSE](./LICENSE).
+
 ## Resources
 
 - [MeetStream Docs](https://docs.meetstream.ai)
+- [Tutorials and sample apps on the docs site](https://docs.meetstream.ai/tutorials/sample-apps)
+- [Agent Quickstarts](https://docs.meetstream.ai/build-with-ai/agent-quickstarts) and the [MCP server](https://docs.meetstream.ai/build-with-ai/meetstream-mcp-server)
+- [Official SDKs](https://docs.meetstream.ai/build-with-ai/sdks) and [CLI](https://docs.meetstream.ai/build-with-ai/meetstream-cli)
 - [API Reference](https://docs.meetstream.ai/api-reference)
 - [Webhooks and Events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
 - [Migrating from Recall.ai](https://docs.meetstream.ai/migration/migrate-from-recall)

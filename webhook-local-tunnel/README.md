@@ -1,6 +1,6 @@
-# webhook-local-tunnel
+# Receive MeetStream Webhooks Locally with an ngrok or Cloudflare Tunnel
 
-Get MeetStream webhooks delivering to a server on your laptop: opens a public HTTPS tunnel, wires it into `callback_url`, and proves delivery works before you spend a bot on it.
+Get MeetStream meeting bot webhooks (Zoom, Google Meet and Microsoft Teams lifecycle events) delivering to a server on your laptop: opens a public HTTPS tunnel with `ngrok` or `cloudflared`, wires it into `callback_url` on `create_bot`, and proves delivery works with a self-test before you spend a bot on it.
 
 ```bash
 npm install && node index.js
@@ -24,7 +24,7 @@ MeetStream delivers webhooks from its own infrastructure over the public interne
 - the URL must be **HTTPS**
 - the host must be **publicly resolvable** (not `localhost`, not `127.0.0.1`, not `192.168.x.x`)
 
-There is also **no account-wide webhook setting**. Every bot carries its own `callback_url` on `create_bot`. A bot created without one produces no webhooks at all.
+Each bot carries its own `callback_url` on `create_bot`, fixed at create time, and deliveries are not retried. So get the URL right before you create the bot.
 
 ## Prerequisites
 
@@ -37,9 +37,28 @@ There is also **no account-wide webhook setting**. Every bot carries its own `ca
 ## Setup
 
 ```bash
-cp .env.example .env
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/webhook-local-tunnel
 npm install
+cp .env.example .env   # pick TUNNEL_PROVIDER; add MEETSTREAM_API_KEY only for --create-bot
+node index.js
 ```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `PORT` | no | Local webhook receiver port (default `3000`) |
+| `WEBHOOK_PATH` | no | Path the receiver listens on; `callback_url` is `<public url>` + this (default `/webhook`) |
+| `TUNNEL_PROVIDER` | no | `ngrok` (default), `cloudflared` or `manual` |
+| `TUNNEL_URL` | with `manual` | Your own public `https://` URL, no trailing slash |
+| `TUNNEL_VERBOSE` | no | `true` prints raw tunnel CLI output (default `false`) |
+| `MEETSTREAM_API_KEY` | with `--create-bot` | API key, sent as `Authorization: Token <key>` |
+| `MEETSTREAM_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
+| `MEETING_LINK` | with `--create-bot` | Zoom, Google Meet or Teams link the test bot joins |
+| `BOT_NAME` | no | Test bot display name (default `Tunnel Test Bot`) |
+| `VIDEO_REQUIRED` | no | `true` records video as well as audio (default `false`) |
+| `NO_COLOR` | no | Set to anything to disable coloured output |
 
 ## Run
 
@@ -136,25 +155,28 @@ src/meetstream.js    create_bot / remove_bot, `Token` auth
 src/logger.js        timestamped console output
 ```
 
-For a receiver that actually interprets the full lifecycle, use the `webhook-handler-complete` template and point its `PUBLIC_URL` at the tunnel this one gives you.
+For a receiver that actually interprets the full lifecycle, use [../webhook-handler-complete](../webhook-handler-complete) and point its `PUBLIC_URL` at the tunnel this one gives you.
 
 ## Troubleshooting
 
-**`"ngrok" is not installed or not on your PATH.`** Install it, or switch `TUNNEL_PROVIDER` to `cloudflared`.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `"ngrok" is not installed or not on your PATH.` | Tunnel CLI missing | Install it, or switch `TUNNEL_PROVIDER` to `cloudflared` |
+| `ngrok needs an authtoken.` | One-time ngrok setup not done | `ngrok config add-authtoken <token>` (free token at <https://dashboard.ngrok.com/get-started/your-authtoken>), once per machine |
+| Timed out waiting for a public URL | Port conflict (another ngrok agent running, which the free plan does not allow) or a corporate proxy | Set `TUNNEL_VERBOSE=true` to see the raw CLI output |
+| `callback_url must be https.` | The provider gave you an `http://` URL | Use the `https://` one it printed alongside it; MeetStream does not deliver over plain HTTP |
+| `GET /health` passes but the `POST` self-test fails | Something between the tunnel and your process eats POSTs (ngrok free interstitial, or a proxy inspecting bodies) | The template already sends `ngrok-skip-browser-warning: true`; try `cloudflared` |
+| `--create-bot` says `MEETSTREAM_API_KEY` or `MEETING_LINK` is missing | Not set in `.env` | Fill them in; the tunnel and self-test work without them |
+| 401 / 403 on `create_bot` | 401 = no key sent, 403 = wrong key | Check the key for stray quotes |
+| 400 on `create_bot` | Bad `MEETING_LINK` or a non-HTTPS `callback_url` | Use the full meeting URL; let the template build `callback_url` |
+| Self-test passes but no bot events arrive | The bot was created without `callback_url`, the path does not match `WEBHOOK_PATH` (the server logs every unrouted request), or the bot points at an old tunnel URL | Create a new bot against the current URL; deliveries are not retried |
+| Free tunnel URL changed after a restart | Expected; bots already created still point at the dead URL | Create a new bot against the new URL |
 
-**`ngrok needs an authtoken.`** Run `ngrok config add-authtoken <token>`. The free token is at https://dashboard.ngrok.com/get-started/your-authtoken. This is once per machine, not once per project.
+## Related
 
-**Timed out waiting for a public URL.** Set `TUNNEL_VERBOSE=true` to see raw CLI output. Usually a port conflict (another ngrok agent already running, which the free plan does not allow) or a corporate proxy.
-
-**`callback_url must be https.`** MeetStream does not deliver over plain http. If your provider gave you an http URL, use the https one it printed alongside it.
-
-**`GET /health` passes but the `POST` self-test fails.** Something between the tunnel and your process is eating POSTs. On ngrok free this is usually the browser interstitial. The template already sends `ngrok-skip-browser-warning: true`. If you are behind a corporate proxy that inspects POST bodies, try `cloudflared` instead.
-
-**Tunnel is up, self-test passes, but no bot events arrive.** Check three things: the bot was created with `callback_url` set (there is no global webhook setting), the path in `callback_url` matches `WEBHOOK_PATH` exactly (the server logs every unrouted request), and the tunnel is the same one from this run (free tunnel URLs change on every restart, so a bot created against an old URL delivers into the void).
-
-**Free tunnel URL changed after a restart.** Expected. Bots already created still point at the dead URL. Create a new bot against the new URL.
-
-## Resources
-
-- MeetStream Docs: https://docs.meetstream.ai
-- API Reference: https://docs.meetstream.ai/api-reference
+- [Local webhook server](https://docs.meetstream.ai/guides/webhooks/local-webhook-server)
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Webhook signature verification](https://docs.meetstream.ai/guides/webhooks/webhook-signature-verification)
+- [Workspace webhooks](https://docs.meetstream.ai/guides/webhooks/workspace-webhooks)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- Related templates: [../webhook-handler-complete](../webhook-handler-complete), [../bot-lifecycle-state-machine](../bot-lifecycle-state-machine)

@@ -1,13 +1,15 @@
-const axios = require("axios");
-
-const API_BASE = "https://api.meetstream.ai/api/v1";
+const { request } = require("./client");
+const state = require("./state");
 
 /**
  * Creates a MeetStream bot that joins a meeting and records a post-call transcript.
  *
+ * `meeting_link` and `bot_name` are both required by create_bot. The response
+ * carries `transcript_id`; keep it, because webhooks never include it.
+ *
  * @param {string} meetingLink   Full Zoom / Google Meet / Teams meeting URL
  * @param {string} webhookUrl    Public URL MeetStream will POST events to
- * @returns {Promise<{ bot_id: string, transcript_id: string }>}
+ * @returns {Promise<{ bot_id: string, transcript_id: string|null }>}
  */
 async function createBot(meetingLink, webhookUrl) {
   console.log("  Creating MeetStream bot...");
@@ -15,14 +17,17 @@ async function createBot(meetingLink, webhookUrl) {
   console.log(`   Webhook : ${webhookUrl}\n`);
 
   try {
-    const { data } = await axios.post(
-      `${API_BASE}/bots/create_bot`,
-      {
+    const { status, data } = await request("/bots/create_bot", {
+      method: "POST",
+      body: {
         meeting_link: meetingLink,
+        bot_name: process.env.BOT_NAME || "MeetStream Transcription Bot",
         video_required: false,
         callback_url: webhookUrl,
         recording_config: {
           transcript: {
+            // A post-call provider. Streaming providers (*_streaming,
+            // meeting_captions) never produce a post-call transcript.
             provider: {
               meetstream: {
                 language: "auto",
@@ -32,31 +37,25 @@ async function createBot(meetingLink, webhookUrl) {
           },
         },
       },
-      {
-        headers: {
-          Authorization: `Token ${process.env.MEETSTREAM_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    });
 
     const botId = data?.bot_id ?? data?.id;
-    const transcriptId = data?.transcript_id;
+    const transcriptId = data?.transcript_id ?? null;
 
-    console.log("  Bot created successfully!");
+    console.log(status === 507 ? "  Idempotent replay (HTTP 507) - reusing the existing bot." : "  Bot created successfully!");
     console.log(`   bot_id        : ${botId}`);
-    console.log(`   transcript_id : ${transcriptId ?? "(will arrive in webhook)"}`);
+    console.log(
+      `   transcript_id : ${transcriptId ?? "(not returned - will be looked up on GET /bots/{id}/detail)"}`
+    );
     console.log("\n  Waiting for the meeting to end...\n");
 
-    process.env._BOT_ID = botId;
-    process.env._TRANSCRIPT_ID = transcriptId ?? "";
+    state.botId = botId;
+    state.transcriptId = transcriptId;
 
     return { bot_id: botId, transcript_id: transcriptId };
   } catch (err) {
-    const status = err.response?.status;
-    const detail = err.response?.data ?? err.message;
-    console.error(`  Failed to create bot (HTTP ${status}):`);
-    console.error(JSON.stringify(detail, null, 2));
+    console.error(`  Failed to create bot: ${err.message}`);
+    if (err.body && typeof err.body === "object") console.error(JSON.stringify(err.body, null, 2));
     process.exit(1);
   }
 }

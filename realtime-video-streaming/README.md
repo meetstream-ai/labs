@@ -1,6 +1,6 @@
-# Real-Time Video Streaming
+# Stream Live Meeting Video over WebSocket with the MeetStream API
 
-Receive a MeetStream bot's live meeting video as fMP4 over a WebSocket, write it to a playable file while the meeting is still running, and relay the same bytes to your own consumers.
+Receive a MeetStream API bot's live Google Meet or Microsoft Teams video as fMP4 over a WebSocket, write it to a playable file while the meeting is still running, and relay the same bytes to your own consumers. Live video is not available on Zoom; use post-call video there.
 
 ```bash
 npm install
@@ -19,11 +19,15 @@ node index.js
 
 ## Setup
 
-1. `npm install`
-2. `cp .env.example .env`
-3. Fill in `MEETSTREAM_API_KEY` and `MEETING_LINK`.
-4. Give the process a public address: set `PUBLIC_URL` to an https:// host you control, or set `NGROK_AUTHTOKEN` and a tunnel is opened for you.
-5. `node index.js`
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/realtime-video-streaming
+npm install
+cp .env.example .env    # MEETSTREAM_API_KEY, MEETING_LINK, and PUBLIC_URL or NGROK_AUTHTOKEN
+node index.js
+```
+
+Give the process a public address: set `PUBLIC_URL` to an https:// host you control, or set `NGROK_AUTHTOKEN` and a tunnel is opened for you at startup.
 
 ## How it works
 
@@ -139,23 +143,33 @@ realtime-video-streaming/
 | `OUTPUT_DIR` | no | Default `./output` |
 | `VIDEO_RECORDING` | no | `true` also produces a post-call downloadable recording |
 | `MAX_RELAY_CLIENTS` | no | Default `5` |
-| `RELAY_URL` | no | Used by `consumer-example.js` |
+| `RELAY_URL` | no | Used by `consumer-example.js`. Default `ws://localhost:3000/stream` |
+| `MEETSTREAM_BASE_URL` | no | API base URL. Default `https://api.meetstream.ai/api/v1` |
+| `NO_COLOR` | no | Set to anything to disable coloured terminal output |
 
 ## Troubleshooting
 
-| Problem | Fix |
-|---|---|
-| `Missing required env var` | Copy `.env.example` to `.env` and fill it in |
-| `No public URL available` | Set `PUBLIC_URL` or `NGROK_AUTHTOKEN` |
-| Bot joins but no `video_stream_start` | You are on Zoom. Live video is Google Meet and Teams only. |
-| Connection opens then drops | Check pongs are going out. A consumer that stops answering `video_latency_ping` is treated as dead. |
-| `1009` close code / oversized frame | Raise `maxPayload` on the WebSocket server; the default `ws` limit is far below a 1080p keyframe |
-| Chunks arrive out of order downstream | Write sequentially per `bot_id`. The stream is order-dependent: fMP4 cannot be reassembled from shuffled chunks. |
-| `401` / `403` from the API | `Authorization: Token <key>`, not `Bearer`. Regenerate the key if it still fails. |
-| Bot left behind in the meeting | `GET /bots/{bot_id}/remove_bot` (it really is a GET) |
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required env var` | `.env` not created or a value is blank | Copy `.env.example` to `.env` and fill it in. |
+| `No public URL available` | Neither `PUBLIC_URL` nor `NGROK_AUTHTOKEN` is set | Set one of them. |
+| `401` / `403` from the API | Key missing or rejected | `Authorization: Token <key>`, not `Bearer`. Regenerate the key if it still fails. |
+| `400` from `create_bot` | Body failed validation | Check `meeting_link` and that `websocket_url` is `wss://`. |
+| `429` / `5xx` from the API | Rate limit or transient error | The client retries with backoff. |
+| `507` from `create_bot` | Idempotent replay | Treated as success; the earlier bot is used. |
+| Bot joins but no `video_stream_start` | You are on Zoom | Live video is Google Meet and Teams only; use `video_required: true` and `GET /bots/{id}/get_video` instead. |
+| Connection opens then drops | Pongs are not going out | Every `video_latency_ping` must be answered; a sink that stops answering is treated as dead. |
+| `1009` close code / oversized frame | `maxPayload` on the WebSocket server is too small for a 1080p keyframe | Raise `maxPayload` (this template sets it above the `ws` default). |
+| Chunks arrive out of order downstream | Consumers wrote in parallel | Write sequentially per `bot_id`; fMP4 cannot be reassembled from shuffled chunks. |
+| Bot left behind in the meeting | Process exited without cleanup | `GET /bots/{bot_id}/remove_bot` (it really is a GET). |
 
-## Resources
+## Related
 
-- [Live video stream guide](https://docs.meetstream.ai/guides/transcription-recordings/per-participant-video)
-- [Create Bot endpoint](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
-- [MeetStream docs](https://docs.meetstream.ai)
+- [Per-participant video](https://docs.meetstream.ai/guides/transcription-recordings/per-participant-video)
+- [Real-time audio streaming](https://docs.meetstream.ai/guides/websockets/real-time-audio-streaming)
+- [Bridge server architecture](https://docs.meetstream.ai/guides/websockets/bridge-server-architecture)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Get bot video](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-video)
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [realtime-audio-streaming](../realtime-audio-streaming), [per-participant-video-recorder](../per-participant-video-recorder), [video-recording-downloader](../video-recording-downloader), [webhook-local-tunnel](../webhook-local-tunnel)

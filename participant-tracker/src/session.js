@@ -22,7 +22,9 @@ import { envInt, isTerminalStatus } from './client.js';
  * providers are what produce transcripts and summaries; streaming-only
  * providers (`*_streaming`, `meeting_captions`) never send
  * `transcription.processed` and have no post-call transcript. Both kinds
- * still end with `bot.done` (`audio.processed` is never final).
+ * still end with `bot.done`, the final event on every path (`audio.processed`
+ * is never final). Every ending before that arrives as `event: "bot.stopped"`
+ * with the reason in `bot_event`.
  */
 export function buildCreateBotPayload({ meetingLink, botName, extra = {} }) {
   const recordingConfig = {

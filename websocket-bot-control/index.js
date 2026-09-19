@@ -36,6 +36,23 @@ import { startRepl } from "./src/repl.js";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
+if (["--help", "-h", "help"].includes(process.argv[2])) {
+  console.log(
+    [
+      "Usage: node index.js        (configured entirely through .env)",
+      "",
+      "Starts a local HTTP + WebSocket server, exposes it publicly (PUBLIC_URL or an",
+      "ngrok tunnel), sends a bot into MEETING_LINK with socket_connection_url pointing",
+      "at it, then opens an interactive control> prompt (msg, chat, stream, audio,",
+      "interrupt, img, imgurl, status, quit).",
+      "",
+      "Required env: MEETSTREAM_API_KEY, MEETING_LINK, and PUBLIC_URL or NGROK_AUTHTOKEN.",
+      "See .env.example for every option.",
+    ].join("\n")
+  );
+  process.exit(0);
+}
+
 for (const key of ["MEETSTREAM_API_KEY", "MEETING_LINK"]) {
   if (!process.env[key]) {
     console.error(`\nMissing required env var: ${key}`);

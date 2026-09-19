@@ -1,9 +1,9 @@
-# video-recording-downloader
+# Download Meeting Video Recordings with the MeetStream API
 
-Send a MeetStream bot into a meeting with video recording enabled, wait for the `video.processed` webhook, then download the finished recording to disk with a progress meter.
+Send a MeetStream API bot into a Zoom, Google Meet or Microsoft Teams meeting with video recording enabled, wait for the `video.processed` webhook (with a capped status poll as backup), then download the finished MP4 recording to disk with a progress meter.
 
 ```bash
-npm install && node index.js
+npm install && cp .env.example .env && node index.js
 ```
 
 ## What it does
@@ -25,6 +25,8 @@ npm install && node index.js
 ## Setup
 
 ```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/video-recording-downloader
 npm install
 cp .env.example .env
 ```
@@ -38,6 +40,24 @@ PUBLIC_WEBHOOK_URL=https://your-subdomain.ngrok-free.app
 ```
 
 Leave `PUBLIC_WEBHOOK_URL` blank to skip the webhook server and rely on polling.
+
+## Environment variables
+
+| Name | Required | Default | Meaning |
+|---|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | | API key, sent as `Authorization: Token <key>`. |
+| `MEETING_LINK` | yes | | Google Meet, Zoom or Teams link. |
+| `PUBLIC_WEBHOOK_URL` | no | | Public HTTPS base URL; `callback_url` is `<PUBLIC_WEBHOOK_URL>/webhook`. Blank = poll-only. |
+| `PORT` | no | `3000` | Local webhook server port. |
+| `BOT_NAME` | no | `MeetStream Video Recorder` | Display name in the meeting. |
+| `OUTPUT_DIR` | no | `./recordings` | Where the video is written. |
+| `RETENTION_HOURS` | no | `0` | Auto-delete after N hours. `0` keeps the API default of 720 (30 days). |
+| `EVERYONE_LEFT_TIMEOUT` | no | `60` | Seconds the bot waits after everyone else leaves. |
+| `POLL_MAX_ATTEMPTS` | no | `80` | Cap on `get_video` polls after the meeting ends. |
+| `POLL_INTERVAL_MS` | no | `15000` | Delay between polls. |
+| `REQUEST_TIMEOUT_MS` | no | `30000` | Per-request timeout. |
+| `MAX_RETRIES` | no | `4` | Retries on 429 / 5xx. |
+| `LOG_LEVEL` | no | `info` | `silent`, `error`, `warn`, `info` or `debug`. |
 
 ## Run
 
@@ -85,17 +105,25 @@ This template downloads the single composite recording. For one file per partici
 
 ## Troubleshooting
 
-**`Missing required environment variable "MEETSTREAM_API_KEY"`** - copy `.env.example` to `.env` and fill it in.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required environment variable "MEETSTREAM_API_KEY"` | `.env` not created or key blank | Copy `.env.example` to `.env` and fill it in. |
+| 401 | No key was sent | Set `MEETSTREAM_API_KEY`. |
+| 403 | Key is wrong | Regenerate it in the dashboard. |
+| 202 from `get_video` past the poll cap | Composite video is still encoding | Raise `POLL_MAX_ATTEMPTS` for long meetings. |
+| `get_video` returns 404 forever | The bot never recorded: `bot.stopped` arrived with `bot_event: bot.notallowed` (waiting-room timeout) or `bot.denied` (host rejected it) | The template stops early on either. Check `GET /bots/{bot_id}/detail`. |
+| 429 / 5xx | Transient | Retried with exponential backoff, honouring `Retry-After`. |
+| 507 on `create_bot` | Idempotent replay | Treated as success; no second bot is created. |
+| Downloaded file is far smaller than expected | The meeting was short, or the bot was removed early | The progress meter prints the byte count it actually wrote. |
+| Download URL fails after a delay | Media URLs are presigned and expire | Re-run; the template fetches a fresh URL from `get_video`. |
+| No webhooks arriving | Tunnel URL is not HTTPS or not publicly reachable, or `ngrok` restarted with a new URL | Test `curl https://your-tunnel/healthz`; an already-created bot keeps posting to the old URL, so polling still finishes the run. |
 
-**401 / 403** - 401 means no key was sent, 403 means the key is wrong.
+## Related
 
-**`get_video` returns 404 forever** - the bot may have joined but never recorded (denied entry, or nothing to record). Check `GET /bots/{bot_id}/detail` and the `bot_event` on the `bot.stopped` webhook: `bot.notallowed` means it timed out in the waiting room, `bot.denied` means the host rejected it. The template stops early on either, since there is nothing to download.
-
-**Downloaded file is far smaller than expected** - the meeting itself was short, or the bot was removed early. The progress meter prints the byte count it actually wrote.
-
-**No webhooks arriving** - the tunnel URL must be HTTPS and publicly reachable. Test with `curl https://your-tunnel/healthz`. A restarted `ngrok` gives a new URL, and the already-created bot keeps posting to the old one.
-
-## Reference
-
-- [MeetStream docs](https://docs.meetstream.ai)
-- [API reference](https://docs.meetstream.ai/api-reference)
+- [Get bot video](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-video)
+- [Retrieve recordings](https://docs.meetstream.ai/guides/transcription-recordings/retrieve-recordings)
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Local webhook server](https://docs.meetstream.ai/guides/webhooks/local-webhook-server)
+- [Usage and retention](https://docs.meetstream.ai/guides/features/usage-and-retention)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [audio-recording-downloader](../audio-recording-downloader), [per-participant-video-recorder](../per-participant-video-recorder), [webhook-local-tunnel](../webhook-local-tunnel)

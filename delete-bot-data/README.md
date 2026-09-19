@@ -1,6 +1,6 @@
-# delete-bot-data
+# Delete Meeting Bot Recordings and Transcripts with the MeetStream API
 
-Permanently erase a bot's recordings and transcripts with `DELETE /bots/{id}/delete`, behind an explicit confirmation prompt, and watch the `data_deletion` webhook that fires as a result.
+Permanently erase a MeetStream meeting bot's recordings, transcripts and screenshots (Zoom, Google Meet or Microsoft Teams) with `DELETE /bots/{id}/delete`, behind an explicit confirmation prompt, and watch the `data_deletion` webhook that fires as a result. Useful for GDPR erasure requests and retention clean-up.
 
 **This template destroys data. There is no undo, no trash, and no restore.**
 
@@ -10,12 +10,38 @@ cp .env.example .env   # then fill in MEETSTREAM_API_KEY
 node index.js inspect <bot_id>   # start here: see what exists, delete nothing
 ```
 
+## How it works
+
+- `inspect <bot_id>` reads `GET /bots/{id}/detail` and prints what exists for the bot. Nothing is deleted.
+- `delete <bot_id>` runs `inspect`, asks you to type the full bot id, then calls `DELETE /bots/{id}/delete`. `--force` skips the prompt for scripts.
+- `listen` starts a small Express server (`POST /webhook`, `GET /health`) that prints every MeetStream event and highlights `data_deletion`.
+- Every request sends `Authorization: Token <key>`; API error bodies (`{ "message": "..." }`) are surfaced as-is, and 4xx responses are never retried.
+
 ## Prerequisites
 
 - Node.js 18 or newer
 - A MeetStream API key from https://app.meetstream.ai
 - A bot id whose data you genuinely want gone
 - For the webhook half: a way to expose a local port publicly (ngrok, Cloudflare Tunnel, or a deployed host)
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/delete-bot-data
+npm install
+cp .env.example .env   # then fill in MEETSTREAM_API_KEY
+node index.js --help
+```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes (not for `listen`) | API key, sent as `Authorization: Token <key>` |
+| `BOT_ID` | no | Default target for `inspect` and `delete`; a positional argument overrides it |
+| `PORT` | no | Port for the webhook listener (default `3000`) |
+| `MEETSTREAM_API_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
 
 ## Usage
 
@@ -35,7 +61,7 @@ node index.js delete  bot_abc123 --force  # skip the prompt, for scripts
 - screenshots
 - the transcript
 
-It is irreversible. If you only want the bot out of a live meeting, that is a completely different call: `GET /bots/{id}/remove_bot`, which keeps every recording. See the `list-and-manage-bots` template.
+It is irreversible. If you only want the bot out of a live meeting, that is a completely different call: `GET /bots/{id}/remove_bot`, which keeps every recording. See [../list-and-manage-bots](../list-and-manage-bots).
 
 ## The confirmation prompt
 
@@ -71,25 +97,27 @@ To see it live:
 4. Let the session finish
 5. `node index.js delete <that bot id>` in a second terminal
 
-**The callback_url has to be set when the bot is created.** There is no global webhook endpoint and no way to attach a URL to an existing bot, so you cannot point this listener at a bot that was created without one.
+**The callback_url has to be set when the bot is created.** There is no way to attach a URL to an existing bot, so you cannot point this listener at a bot that was created without one. Webhook deliveries are not retried, so keep the listener up while you delete.
 
 Every delivery carries `event`. Most also carry `bot_event` with the specific name (equal to `event` except on terminals, where `event` is `bot.stopped` and `bot_event` is the reason, such as `bot.kicked`), so read `bot_event ?? event`. The listener prints both when they differ.
 
-## Configuration
-
-| Variable | Required | Default | Notes |
-|---|---|---|---|
-| `MEETSTREAM_API_KEY` | yes | | Not needed for `listen` |
-| `BOT_ID` | no | | Default target for `inspect` and `delete` |
-| `PORT` | no | `3000` | Port for the webhook listener |
-| `MEETSTREAM_API_BASE_URL` | no | production | Override for testing |
-
 ## Troubleshooting
 
-**`API error 404` on delete** - the bot id is wrong, or the data was already deleted. Deleting twice is not an error you can recover information from, the first one already won.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `MEETSTREAM_API_KEY is not set` | `.env` missing or empty | `cp .env.example .env` and add your key |
+| 401 / 403 | 401 = no key sent, 403 = key rejected | Check the key for stray quotes or whitespace |
+| `API error 404` on `inspect` or `delete` | Wrong bot id, or the data was already deleted | Check the id with `GET /bots`; a second delete has nothing left to remove |
+| `delete` refuses to run | stdin is not a TTY (pipe, CI), so the confirmation prompt cannot run | Run it interactively, or pass `--force` deliberately |
+| No `data_deletion` event arrives | Bot was created without a `callback_url`, or the URL points elsewhere; deliveries are not retried | Check the tunnel is up and the path ends in `/webhook`; create a new bot with the right URL |
+| Listener shows `(missing 'event' key)` | Something other than MeetStream is posting to the endpoint | The real payload always has `event` |
+| Data disappeared without anyone calling delete | Retention expired: `recording_config.retention` defaults to 30 days (720 hours) when no retention block is sent | See [../bot-retention-config](../bot-retention-config) |
 
-**No `data_deletion` event arrives** - the bot was created without a `callback_url`, or the URL points somewhere other than this listener. Check your tunnel is up and the path ends in `/webhook`.
+## Related
 
-**Events arrive but the listener shows `(missing 'event' key)`** - something other than MeetStream is posting to the endpoint. The real payload always has `event`.
-
-**Data disappeared without anyone calling delete** - check the retention window. `recording_config.retention` expires artifacts automatically, and the API default is 30 days (720 hours) when no retention block is sent. See the `bot-retention-config` template.
+- [Delete bot data](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/delete-bot-data)
+- [Get bot details](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-details)
+- [Usage and retention](https://docs.meetstream.ai/guides/features/usage-and-retention)
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Local webhook server](https://docs.meetstream.ai/guides/webhooks/local-webhook-server)
+- Related templates: [../bot-retention-config](../bot-retention-config), [../list-and-manage-bots](../list-and-manage-bots), [../webhook-local-tunnel](../webhook-local-tunnel)

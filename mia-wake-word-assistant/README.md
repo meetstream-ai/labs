@@ -1,6 +1,6 @@
-# MIA Wake Word Assistant
+# Build a Wake-Word Meeting Assistant with the MeetStream API
 
-A MeetStream meeting assistant that sits silently in the call and only answers when someone addresses it: "hey acme, what did we decide about pricing?"
+A MIA voice agent, deployed as a MeetStream meeting bot into Zoom, Google Meet or Microsoft Teams, that sits silently in the call and only answers when someone addresses it: "hey acme, what did we decide about pricing?" The wake-word gate runs inside MeetStream, so the LLM is never called for conversation that was not meant for it.
 
 ```console
 npm install && node index.js
@@ -33,8 +33,11 @@ The `wake_word` block moves the gate into MeetStream, before the model runs. Tha
 ## Setup
 
 ```console
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/mia-wake-word-assistant
 npm install
 cp .env.example .env
+node index.js
 ```
 
 Fill in at minimum:
@@ -44,6 +47,26 @@ MEETSTREAM_API_KEY=your_meetstream_api_key_here
 MEETING_LINK=https://meet.google.com/abc-defg-hij
 MIA_WAKE_WORDS=hey acme, ok acme, okay acme
 ```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>` |
+| `MEETING_LINK` | yes | Full `https://` Zoom, Google Meet or Teams link |
+| `MEETSTREAM_AGENT_CONFIG_ID` | no | Reuse a wake-word agent saved by an earlier run instead of creating one |
+| `MIA_WAKE_WORDS` | no | Comma-separated activation phrases (default `hey acme, ok acme, okay acme`) |
+| `MIA_WAKE_WORD_TIMEOUT_SECONDS` | no | Seconds the agent stays awake after a phrase (default `30`) |
+| `MIA_TRANSCRIBER_PROVIDER` / `MIA_TRANSCRIBER_MODEL` / `MIA_TRANSCRIBER_LANGUAGE` | no | Pipeline transcriber (default `deepgram` / `nova-3` / `en`) |
+| `MIA_MODEL_PROVIDER` / `MIA_MODEL` / `MIA_SYSTEM_PROMPT` | no | LLM layer (default `openai` / `gpt-4.1-mini`) |
+| `MIA_VOICE_PROVIDER` / `MIA_VOICE_ID` | no | Voice layer (default `openai` / `nova`) |
+| `MIA_RESPONSE_TYPE` | no | `voice`, `chat` or `action` (default `voice`) |
+| `MIA_AGENT_NAME` / `MIA_FIRST_MESSAGE` | no | Agent label and the one-time introduction |
+| `BOT_NAME` | no | Bot display name in the meeting (default `Acme Assistant`) |
+| `CALLBACK_URL` | no | Public `https://` webhook for per-bot lifecycle events |
+| `DELETE_AGENT_ON_EXIT` | no | `true` deletes the agent config on exit (default `false`) |
+| `POLL_INTERVAL_SECONDS` | no | Bot status poll interval (default `10`) |
+| `MEETSTREAM_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
 
 ## Run
 
@@ -126,15 +149,24 @@ Do not add `socket_connection_url` or `live_audio_required`. Those exist only fo
 
 ## Troubleshooting
 
-- **The gate never fires** - say the phrase and the question in one breath, then pause so the transcription turn completes. If it still misses, add mishearing variants to `MIA_WAKE_WORDS`; they are used as transcriber boostwords too.
-- **The agent answers things nobody asked it** - lower `MIA_WAKE_WORD_TIMEOUT_SECONDS`, or use a longer, more distinctive phrase.
-- **`The saved agent has wake_word disabled`** - the reused `MEETSTREAM_AGENT_CONFIG_ID` has no gate. Unset it to create a fresh gated agent.
-- **`Wake-word gating is a pipeline-mode feature`** - the reused config is a realtime agent. Realtime configs have no `wake_word` block. See `mia-realtime-agent`.
-- **HTTP 403** - the key is wrong or revoked. The auth header must be `Authorization: Token <key>`, not `Bearer`.
-- **HTTP 400 on `POST /mia`** - a provider, model, or voice is not enabled for your account.
-- **HTTP 507** - an idempotent replay. The original request already succeeded.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `MEETSTREAM_API_KEY is missing from .env` | `.env` missing, empty or still a placeholder | `cp .env.example .env` and add your key |
+| HTTP 401 / 403 | 401 = no key sent, 403 = key wrong or revoked | Header must be `Authorization: Token <key>`, not `Bearer` |
+| HTTP 400 on `POST /mia` | A provider, model or voice is not enabled for your account | Enable the integration in the MeetStream dashboard |
+| HTTP 400 on `create_bot` | Bad `MEETING_LINK` | Use the full meeting URL |
+| HTTP 507 | Idempotent replay; the original request already succeeded | Treated as success |
+| The gate never fires | The transcriber spells the phrase differently, or the phrase and question were split across turns | Say both in one breath, then pause; add mishearing variants to `MIA_WAKE_WORDS` (they are used as transcriber boostwords too) |
+| The agent answers things nobody asked it | Follow-up window too long, or the phrase is too short | Lower `MIA_WAKE_WORD_TIMEOUT_SECONDS`, or use a longer, more distinctive phrase |
+| `The saved agent has wake_word disabled` | The reused `MEETSTREAM_AGENT_CONFIG_ID` has no gate | Unset it to create a fresh gated agent |
+| `Wake-word gating is a pipeline-mode feature` | The reused config is a realtime agent, which has no `wake_word` block | See [../mia-realtime-agent](../mia-realtime-agent) |
+| Bot ends `NotAllowed` / `Denied` | Never admitted, or the host refused | Admit the bot from the waiting room |
 
-## Resources
+## Related
 
-- [MeetStream Docs](https://docs.meetstream.ai)
-- [MIA guide](https://docs.meetstream.ai/guides/mia/create-an-agent)
+- [What is MIA](https://docs.meetstream.ai/guides/mia/what-is-mia)
+- [Create an agent](https://docs.meetstream.ai/guides/mia/create-an-agent)
+- [MIA custom configurations](https://docs.meetstream.ai/guides/mia/mia-custom-configurations)
+- [Create agent config](https://docs.meetstream.ai/api-reference/api-endpoints/mia/create-agent-config)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- Related templates: [../MIA-chat-agent](../MIA-chat-agent), [../mia-agent-crud](../mia-agent-crud), [../mia-realtime-agent](../mia-realtime-agent)

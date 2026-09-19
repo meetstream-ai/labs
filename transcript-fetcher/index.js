@@ -41,9 +41,20 @@ function usage(message) {
 }
 
 async function main() {
+  const first = process.argv[2];
+  if (first === "--help" || first === "-h" || first === "help") {
+    console.log("Usage:");
+    console.log("  node index.js <bot_id>                      resolve transcript_id, fetch, print, save");
+    console.log("  BOT_ID=<bot_id> node index.js               same, via .env");
+    console.log("  TRANSCRIPT_ID=<transcript_id> node index.js  skip resolution");
+    console.log("  RAW=true node index.js <bot_id>             untouched provider output");
+    console.log("Needs MEETSTREAM_API_KEY. See .env.example for every option.");
+    return;
+  }
+
   requireApiKey();
 
-  const botId = process.argv[2] || process.env.BOT_ID || "";
+  const botId = first || process.env.BOT_ID || "";
   const directTranscriptId = process.env.TRANSCRIPT_ID || "";
 
   if (!botId && !directTranscriptId) {

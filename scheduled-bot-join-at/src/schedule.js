@@ -64,13 +64,17 @@ function pick(obj, keys) {
   return null;
 }
 
-function normalise(raw) {
+/**
+ * Normalise a bot record from either GET /bots (`join_at`, `bot_name`) or
+ * GET /calendar/scheduled_bots (`scheduled_join_time`, `bot_username`).
+ */
+export function normalise(raw) {
   return {
     id: pick(raw, ["bot_id", "id"]),
-    name: pick(raw, ["bot_name", "name"]),
+    name: pick(raw, ["bot_name", "bot_username", "name"]),
     status: pick(raw, ["bot_status", "status", "state"]) ?? "Unknown",
     meeting: pick(raw, ["meeting_url", "meeting_link"]),
-    joinAt: pick(raw, ["join_at", "joinAt", "scheduled_at"]),
+    joinAt: pick(raw, ["join_at", "joinAt", "scheduled_join_time", "scheduled_at"]),
     raw,
   };
 }
@@ -107,14 +111,17 @@ export async function listBots({ maxPages = 20 } = {}) {
 /**
  * GET /calendar/scheduled_bots - the dedicated "list scheduled bots" endpoint.
  *
- * Prefer this over paging all of GET /bots and filtering client-side: it returns only
- * bots that are actually scheduled. The GET /bots + `scheduledBots()` path below is kept
- * as a fallback (and to show how to spot a scheduled bot by its `join_at`).
+ * Returns every bot with a scheduled join time in the future, both join_at bots
+ * and calendar-scheduled ones, as
+ * `{ scheduled_bots: [{ bot_id, platform, status, scheduled_join_time, bot_username, meeting_link }] }`.
+ * Prefer this over paging all of GET /bots and filtering client-side. The
+ * GET /bots + `scheduledBots()` path is kept for `--all`, which is the only way
+ * to see past join_at times.
  */
-export async function listScheduledBots() {
-  const { data } = await call("/calendar/scheduled_bots");
+export async function listScheduledBots({ limit = 100 } = {}) {
+  const { data } = await call("/calendar/scheduled_bots", { query: { limit } });
   const rows = Array.isArray(data) ? data : (data?.scheduled_bots ?? data?.bots ?? []);
-  return rows;
+  return rows.map(normalise).filter((bot) => bot.id);
 }
 
 /** Bots with a join_at, newest scheduled time last. `upcomingOnly` drops past ones. */

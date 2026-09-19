@@ -234,7 +234,8 @@ async function liveMode({ args, onMeetingComplete }) {
 }
 
 async function handleWebhookEvent(payload, state, onMeetingComplete) {
-  // The envelope key is `event`. Anything claiming it is `bot_event` is out of date.
+  // Every delivery carries `event` (the generic name). Most also carry
+  // `bot_event` (the specific name; on terminals it is the reason).
   const { event, bot_id: botId, bot_status: botStatus, message } = payload || {};
   if (!event) return;
 

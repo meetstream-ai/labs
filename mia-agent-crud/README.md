@@ -1,6 +1,6 @@
-# MIA Agent CRUD
+# Create and Manage MIA Voice Agent Configs with the MeetStream API
 
-An admin CLI for saved MeetStream Infrastructure Agent configs. Create, list, inspect, update, and delete them from the terminal instead of clicking through the dashboard.
+An admin CLI for saved MIA (MeetStream Infrastructure Agent) configs: the voice agent recipes a MeetStream meeting bot runs when it joins a Zoom, Google Meet or Microsoft Teams call. Create, list, inspect, update and delete them from the terminal instead of clicking through the dashboard, then attach one to a bot with a single `agent_config_id` on `create_bot`.
 
 ```console
 npm install && node index.js list
@@ -28,13 +28,19 @@ An agent config is a saved recipe: mode, model, voice, transcriber, response typ
 ## Setup
 
 ```console
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/mia-agent-crud
 npm install
-cp .env.example .env
+cp .env.example .env      # paste MEETSTREAM_API_KEY
+node index.js list
 ```
 
-```dotenv
-MEETSTREAM_API_KEY=your_meetstream_api_key_here
-```
+## Environment variables
+
+| Variable | Required | Meaning |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. The placeholder value from `.env.example` is rejected. |
+| `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 
 ## Run
 
@@ -152,14 +158,25 @@ The `GET` routes return these blocks with PascalCase keys (`Model`, `Voice`, `Tr
 
 ## Troubleshooting
 
-- **`MEETSTREAM_API_KEY is missing from .env`** - copy `.env.example` to `.env` and paste a real key.
-- **HTTP 403** - the key is wrong or revoked. The auth header must be `Authorization: Token <key>`, not `Bearer`.
-- **HTTP 404 on get, update, or delete** - the id does not exist. Run `list` to see valid ids.
-- **HTTP 400 on create or update** - a provider, model id, or voice id is not available to your account, or a required block is missing for the mode. Re-run with `--dry-run` and compare against the table above.
-- **`--set` produced the wrong shape** - values are parsed as JSON first and fall back to a plain string. Quote arrays and objects for your shell: `--set wake_word.words='["hey acme"]'`.
-- **HTTP 507** - an idempotent replay. The original request already succeeded, so the agent exists. Run `list` to find it.
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY is missing from .env` | No `.env`, an empty key, or the `your_..._here` placeholder. | Copy `.env.example` to `.env` and paste a real key. |
+| HTTP 401 | No key reached the API. | Check `.env` is loaded from the directory you ran `node` in. |
+| HTTP 403 | The key is wrong or revoked. | The auth header must be `Authorization: Token <key>`, not `Bearer`; regenerate the key. |
+| HTTP 404 on get, update, or delete | The id does not exist. | Run `list` to see valid ids. |
+| HTTP 400 on create or update | A provider, model id, or voice id is not available to your account, or a required block is missing for the mode. | Re-run with `--dry-run` and compare against the table above. |
+| `--set` produced the wrong shape | Values are parsed as JSON first and fall back to a plain string. | Quote arrays and objects for your shell: `--set wake_word.words='["hey acme"]'`. |
+| HTTP 507 | An idempotent replay: the original request already succeeded, so the agent exists. | Run `list` to find it. |
+| `Unknown option --x` | A flag the CLI does not know. | `node index.js --help` lists every option. |
 
-## Resources
+## Related
 
-- [MeetStream Docs](https://docs.meetstream.ai)
-- [MIA guide](https://docs.meetstream.ai/guides/mia/create-an-agent)
+- [What is MIA](https://docs.meetstream.ai/guides/mia/what-is-mia)
+- [Create an agent](https://docs.meetstream.ai/guides/mia/create-an-agent)
+- [MIA API guide](https://docs.meetstream.ai/guides/mia/mia-api-guide)
+- [MIA custom configurations](https://docs.meetstream.ai/guides/mia/mia-custom-configurations)
+- [Create agent config](https://docs.meetstream.ai/api-reference/api-endpoints/mia/create-agent-config)
+- [Get agent configs](https://docs.meetstream.ai/api-reference/api-endpoints/mia/get-agent-configs)
+- [Update agent config](https://docs.meetstream.ai/api-reference/api-endpoints/mia/update-agent-config)
+- [Delete agent config](https://docs.meetstream.ai/api-reference/api-endpoints/mia/delete-agent-config)
+- Sibling templates: [mia-voice-agent-pipeline](../mia-voice-agent-pipeline), [mia-realtime-agent](../mia-realtime-agent), [mia-wake-word-assistant](../mia-wake-word-assistant), [MIA-chat-agent](../MIA-chat-agent)

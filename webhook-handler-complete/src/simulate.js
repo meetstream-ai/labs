@@ -159,8 +159,8 @@ export function allScenarios() {
   const happy = postCallHappyPath();
   return [
     ...happy,
-    // At-least-once delivery in action: MeetStream resends bot.recording
-    // (same body, same timestamp).
+    // A duplicate delivery (same body, same timestamp), as a tunnel replay or
+    // a queue re-drive would produce. MeetStream itself does not resend.
     happy[3],
     ...streamingOnlyPath(),
     ...kickedPath(),

@@ -25,7 +25,8 @@ if (!API_KEY || !WEBSOCKET_URL || !MEETING_URL) {
   process.exit(1);
 }
 
-const PROVIDER = "deepgram";
+// PROVIDER=deepgram (default) or PROVIDER=assemblyai. Both are *_streaming providers.
+const PROVIDER = (process.env.PROVIDER || "deepgram").trim();
 
 const providers = {
   deepgram: {

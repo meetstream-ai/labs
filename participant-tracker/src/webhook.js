@@ -6,7 +6,9 @@
  *   POST /webhook       <- `callback_url` on create_bot. Bot lifecycle:
  *                          bot.joining, bot.in_waiting_room, bot.inmeeting,
  *                          bot.recording, bot.leaving, bot.stopped, and the
- *                          post-call events. Envelope key is `event`.
+ *                          post-call events through bot.done. `event` is
+ *                          always present; `bot_event` carries the specific
+ *                          name and, on bot.stopped, the reason.
  *
  *   POST /participants  <- `recording_config.realtime_endpoints[].url`.
  *                          participant_events.join / .leave, which use a
@@ -19,6 +21,21 @@
 import express from 'express';
 
 const TERMINAL_EVENTS = new Set(['bot.stopped']);
+
+/**
+ * Why the bot stopped. Every ending arrives as `event: "bot.stopped"`; the
+ * reason is in `bot_event` (bot.stopped | bot.kicked | bot.notallowed |
+ * bot.denied | bot.failed). Only when it is missing fall back to bot_status,
+ * compared case-insensitively: a kick and a clean exit both say "Stopped".
+ */
+export function terminalReason(payload) {
+  if (payload?.bot_event) return payload.bot_event;
+  const status = String(payload?.bot_status ?? '').toLowerCase();
+  if (status === 'notallowed') return 'bot.notallowed';
+  if (status === 'denied') return 'bot.denied';
+  if (status === 'error' || status === 'failed') return 'bot.failed';
+  return 'bot.stopped';
+}
 
 /**
  * @param {object} opts
@@ -53,7 +70,9 @@ export function startWebhookServer({ tracker, port, onMeetingEnded }) {
     }
 
     if (TERMINAL_EVENTS.has(applied.event)) {
-      onMeetingEnded(`${applied.event} (${applied.status ?? 'unknown'})`);
+      // status_code is 200 for a clean exit or a kick, 500 for notallowed /
+      // denied and usually for failed. Report the reason, not the code.
+      onMeetingEnded(`${applied.event}, reason ${terminalReason(payload)}`);
     }
   });
 

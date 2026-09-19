@@ -57,6 +57,15 @@ export function startServer({ port, onCaption, onLifecycle, onReady }) {
     if (onReady) onReady();
   });
 
+  server.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`Port ${port} is already in use. Stop the other process or set PORT in .env.`);
+    } else {
+      console.error(`Server failed to start: ${err.message}`);
+    }
+    process.exit(1);
+  });
+
   return server;
 }
 

@@ -1,16 +1,12 @@
-# error-handling-and-retries
+# MeetStream API Error Handling, Retries and Idempotency in Node.js
 
-A production-grade MeetStream API client that walks the entire error surface: 400, 401 vs 403, 404, 409, 429 with `Retry-After`, 500/503 backoff, **507 treated as success**, and **202 polling with a hard cap**.
+A production-grade Node.js client for the MeetStream meeting bot API (Zoom, Google Meet and Microsoft Teams) that walks the entire error surface: 400, 401 vs 403, 404, 409, 429 with `Retry-After`, 500/503 backoff, **507 treated as success**, and **202 polling with a hard cap**. Every case runs offline against a deterministic mock transport, so the default run needs no API key and costs nothing.
 
 ```bash
 npm install && node index.js
 ```
 
-No API key needed for the default run. Every case is exercised against a deterministic mock transport, so it is free and repeatable.
-
----
-
-## What this does
+## What it does
 
 ```bash
 node index.js          # offline matrix: 11 scenarios, no network, no cost
@@ -41,14 +37,25 @@ The `--live` probes only trigger validation and auth failures. They create nothi
 ## Prerequisites
 
 - Node.js 18 or newer
-- A MeetStream API key, only for two of the `--live` probes: https://app.meetstream.ai
+- A MeetStream API key, only for two of the `--live` probes: <https://app.meetstream.ai>
 
 ## Setup
 
 ```bash
-cp .env.example .env   # optional, only needed for --live
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/error-handling-and-retries
 npm install
+cp .env.example .env   # optional, only needed for --live
+node index.js
 ```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY` | `--live` only | Used by the 400 and 404 live probes. The 401 and 403 probes deliberately send no key / a fake key. The offline matrix needs nothing. |
+| `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
+| `NO_COLOR` | no | Set to any value to disable ANSI colours in the log output. |
 
 ---
 
@@ -58,7 +65,7 @@ Every status the API returns, and what your client should do about it.
 
 | Code | Category | Retry? | What to do |
 | --- | --- | --- | --- |
-| 200 / 201 | success | no | Done. |
+| 200 / 201 | success | no | Done. `create_bot` answers 201. |
 | **202** | pending | no | **Not an error.** Still processing. Poll again, with a cap. |
 | 400 | validation | no | Your body is wrong. The `message` names the field. |
 | 401 | auth | no | No key was sent. Check the header exists and says `Token`, not `Bearer`. |
@@ -148,7 +155,7 @@ Network-level failures (DNS, reset, timeout) become `MeetStreamNetworkError` and
 ## How it works
 
 ```
-index.js                CLI: offline matrix, --live probes, --table
+index.js                CLI: offline matrix, --live probes, --table, --help
 src/errors.js           MeetStreamError, MeetStreamNetworkError, STATUS_GUIDE,
                         parseRetryAfter (seconds or HTTP date)
 src/retry.js            withRetry, backoffDelay (full jitter), budgets
@@ -174,17 +181,23 @@ Those run against `src/mock-transport.js`, whose bodies and headers match what t
 
 ## Troubleshooting
 
-**Everything returns 401.** The header is `Authorization: Token <key>`. `Bearer` is a different scheme and the API rejects it.
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Everything returns 401 | The header is `Authorization: Token <key>`. `Bearer` is a different scheme and the API rejects it. | Use `Token`, and check the env var is not empty. |
+| 403 on `--live` with a key set | The key is wrong, revoked, or from another workspace. | Generate a new key at <https://app.meetstream.ai>. |
+| `--live` skips the 400 and 404 probes | `MEETSTREAM_API_KEY` is not set. Only those two probes need it. | `cp .env.example .env` and paste your key. |
+| Retries make things worse | You are retrying a 4xx. | Check `err.retryable` before backing off, or use `withRetry`, which already does. |
+| Duplicate bots after a deploy or a queue redelivery | Your `Idempotency-Key` is regenerated per attempt instead of per unit of work. | Derive it from the job id, not `randomUUID()` at call time. |
+| A worker is stuck | Something is polling a `202` without a cap. If the bot used a streaming-only provider, that poll will never finish. | Use `pollUntilReady` with `maxAttempts` and `maxElapsedMs`. |
+| `in_call_recording_timeout must be at least 600 seconds.` | That floor is real. Values below 600 reject the whole `create_bot` request with a 400. | Send 600 or more. |
+| A demo prints `FAIL` | The client no longer behaves as the demo documents. | Read the demo's note; the process exits 1 so CI notices. |
 
-**Retries make things worse.** You are probably retrying a 4xx. Check `err.retryable` before backing off, or use `withRetry`, which already does.
+## Related
 
-**Duplicate bots after a deploy or a queue redelivery.** Your `Idempotency-Key` is regenerated per attempt instead of per unit of work. Derive it from the job id, not `randomUUID()` at call time.
-
-**A worker is stuck.** Something is polling a `202` without a cap. If the bot used a streaming-only provider, that poll will never finish.
-
-**`in_call_recording_timeout must be at least 600 seconds.`** That floor is real. Values below 600 reject the whole `create_bot` request with a 400.
-
-## Resources
-
-- MeetStream Docs: https://docs.meetstream.ai
-- API Reference: https://docs.meetstream.ai/api-reference
+- [Error codes](https://docs.meetstream.ai/errors)
+- [Authentication](https://docs.meetstream.ai/api-reference/authentication)
+- [Deduplication and idempotency keys](https://docs.meetstream.ai/guides/features/deduplication-idempotency-keys)
+- [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
+- [Automatic leave configuration](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
+- [Debugging bots](https://docs.meetstream.ai/guides/help/debugging-bots)
+- Sibling templates: [idempotency-and-dedup](../idempotency-and-dedup), [webhook-handler-complete](../webhook-handler-complete), [transcript-fetcher](../transcript-fetcher)

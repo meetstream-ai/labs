@@ -37,6 +37,7 @@ function parseFlags(argv) {
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--yes" || arg === "-y") flags.yes = true;
+    else if (arg === "--help" || arg === "-h") flags.help = true;
     else if (arg === "--json") flags.json = true;
     else if (arg === "--limit") flags.limit = argv[++i];
     else if (arg === "--time") flags.time = argv[++i];
@@ -244,11 +245,24 @@ async function cmdCancelAll(flags) {
   if (failures.length) process.exitCode = 1;
 }
 
-async function main() {
-  requireApiKey();
+const USAGE = `Usage: node index.js <command> [options]
+  list [--limit n] [--json]                          every upcoming bot
+  show <botId>                                       one bot with live status
+  reschedule <botId> <iso>                           move the join time
+  update <botId> [--time t] [--name n] [--attr k=v]  change time, name or attributes
+  cancel <botId> [--yes]                             cancel one bot
+  cancel-all [--yes]                                 cancel everything upcoming`;
 
+async function main() {
   const { flags, positional } = parseFlags(process.argv.slice(2));
   const [command, arg1, arg2] = positional;
+
+  if (flags.help || command === "help") {
+    console.log(USAGE);
+    return;
+  }
+
+  requireApiKey();
 
   switch (command ?? "list") {
     case "list":
@@ -271,7 +285,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error("Usage: node index.js [list|show|reschedule|update|cancel|cancel-all] ...");
+      console.error(USAGE);
       process.exit(1);
   }
 }

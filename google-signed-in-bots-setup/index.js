@@ -222,7 +222,7 @@ async function cmdCreateBot(client) {
     botName: optionalEnv('BOT_NAME', 'MeetStream Signed-In Bot'),
     googleLoginDomain,
     signInEmail: optionalEnv('SIGN_IN_EMAIL'),
-    strictEmail: boolEnv('STRICT_EMAIL', false),
+    strictEmail: optionalEnv('STRICT_EMAIL') === undefined ? undefined : boolEnv('STRICT_EMAIL'),
     videoRequired: boolEnv('VIDEO_REQUIRED', false),
     waitingRoomTimeout: intEnv('WAITING_ROOM_TIMEOUT', { min: 60, max: 600 }),
     callbackUrl: optionalEnv('CALLBACK_URL'),
@@ -282,7 +282,8 @@ main().catch((error) => {
     if (error.status === 401) console.error('Your MEETSTREAM_API_KEY is missing or malformed.');
     if (error.status === 403) console.error('That API key is not valid for this workspace.');
   } else {
-    console.error(`\n${error.stack ?? error.message}`);
+    console.error(`\n${error.message}`);
+    if (process.env.DEBUG) console.error(error.stack);
   }
   process.exitCode = 1;
 });

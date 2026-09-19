@@ -96,7 +96,8 @@ export function renderAttendance(report) {
     out.push(heading('Bot lifecycle'));
     out.push('');
     for (const e of report.bot_lifecycle) {
-      out.push(`  ${timestamp(e.at)}  ${e.event}${e.status ? ` (${e.status})` : ''}`);
+      const reason = e.bot_event && e.bot_event !== e.event ? ` -> ${e.bot_event}` : '';
+      out.push(`  ${timestamp(e.at)}  ${e.event}${reason}${e.status ? ` (${e.status})` : ''}`);
     }
   }
 

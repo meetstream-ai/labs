@@ -16,6 +16,23 @@ import { STATUS_GUIDE } from './src/errors.js';
 import { log } from './src/logger.js';
 
 const args = new Set(process.argv.slice(2));
+const KNOWN_FLAGS = new Set(['--live', '--table', '--help', '-h']);
+const unknownArgs = [...args].filter((a) => !KNOWN_FLAGS.has(a));
+if (args.has('--help') || args.has('-h') || unknownArgs.length) {
+  if (unknownArgs.length) console.error(`Unknown argument(s): ${unknownArgs.join(' ')}\n`);
+  console.log(
+    [
+      'MeetStream Labs - error-handling-and-retries',
+      '',
+      'Usage:',
+      '  node index.js          offline matrix: 11 scenarios against a mock transport, no API key needed',
+      '  node index.js --live   plus real-API probes for 401 / 403 / 400 / 404 (400 and 404 need MEETSTREAM_API_KEY)',
+      '  node index.js --table  print the status decision table and exit',
+      '  node index.js --help   this message',
+    ].join('\n'),
+  );
+  process.exit(unknownArgs.length ? 1 : 0);
+}
 const LIVE = args.has('--live');
 const TABLE_ONLY = args.has('--table');
 

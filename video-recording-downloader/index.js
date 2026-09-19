@@ -36,6 +36,12 @@ const state = {
 };
 
 async function main() {
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    console.log('Usage: node index.js');
+    console.log('  Reads .env: MEETSTREAM_API_KEY, MEETING_LINK, optional PUBLIC_WEBHOOK_URL (blank = poll only).');
+    console.log('  Creates a video-recording bot, waits for video.processed, downloads to OUTPUT_DIR.');
+    return;
+  }
   const apiKey = requireEnv('MEETSTREAM_API_KEY');
   const meetingLink = requireEnv('MEETING_LINK');
   const botName = optionalEnv('BOT_NAME', 'MeetStream Video Recorder');

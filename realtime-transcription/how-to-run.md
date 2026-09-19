@@ -114,13 +114,15 @@ The bot joins the meeting and MeetStream starts sending live transcription event
 
 ## 5. Switch providers
 
-In `create-bot.js`, set:
+Set `PROVIDER` in `.env` (or the shell) before creating the bot:
 
-```js
-const PROVIDER = "deepgram";     // default
-// or
-const PROVIDER = "assemblyai";
+```bash
+PROVIDER=deepgram      # default
+# or
+PROVIDER=assemblyai
 ```
+
+Both are streaming providers. `live_transcription_required` needs a `*_streaming` provider; pairing it with a post-call provider such as `deepgram` returns HTTP 400.
 
 ---
 
@@ -196,4 +198,4 @@ Edit `onTurnComplete()` in `server.js` or `ws-server.js` to wire in your own log
 
 - [Live Transcription docs](https://docs.meetstream.ai/guides/transcription-recordings/live-transcription)
 - [Webhooks & Events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
-- [API Reference](https://docs.meetstream.ai/api-reference)
+- [API Reference](https://docs.meetstream.ai/api-reference/introduction)

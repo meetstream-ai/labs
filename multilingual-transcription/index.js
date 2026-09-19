@@ -57,6 +57,12 @@ async function main() {
     printLanguageCatalogue();
     return;
   }
+  if (process.argv.includes("--help") || process.argv.includes("-h")) {
+    console.log("Usage: node index.js <meeting_link>      join, transcribe, save to OUTPUT_DIR");
+    console.log("       node index.js --languages         per-provider language codes, no API key needed");
+    console.log("Set PROVIDER and LANGUAGE in .env or inline: PROVIDER=sarvam LANGUAGE=ta-IN node index.js <link>");
+    return;
+  }
 
   requireApiKey();
 

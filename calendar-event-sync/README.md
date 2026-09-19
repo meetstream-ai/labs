@@ -1,25 +1,29 @@
-# calendar-event-sync
+# Sync Calendar Events and Find Joinable Meetings with the MeetStream API
 
-Sync upcoming events from a connected calendar with `GET /calendar/events`, detect which ones carry a joinable meeting link, and print a schedule table.
-
-```bash
-npm install
-cp .env.example .env      # fill in MEETSTREAM_API_KEY
-node index.js
-```
+Sync upcoming events from a Google Calendar or Outlook calendar connected to MeetStream with `GET /calendar/events`, detect which ones carry a Zoom, Google Meet or Microsoft Teams link a meeting bot could join, and print a schedule table with the MeetStream event ids you need to schedule a bot.
 
 ## What it does
 
 1. Calls `GET /calendar/events` with a time window. That endpoint syncs from the upstream provider first (Google Calendar or Microsoft Graph, incremental where possible), stores the events, and returns them with pagination.
-2. Follows the `next` cursor until the window is exhausted or `SYNC_MAX_EVENTS` is reached.
+2. Follows the `next` cursor until the window is exhausted or `SYNC_MAX_EVENTS` is reached (20 page hard cap).
 3. Classifies every event: which conferencing platform, whether a bot could join at all, and whether a bot is already scheduled.
-4. Prints a sorted table.
+4. Prints a sorted table, or raw JSON with `--json`.
 
 ## Prerequisites
 
-- Node.js 18 or newer.
+- Node.js 18 or newer (built-in `fetch`).
 - A MeetStream API key from <https://app.meetstream.ai>.
-- A connected calendar. Run the `google-calendar-integration` or `outlook-calendar-integration` template first.
+- A connected calendar. Run the [google-calendar-integration](../google-calendar-integration/README.md) or [outlook-calendar-integration](../outlook-calendar-integration/README.md) template first.
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/calendar-event-sync
+npm install
+cp .env.example .env      # fill in MEETSTREAM_API_KEY
+node index.js
+```
 
 ## Usage
 
@@ -54,6 +58,19 @@ START             PLATFORM         BOT         EVENT ID                TITLE
 To put a bot on the next unscheduled meeting, use the
 calendar-schedule-bot template with EVENT_ID=evt_2a1179ef047a5285
 ```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
+| `SYNC_DAYS_AHEAD` | no | How far ahead to look, in days. Default `14`. `--days` overrides. |
+| `SYNC_PAGE_SIZE` | no | Events per page, 1 to 100. Default `50`. `--limit` overrides. |
+| `SYNC_MAX_EVENTS` | no | Stop after this many events across all pages. Default `200`. |
+| `CALENDAR_ID` | no | Sync one specific calendar instead of the primary one. `--calendar-id` overrides. |
+| `CALENDAR_PROVIDER` | no | `google` or `outlook`, multi-account users only. `--provider` overrides. |
+| `CALENDAR_ACCOUNT_ID` | no | One connected account; requires `CALENDAR_PROVIDER`. `--account-id` overrides. |
+| `MEETSTREAM_API_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 
 ## How it works
 
@@ -128,18 +145,23 @@ Event titles live in `raw`, the untouched provider payload. Google Calendar puts
 
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-|---|---|
-| API error 401 | `MEETSTREAM_API_KEY` is not set. |
-| API error 403 | The API key was rejected. |
-| Empty results | No calendar is connected. Check with `GET /calendar`, or run the integration template. Otherwise widen the window with `--days 30`. |
-| Everything shows "no link" | The events genuinely have no conferencing link. MeetStream reads the link out of the event body and location, so a link typed into a description as plain text may not be detected. |
-| Events you deleted still appear | A sync page can include tombstones. This template filters on `is_deleted`. |
-| Slow first run | The first sync pulls the full window from the provider. Later runs are incremental. `--no-sync` skips the upstream call entirely. |
+| Symptom | Cause | Fix |
+|---|---|---|
+| `MEETSTREAM_API_KEY is not set` | No `.env` or empty key. | `cp .env.example .env` and paste your key. |
+| API error 401 | No key was sent. | Check `.env` is loaded from the directory you ran `node` in. |
+| API error 403 | The API key was rejected. | Confirm the key is active for this workspace. |
+| API error 400 | Bad query, for example `account_id` without `provider`, or `limit` outside 1 to 100. | Fix the flag or `.env` value. |
+| Empty results | No calendar is connected, or the window is too narrow. | Check with `GET /calendar`, run the integration template, or widen with `--days 30`. |
+| Everything shows "no link" | The events genuinely have no conferencing link. MeetStream reads the link out of the event body and location, so a link typed into a description as plain text may not be detected. | Add a proper conferencing link to the event. |
+| Events you deleted still appear | A sync page can include tombstones. | Already handled: this template filters on `is_deleted`. |
+| Slow first run | The first sync pulls the full window from the provider. Later runs are incremental. | Use `--no-sync` to skip the upstream call entirely. |
+| API error 429 | Rate limited. | Wait and retry, or lower `SYNC_PAGE_SIZE`. |
 
-## Related templates
+## Related
 
-- `google-calendar-integration` / `outlook-calendar-integration` connect the calendar.
-- `calendar-schedule-bot` schedules a bot for one of these events.
-- `calendar-auto-schedule` schedules every event with a link automatically.
-- `manage-scheduled-bots` lists and edits the bots that come out of scheduling.
+- [Fetch and sync events](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/fetch-sync-events)
+- [Schedule event](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/schedule-event)
+- [Get calendars](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/get-calendars)
+- [Google Calendar OAuth setup](https://docs.meetstream.ai/guides/calendar-integrations/google-calendar-oauth-setup)
+- [Outlook Calendar setup](https://docs.meetstream.ai/guides/calendar-integrations/outlook-calendar-setup)
+- Templates: [google-calendar-integration](../google-calendar-integration/README.md) and [outlook-calendar-integration](../outlook-calendar-integration/README.md) connect the calendar; [calendar-schedule-bot](../calendar-schedule-bot/README.md) schedules a bot for one event; [calendar-auto-schedule](../calendar-auto-schedule/README.md) schedules every event with a link; [manage-scheduled-bots](../manage-scheduled-bots/README.md) lists and edits the resulting bots.

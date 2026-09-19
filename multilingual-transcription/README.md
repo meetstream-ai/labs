@@ -1,6 +1,6 @@
-# multilingual-transcription
+# Multilingual Meeting Transcription with the MeetStream API
 
-Transcribe non-English meetings with MeetStream, using the right provider and the right language code format for that provider.
+Transcribe non-English Zoom, Google Meet and Microsoft Teams meetings with a MeetStream API bot, using the right transcription provider (Sarvam for Indic languages, Deepgram or AssemblyAI for European and East Asian, JigsawStack or MeetStream for auto-detect and translation) and the right language code format for that provider.
 
 ```bash
 cp .env.example .env      # add MEETSTREAM_API_KEY
@@ -76,10 +76,14 @@ Only `jigsawstack` and `meetstream` support `translate`. Setting `TRANSLATE=true
 ## Setup
 
 ```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/multilingual-transcription
+npm install
 cp .env.example .env
+node index.js --languages
 ```
 
-Set `MEETSTREAM_API_KEY`, `PROVIDER`, and `LANGUAGE`.
+Set `MEETSTREAM_API_KEY`, `PROVIDER`, and `LANGUAGE` in `.env`.
 
 ## Run
 
@@ -103,41 +107,48 @@ Output is saved to `transcripts/<provider>-<language>-<transcript_id>.{json,txt}
 4. **Fetch `GET /transcript/{transcript_id}/get_transcript`**, retrying on HTTP 202 with a cap. The `transcript_id` comes from the `create_bot` response, falling back to `/detail` then `/transcriptions`.
 5. **Parse `speaker` + `transcript`** - not `text` - and merge consecutive same-speaker segments into turns.
 
-## Configuration
+## Environment variables
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `MEETSTREAM_API_KEY` | - | Required. Sent as `Authorization: Token <key>`. |
-| `MEETING_LINK` | - | Meeting to join. The first CLI argument overrides it. |
-| `PROVIDER` | `deepgram` | `deepgram` \| `assemblyai` \| `sarvam` \| `jigsawstack` \| `meetstream`. |
-| `LANGUAGE` | - | Language code in the provider's own format. |
-| `TRANSLATE` | `false` | `jigsawstack` / `meetstream` only. |
-| `DIARIZE` | `false` | Speaker labels where supported. |
-| `DEEPGRAM_MODEL` | `nova-3` | Deepgram model override. |
-| `ASSEMBLYAI_SPEECH_MODELS` | - | Comma-separated array; omitted when unset. |
-| `SARVAM_MODEL` / `SARVAM_MODE` | - | Sarvam overrides; omitted when unset. |
-| `BOT_NAME` | `MeetStream Labs Bot` | Display name in the meeting. |
-| `CALLBACK_URL` | - | Lifecycle webhook URL. |
-| `RETENTION_HOURS` | `24` | `recording_config.retention.hours`. |
-| `STATUS_POLL_INTERVAL_MS` / `MAX_STATUS_POLLS` | `15000` / `240` | How long to wait for the meeting to end. |
-| `MAX_POLL_ATTEMPTS` / `POLL_INTERVAL_MS` | `36` / `5000` | HTTP 202 retry cap. |
-| `OUTPUT_DIR` | `transcripts` | Where output is written. |
+| Name | Required | Default | Meaning |
+|---|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | - | Sent as `Authorization: Token <key>`. Not needed for `--languages`. |
+| `MEETING_LINK` | yes* | - | Meeting to join. *The first CLI argument overrides it. |
+| `PROVIDER` | no | `deepgram` | `deepgram` \| `assemblyai` \| `sarvam` \| `jigsawstack` \| `meetstream`. |
+| `LANGUAGE` | recommended | - | Language code in the provider's own format. |
+| `TRANSLATE` | no | `false` | `jigsawstack` / `meetstream` only. |
+| `DIARIZE` | no | `false` | Speaker labels where supported. |
+| `DEEPGRAM_MODEL` | no | `nova-3` | Deepgram model override. |
+| `ASSEMBLYAI_SPEECH_MODELS` | no | - | Comma-separated array; omitted when unset. |
+| `SARVAM_MODEL` / `SARVAM_MODE` | no | - | Sarvam overrides; omitted when unset. |
+| `BOT_NAME` | no | `MeetStream Labs Bot` | Display name in the meeting. |
+| `CALLBACK_URL` | no | - | Lifecycle webhook URL. |
+| `RETENTION_HOURS` | no | `24` | `recording_config.retention.hours`. The API default without it is 720 (30 days). |
+| `STATUS_POLL_INTERVAL_MS` / `MAX_STATUS_POLLS` | no | `15000` / `240` | How long to wait for the meeting to end. |
+| `MAX_POLL_ATTEMPTS` / `POLL_INTERVAL_MS` | no | `36` / `5000` | HTTP 202 retry cap. |
+| `OUTPUT_DIR` | no | `transcripts` | Where output is written. |
+| `MEETSTREAM_API_BASE_URL` | no | `https://api.meetstream.ai/api/v1` | Override for self-hosted or staging. |
 
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-|---|---|
-| Transcript is fluent English but the call was not | The language option never reached the provider. Check the field name: AssemblyAI and Sarvam read `language_code`, Deepgram reads `language`. |
-| `HTTP 400` on `create_bot` | Wrong code format for the provider. `hi-IN` is Sarvam, `hi` is Deepgram, `en_us` is AssemblyAI. Run `node index.js --languages`. |
-| Indic transcript is poor quality | Switch to `sarvam` with the matching `xx-IN` code. The generalist engines are weak on Indic languages and on English/Indic code-switching. |
-| `TRANSLATE=true` did nothing | Only `jigsawstack` and `meetstream` translate. |
-| Non-Latin script shows as `???` | Your terminal is not UTF-8. The saved `.txt` and `.json` files are correct regardless. |
-| Mixed-language meeting transcribes badly | Single-language providers commit to one language. Try `jigsawstack` with `auto`. |
-| Empty transcript | Either nobody spoke, or the wrong language was configured and the provider matched nothing. |
+| Symptom | Cause | Fix |
+|---|---|---|
+| `MEETSTREAM_API_KEY is not set` | `.env` not created or key blank | `cp .env.example .env` and add the key. |
+| HTTP 401 / 403 | Key missing or rejected | Set the key; the header must be `Authorization: Token <key>`. |
+| Transcript is fluent English but the call was not | The language option never reached the provider (wrong field name) | AssemblyAI and Sarvam read `language_code`, Deepgram reads `language`. |
+| HTTP 400 on `create_bot` | Wrong code format for the provider | `hi-IN` is Sarvam, `hi` is Deepgram, `en_us` is AssemblyAI. Run `node index.js --languages`. |
+| HTTP 202 until the retry cap | Transcript still processing, or the bot used a `*_streaming` provider that never writes a post-call transcript | Raise `MAX_POLL_ATTEMPTS`, or use a post-call provider. |
+| HTTP 507 | Idempotent replay of a `create_bot` you already sent | Treated as success; the original bot is used. |
+| Indic transcript is poor quality | Generalist engines are weak on Indic languages and English/Indic code-switching | Switch to `sarvam` with the matching `xx-IN` code. |
+| `TRANSLATE=true` did nothing | Only `jigsawstack` and `meetstream` translate | Switch provider or drop the flag. |
+| Non-Latin script shows as `???` | Terminal is not UTF-8 | The saved `.txt` and `.json` files are correct regardless. |
+| Mixed-language meeting transcribes badly | Single-language providers commit to one language | Try `jigsawstack` with `auto`. |
+| Empty transcript | Nobody spoke, or the wrong language matched nothing | Re-check `LANGUAGE`, or re-transcribe the audio with another provider. |
 
-## Related templates
+## Related
 
-- `multi-provider-transcription` - the full provider comparison
-- `re-transcribe-audio` - retry a bad language guess without rejoining the meeting
-- `speaker-diarization` - per-speaker turns and talk-time stats
-- `transcript-fetcher` - transcript retrieval on its own
+- [Languages and translation](https://docs.meetstream.ai/guides/transcription-recordings/languages-and-translation)
+- [Transcription providers](https://docs.meetstream.ai/guides/transcription-recordings/providers/transcription-providers)
+- [Sarvam](https://docs.meetstream.ai/guides/transcription-recordings/providers/sarvam), [Deepgram](https://docs.meetstream.ai/guides/transcription-recordings/providers/deepgram), [AssemblyAI](https://docs.meetstream.ai/guides/transcription-recordings/providers/assemblyai), [JigsawStack](https://docs.meetstream.ai/guides/transcription-recordings/providers/jigsawstack), [MeetStream](https://docs.meetstream.ai/guides/transcription-recordings/providers/meetstream)
+- [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [multi-provider-transcription](../multi-provider-transcription) (full provider comparison), [re-transcribe-audio](../re-transcribe-audio) (retry a bad language guess without rejoining), [speaker-diarization](../speaker-diarization), [transcript-fetcher](../transcript-fetcher)

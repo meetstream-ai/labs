@@ -1,6 +1,6 @@
-# quickstart-first-bot
+# Create Your First Meeting Bot with the MeetStream API
 
-Send a MeetStream bot into a meeting, poll its status until the session ends, and print the result. This is the "hello world" of the MeetStream API.
+Send a MeetStream API bot into a Zoom, Google Meet or Microsoft Teams meeting, poll its status until the session ends, and print the result. This is the "hello world" of the MeetStream API: one `create_bot` call, one status loop, no webhooks or transcription yet.
 
 ```bash
 npm install
@@ -16,11 +16,15 @@ node index.js
 
 ## Setup
 
-1. `npm install`
-2. Copy `.env.example` to `.env`
-3. Set `MEETSTREAM_API_KEY` and `MEETING_LINK`
-4. Start the meeting so there is something for the bot to join
-5. `node index.js`
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/quickstart-first-bot
+npm install
+cp .env.example .env   # set MEETSTREAM_API_KEY and MEETING_LINK
+node index.js
+```
+
+Start the meeting first so there is something for the bot to join, then admit it from the waiting room.
 
 ## What it does
 
@@ -68,11 +72,11 @@ The loop runs every 5 seconds and prints only when the value changes, so the out
 | `Denied` | yes | The host denied the bot |
 | `Error` | yes | The session failed |
 
-## Configuration
+## Environment variables
 
-| Variable | Required | Default | Notes |
+| Name | Required | Default | Meaning |
 |---|---|---|---|
-| `MEETSTREAM_API_KEY` | yes | | From https://app.meetstream.ai |
+| `MEETSTREAM_API_KEY` | yes | | From https://app.meetstream.ai, sent as `Authorization: Token <key>` |
 | `MEETING_LINK` | yes | | Full Zoom / Meet / Teams URL |
 | `BOT_NAME` | no | `Quickstart Bot` | Display name inside the meeting |
 | `VIDEO_REQUIRED` | no | `false` | `true` records video as well as audio |
@@ -80,18 +84,24 @@ The loop runs every 5 seconds and prints only when the value changes, so the out
 
 ## Troubleshooting
 
-**`API error 401`** - no key was sent. `MEETSTREAM_API_KEY` is empty or `.env` was never created.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required config: MEETSTREAM_API_KEY, MEETING_LINK` | `.env` never created or values blank | `cp .env.example .env` and fill both in. |
+| `API error 401` | No key was sent | Set `MEETSTREAM_API_KEY`. |
+| `API error 403` | Key rejected | Copy it again in full, with no trailing whitespace. |
+| `API error 400` | Validation failed; the response `message` names the field | Usually a malformed `meeting_link`. |
+| `API error 429` | Rate limited | Wait and retry. |
+| `API error 507` | Idempotent replay | This is success; the original bot is returned. |
+| Stuck on `InWaitingRoom`, then `NotAllowed` | Nobody admitted the bot before the waiting-room timeout | Admit it from the People panel, or raise `automatic_leave.waiting_room_timeout` (up to 600 seconds on Google Meet). |
+| Status never changes from `Joining` | The meeting has not started, or requires registration | Start the meeting, or use a link that allows guests. |
+| Loop ends with `Error` | The session failed | Check `GET /bots/{id}/detail` for the reason. |
 
-**`API error 403`** - the key was rejected. Copy it again in full, with no trailing whitespace.
+## Related
 
-**`API error 400`** - validation failed. The response `message` says which field. Usually a malformed `meeting_link`.
-
-**Stuck on `InWaitingRoom` then `NotAllowed`** - the bot was never admitted. Admit it manually, or use an `automatic_leave.waiting_room_timeout` longer than the default.
-
-**Status never changes from `Joining`** - the meeting has not started, or the link points at a meeting that requires registration.
-
-## Next
-
-- `bot-status-monitor` renders the full lifecycle as a live timeline
-- `list-and-manage-bots` lists every bot and makes an active one leave
-- `post-call-transcription` gets the transcript once the call ends
+- [Create your first bot](https://docs.meetstream.ai/guides/get-started/create-your-first-bot)
+- [How bots work](https://docs.meetstream.ai/guides/introduction/how-bots-work)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Get bot status](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-status)
+- [Authentication](https://docs.meetstream.ai/api-reference/authentication)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [bot-status-monitor](../bot-status-monitor) renders the full lifecycle as a live timeline; [list-and-manage-bots](../list-and-manage-bots) lists every bot and makes an active one leave; [post-call-transcription](../post-call-transcription) gets the transcript once the call ends

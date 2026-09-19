@@ -103,10 +103,22 @@ async function cmdDisable() {
   }
 }
 
-async function main() {
-  requireApiKey();
+function printUsage() {
+  console.log("Usage: node index.js [status|enable|disable]");
+  console.log("  status   show whether auto-join is on, the config in force, and scheduled bots");
+  console.log("  enable   turn auto-join on with default_bot_config built from .env");
+  console.log("  disable  turn auto-join off (already scheduled bots stay booked)");
+}
 
+async function main() {
   const command = process.argv[2] ?? "status";
+
+  if (command === "help" || command === "--help" || command === "-h") {
+    printUsage();
+    return;
+  }
+
+  requireApiKey();
 
   switch (command) {
     case "status":
@@ -119,8 +131,8 @@ async function main() {
       await cmdDisable();
       break;
     default:
-      console.error(`Unknown command: ${command}`);
-      console.error("Usage: node index.js [status|enable|disable]");
+      console.error(`Unknown command: ${command}\n`);
+      printUsage();
       process.exit(1);
   }
 }

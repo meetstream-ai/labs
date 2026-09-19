@@ -38,7 +38,9 @@ export function isGoogleMeetLink(link) {
  * @param {string}  opts.botName
  * @param {string}  opts.googleLoginDomain
  * @param {string} [opts.signInEmail]     specific login to use; omit to let MeetStream pick one
- * @param {boolean} [opts.strictEmail]    fail rather than fall back to another login
+ * @param {boolean} [opts.strictEmail]    only meaningful with signInEmail. true (the API default)
+ *                                        fails if that account is busy or unhealthy; false falls
+ *                                        back to any available login in the domain
  * @param {boolean} [opts.videoRequired]
  * @param {number}  [opts.waitingRoomTimeout] seconds, 60-600 on Google Meet
  * @param {string} [opts.callbackUrl]     per-bot webhook URL
@@ -50,7 +52,7 @@ export async function createSignedInBot(client, opts) {
     botName = 'MeetStream Signed-In Bot',
     googleLoginDomain,
     signInEmail,
-    strictEmail = false,
+    strictEmail,
     videoRequired = false,
     waitingRoomTimeout,
     callbackUrl,
@@ -74,8 +76,12 @@ export async function createSignedInBot(client, opts) {
     login_required: true,
     google_login_domain: googleLoginDomain,
   };
-  if (signInEmail) googleMeet.sign_in_email = signInEmail;
-  if (strictEmail) googleMeet.strict_email = true;
+  if (signInEmail) {
+    googleMeet.sign_in_email = signInEmail;
+    // The API defaults strict_email to true, so `false` must be sent explicitly
+    // or the fallback the caller asked for never happens.
+    if (typeof strictEmail === 'boolean') googleMeet.strict_email = strictEmail;
+  }
 
   const body = {
     meeting_link: meetingLink,

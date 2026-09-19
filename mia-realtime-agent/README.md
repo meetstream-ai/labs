@@ -1,9 +1,9 @@
-# MIA Realtime Agent
+# Build a Realtime Voice Agent for Meetings with MeetStream MIA
 
-Create a realtime-mode MeetStream Infrastructure Agent, attach it to a bot, and get low-latency spoken replies in a live Google Meet, Zoom, or Microsoft Teams call.
+Create a realtime-mode MeetStream Infrastructure Agent (MIA) through the MeetStream API, attach it to a meeting bot, and get low-latency speech-to-speech replies in a live Google Meet, Zoom, or Microsoft Teams call. One realtime model hears the room and speaks back; there is no separate transcriber or TTS hop.
 
 ```console
-npm install && node index.js
+npm install && cp .env.example .env && node index.js
 ```
 
 ## What it does
@@ -25,6 +25,8 @@ MeetStream hosts the agent runtime. This template opens no websocket of its own.
 ## Setup
 
 ```console
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/mia-realtime-agent
 npm install
 cp .env.example .env
 ```
@@ -35,6 +37,25 @@ Fill in at minimum:
 MEETSTREAM_API_KEY=your_meetstream_api_key_here
 MEETING_LINK=https://meet.google.com/abc-defg-hij
 ```
+
+## Environment variables
+
+| Name | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key from <https://app.meetstream.ai>, sent as `Authorization: Token <key>`. |
+| `MEETING_LINK` | yes | Full Google Meet, Zoom or Microsoft Teams link. |
+| `MEETSTREAM_AGENT_CONFIG_ID` | no | Reuse a realtime agent saved by an earlier run instead of creating one. |
+| `MIA_REALTIME_PROVIDER` | no | Realtime model provider. Default `openai`. Must be enabled in your dashboard. |
+| `MIA_REALTIME_MODEL` | no | Realtime model id. Default `gpt-4o-realtime-preview`. |
+| `MIA_REALTIME_VOICE` | no | Voice name. Default `nova`. Validated against the OpenAI list below. |
+| `MIA_SYSTEM_PROMPT` | no | System prompt for the model. Keep it short. |
+| `MIA_AGENT_NAME` | no | Saved agent name. Default `Realtime Voice Assistant`. |
+| `MIA_FIRST_MESSAGE` | no | Spoken as soon as the bot is admitted. |
+| `BOT_NAME` | no | Bot display name in the meeting. Default `MIA Realtime Agent`. |
+| `CALLBACK_URL` | no | Public HTTPS endpoint for per-bot lifecycle webhooks. |
+| `DELETE_AGENT_ON_EXIT` | no | `true` deletes the agent config on exit. Default `false`. |
+| `POLL_INTERVAL_SECONDS` | no | Seconds between `GET /bots/{id}/detail` polls. Default `10`. |
+| `MEETSTREAM_BASE_URL` | no | API base URL. Default `https://api.meetstream.ai/api/v1`. |
 
 ## Run
 
@@ -115,15 +136,26 @@ Do not add `socket_connection_url` or `live_audio_required`. Those fields exist 
 
 ## Troubleshooting
 
-- **`MEETSTREAM_API_KEY is missing from .env`** - copy `.env.example` to `.env` and paste a real key.
-- **HTTP 403** - the key is wrong or revoked. The auth header must be `Authorization: Token <key>`, not `Bearer`.
-- **HTTP 400 on `POST /mia`** - the realtime provider or model id is not available to your account. Check the dashboard integrations.
-- **`MIA_REALTIME_VOICE ... is not an OpenAI realtime voice`** - pick a name from the list above.
-- **`points at a "pipeline" agent`** - `MEETSTREAM_AGENT_CONFIG_ID` refers to a pipeline config. Unset it or use the pipeline template.
-- **Bot joins but never speaks** - confirm the saved agent has `response_type: "voice"` and that the realtime integration is connected.
-- **HTTP 507** - an idempotent replay. The original request already succeeded, so the earlier bot is the live one.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `MEETSTREAM_API_KEY is missing from .env` | `.env` not created or key blank | `cp .env.example .env` and paste a real key. |
+| HTTP 401 | No `Authorization` header sent | Check `.env` is loaded and the key is not empty. |
+| HTTP 403 | Key wrong or revoked | The header must be `Authorization: Token <key>`, not `Bearer`. Regenerate the key. |
+| HTTP 400 on `POST /mia` | Realtime provider or model id not available to your account | Check the dashboard integrations. |
+| `MIA_REALTIME_VOICE ... is not an OpenAI realtime voice` | Typo in the voice name | Pick a name from the list above. |
+| `points at a "pipeline" agent` | `MEETSTREAM_AGENT_CONFIG_ID` refers to a pipeline config | Unset it, or use the pipeline template. |
+| Bot joins but never speaks | Saved agent lacks `response_type: "voice"`, or the realtime integration is not connected | Fix the config and reconnect the integration. |
+| Bot stuck in the waiting room | Nobody admitted it; it leaves with `bot_event: bot.notallowed` after the timeout | Admit it from the People panel. |
+| HTTP 429 | Rate limited | Slow down and retry. |
+| HTTP 507 | Idempotent replay; the original request already succeeded | The earlier bot is the live one. |
 
-## Resources
+## Related
 
-- [MeetStream Docs](https://docs.meetstream.ai)
-- [MIA guide](https://docs.meetstream.ai/guides/mia/create-an-agent)
+- [What is MIA](https://docs.meetstream.ai/guides/mia/what-is-mia)
+- [Create an agent](https://docs.meetstream.ai/guides/mia/create-an-agent)
+- [MIA API guide](https://docs.meetstream.ai/guides/mia/mia-api-guide)
+- [MIA custom configurations](https://docs.meetstream.ai/guides/mia/mia-custom-configurations)
+- [Create agent config](https://docs.meetstream.ai/api-reference/api-endpoints/mia/create-agent-config)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [mia-voice-agent-pipeline](../mia-voice-agent-pipeline), [mia-wake-word-assistant](../mia-wake-word-assistant), [mia-agent-crud](../mia-agent-crud)

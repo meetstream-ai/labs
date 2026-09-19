@@ -21,7 +21,8 @@ import { log } from './logger.js';
  */
 
 export function inspect(record, now = Date.now()) {
-  const meta = STATES[record.state];
+  // A hand-edited or stale state file may carry a state this version does not know.
+  const meta = STATES[record.state] ?? { terminal: false };
   if (meta.terminal) return { level: 'ok', reason: 'terminal' };
 
   const inStateMs = now - new Date(record.enteredStateAt).getTime();

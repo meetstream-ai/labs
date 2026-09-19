@@ -154,10 +154,23 @@ async function cmdStatus(explicitId) {
   }
 }
 
-async function main() {
-  requireApiKey();
+function printUsage() {
+  console.log("Usage: node index.js [schedule|unschedule|status] [eventId]");
+  console.log("  schedule [eventId]     schedule a bot (no id: soonest event with a link and no bot)");
+  console.log("  unschedule <eventId>   cancel the scheduled bot");
+  console.log("  status [eventId]       show the bots attached to an event");
+  console.log("  eventId is the MeetStream `id` from GET /calendar/events, or EVENT_ID in .env");
+}
 
+async function main() {
   const [command, eventId] = process.argv.slice(2);
+
+  if (command === "help" || command === "--help" || command === "-h") {
+    printUsage();
+    return;
+  }
+
+  requireApiKey();
 
   switch (command) {
     case undefined:
@@ -171,8 +184,8 @@ async function main() {
       await cmdStatus(eventId);
       break;
     default:
-      console.error(`Unknown command: ${command}`);
-      console.error("Usage: node index.js [schedule|unschedule|status] [eventId]");
+      console.error(`Unknown command: ${command}\n`);
+      printUsage();
       process.exit(1);
   }
 }

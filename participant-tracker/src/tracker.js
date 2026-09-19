@@ -113,12 +113,18 @@ export class AttendanceTracker {
   /**
    * Feed a bot lifecycle webhook body (`bot.inmeeting`, `bot.stopped`, ...).
    * The envelope key is `event` and `bot_id` / `bot_status` are top level.
+   * `bot_event` carries the specific name (on `bot.stopped`, the reason).
    */
   applyBotEvent(payload) {
     const event = payload?.event;
     if (typeof event !== 'string') return null;
     const at = payload.timestamp || new Date().toISOString();
-    this.botLifecycle.push({ event, status: payload.bot_status ?? null, at });
+    this.botLifecycle.push({
+      event,
+      bot_event: payload.bot_event ?? null,
+      status: payload.bot_status ?? null,
+      at,
+    });
     if (event === 'bot.recording' && !this.meetingStartedAt) this.meetingStartedAt = at;
     if (event === 'bot.inmeeting' && !this.meetingStartedAt) this.meetingStartedAt = at;
     if (event === 'bot.stopped') this.meetingEndedAt = at;

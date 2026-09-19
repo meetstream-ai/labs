@@ -1,6 +1,6 @@
-# calendar-schedule-bot
+# Schedule a MeetStream Bot for One Calendar Event
 
-Schedule a MeetStream bot for one specific calendar event with `POST /calendar/schedule/{event_id}`, handle the 409 duplicate case gracefully, and remove it again with `DELETE /calendar/schedule/{event_id}`.
+Schedule a MeetStream meeting bot for a single Zoom, Google Meet or Microsoft Teams event on a connected Google or Outlook calendar with `POST /calendar/schedule/{event_id}`, handle the 409 duplicate case gracefully, and remove it again with `DELETE /calendar/schedule/{event_id}`. Use it when you want a custom `bot_config` for one meeting instead of calendar-wide auto-join.
 
 ```bash
 npm install
@@ -19,7 +19,39 @@ node index.js schedule
 
 - Node.js 18 or newer.
 - A MeetStream API key from <https://app.meetstream.ai>.
-- A connected calendar with at least one upcoming event that has a meeting link. Use `google-calendar-integration` or `outlook-calendar-integration`, then `calendar-event-sync` to see event ids.
+- A connected calendar with at least one upcoming event that has a meeting link. Use [google-calendar-integration](../google-calendar-integration) or [outlook-calendar-integration](../outlook-calendar-integration), then [calendar-event-sync](../calendar-event-sync) to see event ids.
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/calendar-schedule-bot
+npm install
+cp .env.example .env      # fill in MEETSTREAM_API_KEY
+node index.js schedule
+```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
+| `EVENT_ID` | no | MeetStream event id (the `id` from `GET /calendar/events`). Unset: the CLI argument, else the soonest schedulable event. |
+| `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Calendar Bot`. |
+| `VIDEO_REQUIRED` | no | `true` records video as well as audio. Default `false`. |
+| `BOT_MESSAGE` | no | Message the bot posts in the meeting chat when it joins. |
+| `CALLBACK_URL` | no | Per-bot webhook for lifecycle events. |
+| `NO_ONE_JOINED_TIMEOUT` | no | `automatic_leave.no_one_joined_timeout`, seconds. Calendar-only field. |
+| `EVERYONE_LEFT_TIMEOUT` | no | `automatic_leave.everyone_left_timeout`, seconds. |
+| `WAITING_ROOM_TIMEOUT` | no | `automatic_leave.waiting_room_timeout`, seconds. |
+| `TRANSCRIPTION_PROVIDER` | no | Post-call provider: `deepgram`, `assemblyai`, `sarvam`, `jigsawstack` or `meetstream`. Unset: no transcription. |
+| `DEEPGRAM_MODEL` | no | Deepgram model when the provider is `deepgram`. Default `nova-3`. |
+| `TRANSCRIPTION_LANGUAGE` | no | Language code for the provider. Default `en`. |
+| `DEDUPLICATION_KEY` | no | Your own `deduplication_key`. A replay returns the existing bot; reusing it against a different meeting URL returns 409. |
+| `RECURRING_EVENT` | no | `true` auto-schedules the next occurrence of a series after each meeting. Default `false`. |
+| `CANCEL_ALL_OCCURRENCES` | no | `unschedule` only: `true` cancels the whole series. Default `false`. |
+| `CANCEL_FROM_DATE` | no | `unschedule` only: ISO 8601, cancel occurrences from this date on. |
+| `MEETSTREAM_API_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 
 ## Usage
 
@@ -115,7 +147,7 @@ The template passes 409 through as an expected status rather than throwing:
 return call(`/calendar/schedule/${eventId}`, { method: "POST", body, accept: [409] });
 ```
 
-To change an existing scheduled bot, do not re-schedule. Use `PATCH /calendar/scheduled_bots/{bot_id}` (the `manage-scheduled-bots` template) or unschedule and schedule again.
+To change an existing scheduled bot, do not re-schedule. Use `PATCH /calendar/scheduled_bots/{bot_id}` (the [manage-scheduled-bots](../manage-scheduled-bots) template) or unschedule and schedule again.
 
 ### `DELETE /calendar/schedule/{event_id}`
 
@@ -133,19 +165,24 @@ Scheduled bots join **1 minute before** the meeting's start time. If you move th
 
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-|---|---|
-| "No upcoming event found..." | Every upcoming event either lacks a meeting link or already has a bot. Run `calendar-event-sync` to check, or pass an event id explicitly. |
-| API error 404 | Wrong event id. Use the `id` field from `GET /calendar/events`, not `platform_id` or the Google/Outlook event id. |
-| API error 409 | Already scheduled. Expected, and handled. Use `manage-scheduled-bots` to edit the existing bot. |
-| API error 400 | Usually a bad `bot_config` value. Timeouts must be integers in seconds. Check the transcription provider name. |
-| API error 401 / 403 | `MEETSTREAM_API_KEY` missing or rejected. |
-| Bot never joined | Check the event still exists and still has a link, and check `GET /calendar/scheduled_bots` for its status. A cancelled meeting cancels the bot. |
-| Scheduled a past meeting | MeetStream deletes schedules whose time has moved into the past. Pick a future event. |
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY is not set` | No `.env`, or an empty key. | `cp .env.example .env` and paste your key. |
+| API error 401 / 403 | No key was sent, or the key was rejected. | Check `.env` is loaded from the directory you ran `node` in; copy the whole key. |
+| "No upcoming event found..." | Every upcoming event either lacks a meeting link or already has a bot. | Run [calendar-event-sync](../calendar-event-sync) to check, or pass an event id explicitly. |
+| API error 404 | Wrong event id, or no calendar connected. | Use the `id` field from `GET /calendar/events`, not `platform_id` or the Google/Outlook event id. |
+| API error 409 | Already scheduled. Expected, and handled: the existing bot id is printed. | Use [manage-scheduled-bots](../manage-scheduled-bots) to edit the existing bot, or `unschedule` first. |
+| API error 400 | Usually a bad `bot_config` value. Timeouts must be integers in seconds. | Check the transcription provider name and the timeout values in `.env`. |
+| Bot never joined | The event no longer exists or lost its link. A cancelled meeting cancels the bot. | Check `GET /calendar/scheduled_bots` for its status. |
+| Scheduled a past meeting | MeetStream deletes schedules whose time has moved into the past. | Pick a future event. |
 
-## Related templates
+## Related
 
-- `calendar-event-sync` finds event ids.
-- `manage-scheduled-bots` lists, reschedules and cancels bots after scheduling.
-- `calendar-recurring-events` covers series, occurrences and auto-rescheduling.
-- `calendar-auto-schedule` schedules everything automatically instead of one at a time.
+- [Schedule event](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/schedule-event)
+- [Remove schedule event](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/remove-schedule-event)
+- [Fetch sync events](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/fetch-sync-events)
+- [List scheduled bots](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/list-scheduled-bots)
+- [Toggle recurring event](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/toggle-recurring-event)
+- [Scheduling bots](https://docs.meetstream.ai/guides/features/scheduling-bots)
+- [Automatic leave configuration](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
+- Sibling templates: [calendar-event-sync](../calendar-event-sync) finds event ids; [manage-scheduled-bots](../manage-scheduled-bots) lists, reschedules and cancels bots; [calendar-recurring-events](../calendar-recurring-events) covers series and occurrences; [calendar-auto-schedule](../calendar-auto-schedule) schedules everything automatically.

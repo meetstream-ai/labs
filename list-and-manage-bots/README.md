@@ -1,6 +1,6 @@
-# list-and-manage-bots
+# List, Filter and Remove Meeting Bots with the MeetStream API
 
-List every bot on your account with `GET /bots`, filter and sort them into a table, and make an active bot leave its meeting with `GET /bots/{id}/remove_bot`.
+List every meeting bot on your MeetStream account with `GET /bots`, filter and sort Zoom, Google Meet and Microsoft Teams bots into a table by status, and make an active bot leave its meeting with `GET /bots/{id}/remove_bot`.
 
 ```bash
 npm install
@@ -10,8 +10,25 @@ node index.js
 
 ## Prerequisites
 
-- Node.js 18 or newer
+- Node.js 18 or newer (built-in `fetch`)
 - A MeetStream API key from https://app.meetstream.ai
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/list-and-manage-bots
+npm install
+cp .env.example .env   # then fill in MEETSTREAM_API_KEY
+node index.js --help
+```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>` |
+| `MEETSTREAM_API_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
 
 ## Usage
 
@@ -66,21 +83,24 @@ Yes, `GET`. This is the single most surprising thing in the bot API: the call th
 | Reversible | n/a, nothing was destroyed | no |
 | Webhook | `bot.leaving`, then `bot.stopped` | `data_deletion` |
 
-If you want to erase data, see the `delete-bot-data` template. This one only pulls bots out of calls.
-
-## Configuration
-
-| Variable | Required | Default | Notes |
-|---|---|---|---|
-| `MEETSTREAM_API_KEY` | yes | | From https://app.meetstream.ai |
-| `MEETSTREAM_API_BASE_URL` | no | production | Override for testing |
+If you want to erase data, see [../delete-bot-data](../delete-bot-data). This one only pulls bots out of calls.
 
 ## Troubleshooting
 
-**Empty list** - the account genuinely has no bots, or the key belongs to a different workspace.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `MEETSTREAM_API_KEY is not set` | `.env` missing or empty | `cp .env.example .env` and add your key |
+| 401 / 403 | 401 = no key sent, 403 = key rejected | Check the key for stray quotes or whitespace |
+| Empty list | The account has no bots, or the key belongs to a different workspace | Check the workspace the key was created in |
+| `--status Recording` returns nothing but the bot is in the meeting | Status strings are exact values (`Recording`, `InMeeting`, `InWaitingRoom`) | Run without a filter first and read the breakdown at the bottom |
+| `--remove` returns 404 | Wrong bot id, or the bot already stopped | Removal only applies to a live session |
+| `--remove` returns 200 but the bot is still in the call | Leaving is asynchronous | Poll `GET /bots/{id}/status` for `Leaving`, then `Stopped`; see [../bot-status-monitor](../bot-status-monitor) |
 
-**`--status Recording` returns nothing but you can see the bot in the meeting** - status strings are exact values (`Recording`, `InMeeting`, `InWaitingRoom`). Run without a filter first and read the breakdown at the bottom.
+## Related
 
-**`--remove` returns 404** - the bot id is wrong, or the bot already stopped. Removal only applies to a live session.
-
-**`--remove` returns 200 but the bot is still in the call** - leaving is asynchronous. Poll `GET /bots/{id}/status` and wait for `Leaving`, then `Stopped`. The `bot-status-monitor` template does exactly that.
+- [List bots](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/list-bots)
+- [Remove bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/remove-bot)
+- [Get bot status](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-status)
+- [Delete bot data](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/delete-bot-data)
+- [Debugging bots](https://docs.meetstream.ai/guides/help/debugging-bots)
+- Related templates: [../bot-status-monitor](../bot-status-monitor), [../delete-bot-data](../delete-bot-data)

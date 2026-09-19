@@ -153,6 +153,12 @@ function explain(status) {
 }
 
 async function main() {
+  if (process.argv.includes("--help") || process.argv.includes("-h")) {
+    console.log("Usage: node index.js");
+    console.log("  Reads MEETSTREAM_API_KEY and MEETING_LINK from .env, creates a bot,");
+    console.log("  then polls GET /bots/{id}/status every 5s until a terminal status.");
+    return;
+  }
   const config = loadConfig();
 
   const bot = await createBot(config);

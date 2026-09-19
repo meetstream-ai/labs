@@ -1,6 +1,6 @@
-# outlook-calendar-integration
+# Connect an Outlook Calendar to MeetStream for Automatic Meeting Bots
 
-Connect an Outlook / Microsoft 365 calendar to MeetStream: register an Azure app, get a refresh token with the bundled local helper, call `POST /calendar/create_outlook_calendar`, then verify the connection.
+Connect an Outlook / Microsoft 365 calendar to the MeetStream API so meeting bots can be scheduled onto your Microsoft Teams, Zoom and Google Meet events: register an Azure app, get a Microsoft refresh token with the bundled local OAuth helper, call `POST /calendar/create_outlook_calendar`, then verify the connection with `GET /calendar`.
 
 ```bash
 npm install
@@ -22,6 +22,32 @@ node index.js
 - A MeetStream API key from <https://app.meetstream.ai>.
 - A Microsoft account. Personal Outlook.com accounts and Microsoft 365 work accounts both work.
 - Permission to register an app in your Azure tenant, or an admin who can grant consent for you.
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/outlook-calendar-integration
+npm install
+cp .env.example .env      # fill in MEETSTREAM_API_KEY, MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET
+npm run oauth             # one-time: prints MICROSOFT_REFRESH_TOKEN, paste it into .env
+node index.js             # connect and verify
+node index.js --replace   # overwrite an existing connection for the same account
+```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>` |
+| `MICROSOFT_CLIENT_ID` | yes | Application (client) ID from the Azure app registration |
+| `MICROSOFT_CLIENT_SECRET` | yes | Client secret **value** (not the secret ID) |
+| `MICROSOFT_REFRESH_TOKEN` | yes for `node index.js` | Produced by `npm run oauth` |
+| `MICROSOFT_TENANT_ID` | no | `common` (default), `organizations`, `consumers` or a tenant ID |
+| `OAUTH_PORT` | no | Port for the local OAuth helper (default `3000`); the Azure redirect URI must match |
+| `MEETSTREAM_API_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
+
+Secrets and the refresh token are read from `.env` only and are never logged, apart from the helper printing the new refresh token once so you can paste it.
 
 ## Part 1: Azure app registration (one time)
 
@@ -138,30 +164,31 @@ Connecting an account that is already attached returns **409 Conflict** rather t
 node index.js --replace     # sends "replace": true
 ```
 
-### Verification endpoints
+### Verification endpoint
 
-- `GET /calendar` returns the calendars behind your connection. There is no `/calendar/connections` path in the API.
-- `GET /calendar` returns `{ total, user_id, calendars: [...] }`, a live read through to the provider.
+`GET /calendar` returns `{ total, user_id, calendars: [...] }`, a live read through to the provider. There is no `/calendar/connections` path in the API.
 
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-|---|---|
-| `AADSTS50011` redirect URI mismatch | The URI in Azure does not match `http://localhost:<OAUTH_PORT>/api/microsoft/oauth-callback` exactly. Check the platform is **Web**, not **Single-page application**. |
-| `AADSTS65001` consent required | An admin has to grant consent for the delegated permissions in your tenant. |
-| `AADSTS7000215` invalid client secret | You pasted the Secret **ID** instead of the Secret **Value**, or the secret expired. |
-| `AADSTS700016` application not found | Wrong `MICROSOFT_CLIENT_ID`, or the app lives in a tenant that `MICROSOFT_TENANT_ID=common` cannot reach. |
-| Helper prints "No refresh token" | `offline_access` is not in the granted permissions. |
-| API error 401 | `MEETSTREAM_API_KEY` is not set. |
-| API error 403 | The API key was rejected. Copy the whole key. |
-| API error 409 on connect | The account is already connected. Use `node index.js --replace`. |
-| API error 400 "Maximum of 200 ... connections" | Per-user connection limit reached across Google plus Outlook. Disconnect one first. |
-| A personal Outlook.com account is refused | `MICROSOFT_TENANT_ID` is set to `organizations` or a specific tenant. Use `common`. |
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required environment variables: ...` | `.env` missing or incomplete | `cp .env.example .env` and fill it in; run `npm run oauth` for the refresh token |
+| `AADSTS50011` redirect URI mismatch | The URI in Azure does not match `http://localhost:<OAUTH_PORT>/api/microsoft/oauth-callback` exactly | Check the platform is **Web**, not **Single-page application** |
+| `AADSTS65001` consent required | Delegated permissions not consented in your tenant | An admin has to grant consent |
+| `AADSTS7000215` invalid client secret | You pasted the Secret **ID** instead of the Secret **Value**, or the secret expired | Create a new secret and copy its value |
+| `AADSTS700016` application not found | Wrong `MICROSOFT_CLIENT_ID`, or the app lives in a tenant `MICROSOFT_TENANT_ID=common` cannot reach | Check the client ID and tenant |
+| Helper prints "No refresh token" | `offline_access` is not in the granted permissions | Add it under **API permissions** and run the helper again |
+| API error 401 | No API key was sent | Set `MEETSTREAM_API_KEY` |
+| API error 403 | The API key was rejected | Copy the whole key; check for stray quotes |
+| API error 409 on connect | The account is already connected | `node index.js --replace` |
+| API error 400 "Maximum of 200 ... connections" | Per-user connection limit reached across Google plus Outlook | Disconnect one first ([../calendar-disconnect](../calendar-disconnect)) |
+| A personal Outlook.com account is refused | `MICROSOFT_TENANT_ID` is `organizations` or a specific tenant | Use `common` |
 
-## Related templates
+## Related
 
-- `calendar-event-sync` reads the events this connection exposes.
-- `calendar-schedule-bot` puts a bot on one specific event.
-- `calendar-auto-schedule` turns on hands-free auto-join.
-- `calendar-disconnect` tears a connection down again.
-- `google-calendar-integration` is the same flow for Google Calendar.
+- [Outlook calendar setup guide](https://docs.meetstream.ai/guides/calendar-integrations/outlook-calendar-setup)
+- [Create Outlook calendar](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/create-outlook-calendar)
+- [Get calendars](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/get-calendars)
+- [Disconnect calendar](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/disconnect-calendar)
+- [Scheduling bots](https://docs.meetstream.ai/guides/features/scheduling-bots)
+- Related templates: [../calendar-event-sync](../calendar-event-sync) reads the events this connection exposes; [../calendar-schedule-bot](../calendar-schedule-bot) puts a bot on one event; [../calendar-auto-schedule](../calendar-auto-schedule) turns on hands-free auto-join; [../calendar-disconnect](../calendar-disconnect) tears a connection down; [../google-calendar-integration](../google-calendar-integration) is the same flow for Google Calendar.

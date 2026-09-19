@@ -3,7 +3,7 @@
  *
  * The full lifecycle of a scheduled bot:
  *   create      POST   /bots/create_bot            with a future join_at
- *   list        GET    /bots                       filtered to scheduled bots
+ *   list        GET    /calendar/scheduled_bots    (--all: GET /bots filtered to join_at)
  *   reschedule  PATCH  /calendar/scheduled_bots/{bot_id}
  *   cancel      DELETE /calendar/scheduled_bots/{bot_id}
  *
@@ -21,6 +21,7 @@ import {
   warnIfPast,
   untilText,
   listBots,
+  listScheduledBots,
   scheduledBots,
   reschedule,
   cancel,
@@ -107,10 +108,20 @@ async function doCreate(args) {
 }
 
 async function doList(args) {
-  console.log("GET /bots ...\n");
+  let scheduled;
+  let total = null;
 
-  const bots = await listBots();
-  const scheduled = scheduledBots(bots, { upcomingOnly: !args.all });
+  if (args.all) {
+    // Only GET /bots can show past join_at times: the dedicated endpoint
+    // returns upcoming bots only.
+    console.log("GET /bots ...\n");
+    const bots = await listBots();
+    total = bots.length;
+    scheduled = scheduledBots(bots, { upcomingOnly: false });
+  } else {
+    console.log("GET /calendar/scheduled_bots ...\n");
+    scheduled = await listScheduledBots();
+  }
 
   if (scheduled.length === 0) {
     console.log(
@@ -118,7 +129,7 @@ async function doList(args) {
         ? "No bots on the account carry a join_at."
         : "No upcoming scheduled bots. Use --all to include past join_at times."
     );
-    console.log(`(${bots.length} bots total on the account.)`);
+    if (total !== null) console.log(`(${total} bots total on the account.)`);
     return;
   }
 
@@ -132,8 +143,10 @@ async function doList(args) {
     console.log("");
   }
 
-  console.log("There is no dedicated list-scheduled endpoint. This reads GET /bots");
-  console.log("and keeps the records that carry a join_at.");
+  if (args.all) {
+    console.log("--all reads GET /bots and keeps the records that carry a join_at,");
+    console.log("including ones that already ran.");
+  }
 }
 
 async function doReschedule(args) {
@@ -145,8 +158,9 @@ async function doReschedule(args) {
   const joinAt = resolveJoinAt(args);
   warnIfPast(joinAt);
 
+  // The reschedule body field is `scheduled_join_time`, not `join_at`.
   console.log(`PATCH /calendar/scheduled_bots/${args.botId}`);
-  console.log(JSON.stringify({ join_at: joinAt }, null, 2));
+  console.log(JSON.stringify({ scheduled_join_time: joinAt }, null, 2));
 
   const { status, data } = await reschedule(args.botId, joinAt);
 

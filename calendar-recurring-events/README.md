@@ -1,6 +1,6 @@
-# calendar-recurring-events
+# Schedule Meeting Bots for Recurring Calendar Events with MeetStream
 
-Recurring meetings: schedule a whole series or a single occurrence, and control auto-rescheduling with `POST /calendar/toggle-recurrence`.
+Use the MeetStream API calendar endpoints to send meeting bots to recurring Zoom, Google Meet and Microsoft Teams meetings from a connected Google or Outlook calendar: schedule a whole series, chain one occurrence after another, book a single occurrence, and control auto-rescheduling with `POST /calendar/toggle-recurrence`.
 
 ```bash
 npm install
@@ -25,7 +25,29 @@ node index.js list
 
 - Node.js 18 or newer.
 - A MeetStream API key from <https://app.meetstream.ai>.
-- A connected calendar with at least one recurring meeting.
+- A connected Google or Outlook calendar with at least one recurring meeting (see [../google-calendar-integration](../google-calendar-integration) or [../outlook-calendar-integration](../outlook-calendar-integration)).
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/calendar-recurring-events
+npm install
+cp .env.example .env      # then fill in MEETSTREAM_API_KEY
+node index.js list        # find event ids
+node index.js schedule-chain <eventId>
+```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>` |
+| `OCCURRENCE_LIMIT` | no | Cap for `schedule-series` (default `52`, the API default); a CLI argument overrides it |
+| `BOT_NAME` | no | Bot display name in the meeting (default `MeetStream Recurring Bot`) |
+| `VIDEO_REQUIRED` | no | `true` records video as well as audio (default `false`) |
+| `CALLBACK_URL` | no | Per-bot webhook URL for lifecycle events, public HTTPS |
+| `MEETSTREAM_API_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
 
 ## Series versus occurrence
 
@@ -130,19 +152,23 @@ Response: `{ unscheduled, event_id, cancelled_schedules, schedules_cancelled, bo
 
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-|---|---|
-| `toggle-recurrence` returns 400 | The event has no recurrence rule. It is a one-off. Use `calendar-schedule-bot`. |
-| 409 on any schedule command | A bot already covers that event. Cancel first, or edit it with `manage-scheduled-bots`. |
-| `schedule-series` booked fewer than expected | `occurrence_limit` capped it, default 52. Also, a series with an end date only has so many occurrences. |
-| Chain stopped after one meeting | `recurring_event` was not set, or auto-rescheduling was turned off with `off`. Check with `on`, which reports the current rule. |
-| Only the master shows in `list` | Providers do not always expand every occurrence into the sync window. Use `occurrence_date` against the master to target a specific one. |
-| API error 404 | Wrong event id. Use the `id` from `GET /calendar/events`, not `platform_id`. |
-| API error 401 / 403 | `MEETSTREAM_API_KEY` missing or rejected. |
+| Symptom | Cause | Fix |
+|---|---|---|
+| `MEETSTREAM_API_KEY is not set` | `.env` missing or empty | `cp .env.example .env` and fill it in |
+| 401 / 403 | 401 = no key sent, 403 = key rejected | Check `MEETSTREAM_API_KEY` for stray quotes or whitespace |
+| `toggle-recurrence` returns 400 | The event has no recurrence rule; it is a one-off | Use [../calendar-schedule-bot](../calendar-schedule-bot) |
+| 404 | Wrong event id | Use the `id` from `GET /calendar/events`, not `platform_id` |
+| 409 on any schedule command | A bot already covers that event | Cancel first, or edit it with [../manage-scheduled-bots](../manage-scheduled-bots) |
+| `schedule-series` booked fewer than expected | `occurrence_limit` capped it (default 52), or the series has an end date | Raise the limit, or accept the series length |
+| Chain stopped after one meeting | `recurring_event` was not set, or auto-rescheduling was turned off with `off` | Run `on <eventId>`, which also reports the current rule |
+| Only the master shows in `list` | Providers do not always expand every occurrence into the sync window | Use `schedule-one` with an `occurrence_date` against the master |
 
-## Related templates
+## Related
 
-- `calendar-event-sync` finds event ids and shows what is recurring.
-- `calendar-schedule-bot` covers the single, non-recurring case.
-- `manage-scheduled-bots` lists and edits the bots a series produces.
-- `calendar-auto-schedule` covers everything on the calendar, recurring or not.
+- [Scheduling bots](https://docs.meetstream.ai/guides/features/scheduling-bots)
+- [Toggle recurring event](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/toggle-recurring-event)
+- [Schedule event](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/schedule-event)
+- [Remove schedule event](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/remove-schedule-event)
+- [Fetch sync events](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/fetch-sync-events)
+- [List scheduled bots](https://docs.meetstream.ai/api-reference/api-endpoints/calendar/list-scheduled-bots)
+- Related templates: [../calendar-event-sync](../calendar-event-sync) finds event ids and shows what is recurring; [../calendar-schedule-bot](../calendar-schedule-bot) covers the single, non-recurring case; [../manage-scheduled-bots](../manage-scheduled-bots) lists and edits the bots a series produces; [../calendar-auto-schedule](../calendar-auto-schedule) covers everything on the calendar, recurring or not.

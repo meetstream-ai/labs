@@ -30,6 +30,13 @@ function loadConfig() {
 }
 
 async function main() {
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    console.log('Usage: node index.js');
+    console.log('  Reads .env (MEETSTREAM_API_KEY, MEETING_LINK, optional MIA_* settings),');
+    console.log('  saves a realtime MIA agent, sends a bot into the meeting and follows its status.');
+    console.log('  Ctrl+C removes the bot. See README.md for every variable.');
+    return;
+  }
   const config = loadConfig();
   state.apiKey = config.apiKey;
   state.deleteAgentOnExit = config.deleteAgentOnExit;

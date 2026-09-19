@@ -95,7 +95,21 @@ async function createDiarizedBot(meetingLink) {
   };
 }
 
+function printUsage() {
+  console.log("Usage:");
+  console.log("  node index.js <meeting_link>      send a diarized bot, wait, then process");
+  console.log("  node index.js --bot <bot_id>      process a bot that already ran");
+  console.log("  TRANSCRIPT_ID=<id> node index.js  process a transcript directly");
+  console.log("Needs MEETSTREAM_API_KEY. See .env.example for every option.");
+}
+
 async function main() {
+  const first = process.argv[2];
+  if (first === "--help" || first === "-h" || first === "help") {
+    printUsage();
+    return;
+  }
+
   requireApiKey();
 
   const { botId: flagBotId, positional } = parseArgs(process.argv);

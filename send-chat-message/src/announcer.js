@@ -9,7 +9,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // GET /bots/{id}/status returns one of these. Match case-insensitively, since
 // this string is also what shows up as `bot_status` in webhooks.
 const LIVE = new Set(["inmeeting", "recording"]);
-const TERMINAL = new Set(["stopped", "notallowed", "denied", "error", "done"]);
+// Failure casing varies (FAILED / ERROR / Failed), hence the lowercase compare.
+const TERMINAL = new Set(["stopped", "notallowed", "denied", "error", "failed", "done"]);
 
 /**
  * Poll GET /bots/{bot_id}/status until the bot is actually in the meeting.

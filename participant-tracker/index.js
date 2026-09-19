@@ -201,7 +201,26 @@ async function liveMode(client) {
   }
 }
 
+function printUsage() {
+  console.log(
+    [
+      'Usage: node index.js        (configured entirely through .env)',
+      '',
+      '  BOT_ID                    rebuild attendance for a past meeting (report mode)',
+      '  MEETING_LINK + PUBLIC_URL track a live meeting over webhooks (live mode)',
+      '',
+      'Needs MEETSTREAM_API_KEY. See .env.example for every option.',
+    ].join('\n')
+  );
+}
+
 async function main() {
+  const arg = process.argv[2];
+  if (arg === '--help' || arg === '-h' || arg === 'help') {
+    printUsage();
+    return;
+  }
+
   const apiKey = readApiKey();
   const client = new MeetStreamClient({ apiKey, onRetry: (msg) => console.warn(`  ! ${msg}`) });
 

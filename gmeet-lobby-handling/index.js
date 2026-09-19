@@ -185,9 +185,19 @@ async function run(config) {
   }
 }
 
+const USAGE = `Usage:
+  node index.js            run the full flow (needs MEETSTREAM_API_KEY, MEETING_LINK, PUBLIC_WEBHOOK_URL)
+  node index.js listen     webhook receiver only, no bot created
+  node index.js --help     show this message`;
+
 async function main() {
+  const mode = process.argv[2];
+  if (mode === '--help' || mode === '-h' || mode === 'help') {
+    console.log(USAGE);
+    return;
+  }
   const config = readConfig();
-  if (process.argv[2] === 'listen') {
+  if (mode === 'listen') {
     await runListenOnly(config);
     return;
   }

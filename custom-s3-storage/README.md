@@ -1,13 +1,13 @@
-# custom-s3-storage
+# Bring Your Own S3 Bucket for MeetStream Meeting Recordings
 
-Point MeetStream at **your own S3 bucket** (bring your own bucket / BYOB) so bot media lands there directly. This is a native account-level setting: once it is configured, MeetStream writes audio, video, transcripts, and metadata into your bucket itself. Nothing is copied through this template.
+Point the MeetStream API at **your own S3 bucket** (bring your own bucket / BYOB) so meeting bot recordings from Zoom, Google Meet and Microsoft Teams land there directly: audio, video, transcripts and metadata. This is a native account-level setting on `PUT /admin/configs`; once it is saved, MeetStream writes into your bucket itself and nothing is copied through this template.
 
-```bash
-npm install
-cp .env.example .env   # then fill in the MeetStream key and your bucket details
-node index.js set      # save the storage config
-node index.js record   # run a bot and confirm the files land in your bucket
-```
+## How it works
+
+- `set` builds a storage config from `.env`, runs a local `HeadBucket` against your bucket, then saves the config with `PUT /admin/configs?config_type=storage` and reads it back with `GET /admin/configs`.
+- `show` prints the current config. `delete --yes` removes it with `DELETE /admin/configs?key_name=aws`.
+- `record` creates a bot for `MEETING_LINK`, waits for it to leave (webhook fast path, capped status poll as the guarantee), then lists `<prefix>/<bot_id>_*` in your bucket to prove the media arrived.
+- The S3 secret key is read from the environment, sent to MeetStream once, and never printed.
 
 ## Why BYOB
 
@@ -30,6 +30,25 @@ Treat that the way you would treat handing a key to any third party:
 
 This template never prints `secret_key`. Anything that displays a config runs through a redaction pass first, and `access_key_id` is shown masked down to its last four characters. `GET /admin/configs` does not return credential fields at all.
 
+## Prerequisites
+
+- Node.js 18 or newer (uses built-in `fetch`)
+- A MeetStream API key from <https://app.meetstream.ai>
+- An S3 bucket you own, plus a dedicated IAM key pair with the policy below
+- Optional but recommended for `record`: a public HTTPS URL for webhooks, e.g. `ngrok http 3000`
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/custom-s3-storage
+npm install
+cp .env.example .env   # fill in MEETSTREAM_API_KEY and the S3_* values
+node index.js set --dry-run   # prints the redacted request body, calls nothing
+node index.js set             # saves the storage config
+node index.js record          # runs a bot and confirms the files land in your bucket
+```
+
 ## Commands
 
 ```
@@ -42,29 +61,35 @@ node index.js --help           all options
 
 `node index.js set --dry-run` prints the exact redacted request body without calling the API.
 
-## Prerequisites
+## Environment variables
 
-- Node.js 18 or newer (uses built-in `fetch`)
-- A MeetStream API key: https://app.meetstream.ai
-- An S3 bucket you own, plus a dedicated IAM key pair with the policy below
-- Optional but recommended for `record`: a public HTTPS URL for webhooks, e.g. `ngrok http 3000`
-
-## Setup
-
-```bash
-npm install
-cp .env.example .env
-```
-
-```env
-MEETSTREAM_API_KEY=your_api_key_here
-S3_BUCKET=my-company-meeting-recordings
-S3_REGION=us-west-2
-S3_ACCESS_KEY_ID=AKIA...
-S3_SECRET_KEY=...
-MEETING_LINK=https://meet.google.com/abc-defg-hij
-PUBLIC_WEBHOOK_URL=https://your-subdomain.ngrok-free.app
-```
+| Variable | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
+| `S3_BUCKET` | yes | The bucket MeetStream writes into. Becomes `bucket_name`. |
+| `S3_REGION` | yes | The bucket's actual region. Becomes `region`. |
+| `S3_ACCESS_KEY_ID` | yes for `set` | IAM access key id. Stored on your MeetStream account. |
+| `S3_SECRET_KEY` | yes for `set` | IAM secret key. Sent once, never logged. |
+| `S3_ACCESS_MODE` | no | `read_write` (API default) or `write_only`. |
+| `S3_PREFIX` | no | Base key prefix. API default `meetstream`. |
+| `S3_PREFIX_AUDIO` | no | Per-category prefix override, sent in `prefixes.audio`. |
+| `S3_PREFIX_VIDEO` | no | Override for `prefixes.video`. |
+| `S3_PREFIX_TRANSCRIPT` | no | Override for `prefixes.transcript`. |
+| `S3_PREFIX_METADATA` | no | Override for `prefixes.metadata`. |
+| `S3_ENDPOINT_URL` | no | S3-compatible endpoint (R2, MinIO). Sent as `endpoint_url`. Omit for AWS S3. |
+| `S3_FORCE_PATH_STYLE` | no | Local only: path-style addressing for the preflight and listing. Default `false`. |
+| `MEETING_LINK` | yes for `record` | Zoom, Google Meet or Teams link the test bot joins. |
+| `BOT_NAME` | no | Display name in the meeting. Default `MeetStream BYOB Recorder`. |
+| `VIDEO_REQUIRED` | no | Record video as well as audio. Default `true`. |
+| `EVERYONE_LEFT_TIMEOUT` | no | `automatic_leave.everyone_left_timeout` seconds. Default `60`. |
+| `PUBLIC_WEBHOOK_URL` | no | Public HTTPS base; `callback_url` becomes `<url>/webhook`. Unset means poll-only. |
+| `PORT` | no | Local webhook server port. Default `3000`. |
+| `POLL_MAX_ATTEMPTS` | no | Cap for the status poll and the bucket listing poll. Default `80`. |
+| `POLL_INTERVAL_MS` | no | Delay between polls. Default `15000`. |
+| `REQUEST_TIMEOUT_MS` | no | Per-request timeout. Default `30000`. |
+| `MAX_RETRIES` | no | Retries on network errors and 429/5xx. Default `4`. |
+| `LOG_LEVEL` | no | `silent`, `error`, `warn`, `info` or `debug`. Default `info`. |
+| `MEETSTREAM_API_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 
 ## The storage config
 
@@ -112,7 +137,7 @@ Leading and trailing slashes on a prefix are stripped, and `..` segments are rej
 
 **Validation happens at save time.** In `read_write` mode MeetStream performs a live `HeadBucket`. In `write_only` mode it writes a probe object under each configured prefix. So a `400` from `set` almost always means the bucket, region, or key pair is wrong, not that the JSON is malformed. This template also runs its own local `HeadBucket` first, so an obvious typo fails before any credential leaves your machine. Skip that with `--skip-preflight`.
 
-**Config changes are not retroactive.** Setting, changing, or deleting the config only affects bots created afterwards. Media already written stays where it is.
+**Config changes are not retroactive.** Setting, changing, or deleting the config only affects bots created afterwards. Media already written stays where it is. Recordings made before the config was set stay in MeetStream storage for their retention window (30 days unless you set one) and are still available through `GET /bots/{id}/get_audio` and `get_video`.
 
 ### S3-compatible stores
 
@@ -174,7 +199,7 @@ Adjust the resource ARN if you changed `S3_PREFIX`, and add each override from `
 
 1. **`GET /admin/configs`** to confirm a storage config is actually in place. If it comes back empty, the run warns loudly, because the bot would write to MeetStream's platform bucket and the verification step would find nothing.
 2. **Create the bot** with an `Idempotency-Key`, and a `callback_url` when `PUBLIC_WEBHOOK_URL` is set.
-3. **Wait for the bot to leave.** The `bot.stopped` webhook is the fast path; a capped poll over `GET /bots/{id}/status` is the guarantee.
+3. **Wait for the bot to leave.** The `bot.stopped` webhook is the fast path (the reason is in its `bot_event`: `bot.stopped`, `bot.kicked`, `bot.notallowed`, `bot.denied` or `bot.failed`); a capped poll over `GET /bots/{id}/status` is the guarantee. `bot.done` is the final webhook on every path.
 4. **List your bucket.** Post-processing runs after the bot leaves, so this polls `ListObjectsV2` on `<prefix>/<bot_id>_` until objects appear or the attempt budget runs out.
 
 Press `Ctrl+C` to pull the bot out of the meeting early. A second `Ctrl+C` exits immediately.
@@ -191,7 +216,7 @@ node index.js delete --yes
 
 ## MeetStream status codes
 
-Auth is `Authorization: Token <key>` - literally `Token`, not `Bearer`. Errors are `{ "message": "..." }`.
+Auth is `Authorization: Token <key>`, literally `Token`, not `Bearer`. Errors are `{ "message": "..." }`.
 
 | Status | Meaning | Behaviour |
 |---|---|---|
@@ -204,26 +229,28 @@ Auth is `Authorization: Token <key>` - literally `Token`, not `Bearer`. Errors a
 
 ## Troubleshooting
 
-**`API error 400` from `set`** - MeetStream validated the credentials against the bucket and the check failed. Run `node index.js set` without `--skip-preflight` so the local `HeadBucket` runs first; it usually names the real problem. The three usual causes are a wrong region, a bucket name typo, and a key pair without `s3:PutObject` on the prefix.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required environment variable "MEETSTREAM_API_KEY"` | No `.env` or empty key. | `cp .env.example .env` and paste your key. |
+| `MeetStream API error 401` / `403` | Key missing or rejected, or BYOB is not enabled on the account. | Check `MEETSTREAM_API_KEY`; contact support if the key is valid but `set` returns 403. |
+| `MeetStream API error 400` from `set` | MeetStream validated the credentials against the bucket and the check failed: wrong region, bucket name typo, or a key pair without `s3:PutObject` on the prefix. | Run `set` without `--skip-preflight` so the local `HeadBucket` names the real problem first. |
+| `Access denied on bucket ...` | The credentials lack `s3:ListBucket` on the bucket ARN. `arn:aws:s3:::bucket` and `arn:aws:s3:::bucket/*` are different resources. | Add the bucket ARN statement from the policy above. |
+| `Bucket ... does not exist` | Usually a region mismatch. | Set `S3_REGION` to the bucket's actual region. |
+| `show` prints `{}` | No storage config is set; bots write to the MeetStream platform bucket. | Run `node index.js set`. |
+| `record` finds nothing in the bucket | No config, the bot did not record, or you are searching the wrong prefix (overrides in `prefixes` move artifacts). | Check `show`, then `GET /bots/{id}/detail`, then the prefix. |
+| `record` ends with `bot.notallowed` or `bot.denied` | The bot was never admitted, or the host refused it. | Admit the bot from the lobby; no media exists for that run. |
+| `get_audio` returns 403 but the file is in my bucket | `access_mode: write_only` working as designed. | Fetch from S3 directly, or switch to `read_write`. |
+| `MeetStream API error 507` | Idempotent replay of an earlier `create_bot` with the same `Idempotency-Key`. | Nothing to fix; the original bot is returned. |
+| Storage charges from nowhere | Orphaned multipart parts from interrupted uploads. | Add the `AbortIncompleteMultipartUpload` lifecycle rule. |
 
-**`Access denied on bucket ...`** - the credentials lack `s3:ListBucket` on the bucket ARN. Note that the bucket ARN and the object ARN are different resources: `arn:aws:s3:::bucket` versus `arn:aws:s3:::bucket/*`. A policy with only the second one fails the preflight.
+## Related
 
-**`Bucket ... does not exist`** - usually a region mismatch. `S3_REGION` must be the bucket's actual region.
-
-**`show` prints `{}`** - no storage config is set. Bots are writing into the MeetStream platform bucket.
-
-**`record` finds nothing in the bucket** - check `show` first. If the config is there, confirm the bot actually recorded (`GET /bots/{id}/detail`), and confirm you are searching the right prefix: overrides in `prefixes` put artifacts somewhere other than the base prefix.
-
-**`get_audio` returns 403 but the file is in my bucket** - that is `access_mode: write_only` working as designed. MeetStream will not read back out of your bucket in that mode. Fetch from S3 directly, or switch to `read_write`.
-
-**Storage charges from nowhere** - orphaned multipart parts from interrupted uploads. Add the `AbortIncompleteMultipartUpload` lifecycle rule.
-
-## A note on the old relay approach
-
-Earlier versions of this template downloaded each recording from MeetStream and re-uploaded it into the customer bucket, because the native storage endpoint was not documented. That workaround is gone. It cost a full extra round trip of every recording, left a second copy in MeetStream's storage for as long as the retention window ran, and needed a long-lived process babysitting each bot. `PUT /admin/configs` does the same job with no copy and no relay, so there is nothing left for the relay to add. If you have recordings from before the config was set, they stay in MeetStream's storage and you can pull them with the normal `GET /bots/{id}/get_audio` and `get_video` endpoints.
-
-## Reference
-
-- [MeetStream docs](https://docs.meetstream.ai)
-- [API reference](https://docs.meetstream.ai/api-reference)
+- [Set storage config](https://docs.meetstream.ai/api-reference/api-endpoints/storage-config/set-storage-config)
+- [Get storage config](https://docs.meetstream.ai/api-reference/api-endpoints/storage-config/get-storage-config)
+- [Delete storage config](https://docs.meetstream.ai/api-reference/api-endpoints/storage-config/delete-storage-config)
+- [Custom storage: Amazon S3 guide](https://docs.meetstream.ai/guides/features/custom-storage-configurations/amazon-s3)
+- [Retrieve recordings](https://docs.meetstream.ai/guides/transcription-recordings/retrieve-recordings)
+- [Usage and retention](https://docs.meetstream.ai/guides/features/usage-and-retention)
+- [Error reference](https://docs.meetstream.ai/errors)
 - [AWS: multipart upload limits](https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html)
+- Templates: [audio-recording-downloader](../audio-recording-downloader/README.md) and [video-recording-downloader](../video-recording-downloader/README.md) fetch media through MeetStream's own endpoints.

@@ -212,9 +212,16 @@ async function cmdCancelFrom(eventId, fromDate) {
   console.log("  Occurrences before that date keep their bots.");
 }
 
+const USAGE =
+  "Usage: node index.js [list|on|off|schedule-chain|schedule-series|schedule-one|cancel-series|cancel-from] ...";
+
 async function main() {
-  requireApiKey();
   const [command, arg1, arg2] = process.argv.slice(2);
+  if (command === "--help" || command === "-h" || command === "help") {
+    console.log(USAGE);
+    return;
+  }
+  requireApiKey();
 
   switch (command ?? "list") {
     case "list":
@@ -243,9 +250,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error(
-        "Usage: node index.js [list|on|off|schedule-chain|schedule-series|schedule-one|cancel-series|cancel-from] ..."
-      );
+      console.error(USAGE);
       process.exit(1);
   }
 }

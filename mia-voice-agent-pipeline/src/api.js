@@ -20,10 +20,10 @@ const STATUS_HELP = {
 
 // Bot statuses that mean the session is over and there is nothing left to wait for,
 // lowercased. The API's casing varies (a failure can read FAILED, ERROR or Failed),
-// so isTerminalStatus() compares case-insensitively.
+// so isTerminalStatus() compares case-insensitively. A kick reports "Stopped" here;
+// only the bot.stopped webhook's bot_event (bot.kicked) tells a kick from a clean exit.
 const TERMINAL_BOT_STATUSES = new Set([
   'stopped',
-  'kicked',
   'denied',
   'notallowed',
   'error',
@@ -191,11 +191,21 @@ export function isTerminalStatus(status) {
 /**
  * Poll GET /bots/{id}/detail and report every status change.
  * Resolves with the final status once the bot reaches a terminal state,
- * or when `shouldStop()` returns true.
+ * when `shouldStop()` returns true, or after `maxAttempts` polls (so a bot
+ * that is still in a call, or a detail endpoint stuck on 202, cannot keep
+ * the process alive forever).
  */
-export async function watchBot(apiKey, botId, { intervalMs = 10_000, onStatus, shouldStop } = {}) {
+export async function watchBot(
+  apiKey,
+  botId,
+  { intervalMs = 10_000, maxAttempts = 720, onStatus, shouldStop } = {}
+) {
   let lastStatus = null;
-  while (!shouldStop?.()) {
+  for (let attempt = 1; attempt <= maxAttempts && !shouldStop?.(); attempt += 1) {
+    if (attempt === maxAttempts) {
+      onStatus?.(`poll budget of ${maxAttempts} checks exhausted; the bot may still be running`);
+      break;
+    }
     let detail = null;
     try {
       detail = await getBotDetail(apiKey, botId);

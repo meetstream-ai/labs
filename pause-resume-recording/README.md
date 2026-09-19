@@ -1,9 +1,9 @@
-# pause-resume-recording
+# Pause and Resume Meeting Recording with the MeetStream API
 
-An interactive CLI that opens and closes recording privacy windows mid-meeting with `POST /bots/{bot_id}/pause_recording` and `POST /bots/{bot_id}/resume_recording`.
+An interactive CLI that opens and closes recording privacy windows mid-meeting on Zoom, Google Meet or Microsoft Teams, using the MeetStream API's `POST /bots/{bot_id}/pause_recording` and `POST /bots/{bot_id}/resume_recording`. The bot stays in the call; only capture stops, and the gap is simply absent from the recording.
 
 ```bash
-npm install && node index.js
+npm install && cp .env.example .env && node index.js
 ```
 
 ## The privacy window
@@ -49,6 +49,8 @@ No webhooks, no tunnel, no public URL.
 ## Setup
 
 ```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/pause-resume-recording
 npm install
 cp .env.example .env
 ```
@@ -57,6 +59,20 @@ cp .env.example .env
 MEETSTREAM_API_KEY=your_api_key_here
 MEETING_LINK=https://meet.google.com/abc-defg-hij
 ```
+
+## Environment variables
+
+| Name | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key from <https://app.meetstream.ai>, sent as `Authorization: Token <key>`. |
+| `MEETING_LINK` | one of | Start a new bot in this Zoom, Google Meet or Teams meeting. |
+| `BOT_ID` | one of | Control a bot that is already in a meeting instead. |
+| `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Recorder`. |
+| `EVERYONE_LEFT_TIMEOUT` | no | Seconds the bot waits after everyone else leaves. Default `60`. |
+| `AUTO_SEQUENCE` | no | Scripted `<seconds>:<pause|resume|stop>` list used only when stdin is not a TTY. Default `30:pause,60:resume,90:stop`. |
+| `REQUEST_TIMEOUT_MS` | no | Per-request timeout. Default `30000`. |
+| `MAX_RETRIES` | no | Retries on 429 / 5xx. Default `4`. |
+| `LOG_LEVEL` | no | `silent`, `error`, `warn`, `info` or `debug`. Default `info`. |
 
 ## Run
 
@@ -118,17 +134,25 @@ Under CI, `nohup`, or piped input there is no TTY and single-key control is impo
 
 ## Troubleshooting
 
-**Keys do nothing** - stdin is not a TTY. Run it directly in a terminal, not through a pipe or task runner. The log warns when this happens and falls back to `AUTO_SEQUENCE`.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required environment variable "MEETSTREAM_API_KEY"` | `.env` not created or key blank | `cp .env.example .env` and fill it in. |
+| `Set MEETING_LINK ... or BOT_ID` | Neither was provided | Set exactly one of them. |
+| HTTP 401 / 403 | Key missing or rejected | The header must be `Authorization: Token <key>`; regenerate the key if needed. |
+| Keys do nothing | stdin is not a TTY | Run directly in a terminal, not through a pipe or task runner. The CLI warns and falls back to `AUTO_SEQUENCE`. |
+| 404 on pause | Bot is not in a meeting yet, or already left | Press `t` to check status; pause only once recording has started. |
+| HTTP 429 or 5xx | Transient | Retried with exponential backoff up to `MAX_RETRIES`. |
+| HTTP 507 | Idempotent replay | Treated as success, never retried. |
+| `Recording is already paused` | Local guard, not an API error | The CLI tracks its own state to avoid redundant calls. |
+| Pause is not where you expected in the recording | It takes effect when the API call lands, not on keypress | Pause before the sensitive topic starts. |
+| Quit with `q` and the bot is still recording | That is what `q` does | Remove it with `GET /bots/{bot_id}/remove_bot` (a GET), or re-run with `BOT_ID` set and press `s`. |
 
-**404 on pause** - the bot is not in a meeting yet, or it already left. Press `t` to check its status; pausing only makes sense once recording has started.
+## Related
 
-**"Recording is already paused"** - a local guard, not an API error. The CLI tracks its own state so you do not send redundant calls.
-
-**The pause is not in the recording where I expected** - the pause takes effect when the API call lands, not when you pressed the key. For sensitive content, pause *before* the topic starts.
-
-**I quit with `q` and the bot is still recording** - that is what `q` does. Remove it with `GET /bots/{bot_id}/remove_bot` (yes, a GET), or re-run with `BOT_ID` set and press `s`.
-
-## Reference
-
-- [MeetStream docs](https://docs.meetstream.ai)
-- [API reference](https://docs.meetstream.ai/api-reference)
+- [Pause and resume recording](https://docs.meetstream.ai/guides/features/pause-resume-recording)
+- [Pause bot recording](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/pause-bot-recording)
+- [Resume bot recording](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/resume-bot-recording)
+- [Remove bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/remove-bot)
+- [Get bot status](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-status)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [websocket-bot-control](../websocket-bot-control), [bot-status-monitor](../bot-status-monitor), [list-and-manage-bots](../list-and-manage-bots)

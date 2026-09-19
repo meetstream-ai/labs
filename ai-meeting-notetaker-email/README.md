@@ -1,6 +1,6 @@
-# AI Meeting Notetaker to Email
+# Email AI Meeting Notes and Transcripts with the MeetStream API
 
-A MeetStream bot joins your meeting, records and transcribes it, MeetStream generates the AI summary, and this script emails the notes to the attendees.
+A MeetStream API meeting bot joins your Zoom, Google Meet or Microsoft Teams meeting, records and transcribes it, and MeetStream generates the AI summary. This script then emails the summary and transcript to the attendees through Resend, SendGrid or SMTP, driven by webhooks so nothing is polled blindly.
 
 ```bash
 npm install
@@ -33,11 +33,42 @@ node index.js --meeting "https://meet.google.com/abc-defg-hij"
 ## Setup
 
 ```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/ai-meeting-notetaker-email
 npm install
 cp .env.example .env
 ```
 
 Then edit `.env`. The only always-required value is `MEETSTREAM_API_KEY`. Start with `EMAIL_PROVIDER=console` to watch the whole pipeline run without sending anything.
+
+## Environment variables
+
+| Name | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key from <https://app.meetstream.ai>. Sent as `Authorization: Token <key>`. |
+| `MEETSTREAM_BASE_URL` | no | API base URL. Default `https://api.meetstream.ai/api/v1`. |
+| `MEETING_LINK` | live mode | Zoom, Google Meet or Teams URL. `--meeting` overrides it. |
+| `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Labs Bot`. |
+| `TRANSCRIPT_PROVIDER` | no | Post-call provider: `meetstream`, `deepgram`, `assemblyai`, `sarvam`, `jigsawstack`. Default `meetstream`. Never a `*_streaming` provider. |
+| `TRANSCRIPT_LANGUAGE` | no | Transcription language code. Default `en`. |
+| `RETENTION_HOURS` | no | Delete the recording after N hours. Default is the API default, 720 (30 days). |
+| `PUBLIC_BASE_URL` | live mode | Public HTTPS URL of this server; the bot's `callback_url` is `${PUBLIC_BASE_URL}/webhook`. `--public-url` overrides it. |
+| `PORT` | no | Local webhook port. Default `3000`. |
+| `TRANSCRIPT_POLL_ATTEMPTS` | no | Max `get_transcript` polls while it returns 202. Default `20`. |
+| `TRANSCRIPT_POLL_INTERVAL_MS` | no | Delay between polls. Default `5000`. |
+| `BOT_ID` | replay | Replay a finished meeting by bot id. Same as `--bot`. |
+| `TRANSCRIPT_ID` | replay | Replay a known transcript id. Same as `--transcript`. |
+| `EMAIL_PROVIDER` | no | `console`, `resend`, `sendgrid` or `smtp`. Default `console`. |
+| `EMAIL_FROM` | all but console | Sender address. |
+| `EMAIL_TO` | yes* | Comma-separated recipients. *Optional only when `SEND_TO_PARTICIPANTS=true`. |
+| `SEND_TO_PARTICIPANTS` | no | `true` also emails attendees whose addresses the platform exposed. Default `false`. |
+| `EMAIL_SUBJECT` | no | `{date}` is replaced with today's date. Default `Meeting notes - {date}`. |
+| `TRANSCRIPT_EXCERPT_TURNS` | no | Speaker turns inlined in the email body. Default `40`. |
+| `RESEND_API_KEY` | resend | Resend API key. |
+| `SENDGRID_API_KEY` | sendgrid | SendGrid API key. |
+| `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` | smtp | SMTP server and credentials. |
+| `SMTP_PORT` | no | Default `587`. |
+| `SMTP_SECURE` | no | `true` forces implicit TLS. Default: inferred from the port (465 = true). |
 
 ## Run
 
@@ -94,23 +125,29 @@ The MeetStream details that matter:
 
 ## Troubleshooting
 
-**`get_transcript` keeps returning 202 until the retry cap.**
-The bot was probably created with a streaming-only provider. `deepgram_streaming`, `assemblyai_streaming`, `jigsawstack_streaming`, `meetstream_streaming` and `meeting_captions` never write a post-call transcript. Set `TRANSCRIPT_PROVIDER` to a post-call provider such as `meetstream` or `deepgram`.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required environment variable: MEETSTREAM_API_KEY` | `.env` not created or key blank | `cp .env.example .env` and fill in the key. |
+| HTTP 401 from MeetStream | No `Authorization` header was sent | Check `.env` is loaded and the key is not empty. |
+| HTTP 403 from MeetStream | Key present but wrong, or from another workspace | Regenerate the key in the dashboard. |
+| `get_transcript` returns 202 until the retry cap | Bot was created with a streaming-only provider (`*_streaming`, `meeting_captions`); those never write a post-call transcript | Set `TRANSCRIPT_PROVIDER` to `meetstream`, `deepgram`, `assemblyai`, `sarvam` or `jigsawstack`. |
+| `transcript_id` is `null` from `create_bot` | Same cause; `meeting_captions` always returns `null` | Same fix. |
+| No webhook events arrive | `PUBLIC_BASE_URL` is not public HTTPS, or the tunnel points at a different port | Hit `GET /health` through the tunnel, then match `PORT`. |
+| `bot.stopped` with `bot_event: bot.notallowed` (status_code 500) | Nobody admitted the bot before the waiting-room timeout | Admit it sooner, or raise `automatic_leave.waiting_room_timeout`. |
+| `bot.stopped` with `bot_event: bot.denied` | Host refused entry or recording | Ask the host to allow the bot; see the platform guides. |
+| `bot.done` arrived with no `transcription.processed` | No post-call transcript exists for this bot | The pipeline exits; re-check the provider. |
+| Summary is empty | `GET /bots/{id}/summary` returns 202 while generating | Re-run in replay mode a minute later: `node index.js --bot <bot_id>`. |
+| HTTP 429 | Rate limited | The client retries with backoff; slow down concurrent runs. |
+| HTTP 507 | Idempotent replay of a request already made | Treated as success; the existing bot is reused. |
+| Resend rejects the send (403) | `EMAIL_FROM` domain not verified in Resend | Verify the domain in your Resend account. |
 
-**`transcript_id` came back `null` from `create_bot`.**
-Same cause. `meeting_captions` in particular always returns `null`.
+## Related
 
-**No webhook events arrive.**
-`PUBLIC_BASE_URL` must be a public HTTPS URL, and your tunnel must point at the same `PORT` the script is listening on. Check `GET /health` through the tunnel first.
-
-**`bot.stopped` with `bot_event: bot.notallowed`.**
-Nobody admitted the bot from the waiting room before the timeout. Admit it faster, or raise `automatic_leave.waiting_room_timeout`.
-
-**HTTP 403 from MeetStream.**
-The API key is present but wrong. 401 means no key at all was sent.
-
-**The summary is empty.**
-`GET /bots/{id}/summary` returns `202` while it is still generating. Re-run in replay mode a minute later: `node index.js --bot <bot_id>`.
-
-**Resend rejects the send.**
-The `EMAIL_FROM` domain has to be verified in your Resend account. Unverified domains fail with a 403.
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
+- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
+- [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Post-call transcription](https://docs.meetstream.ai/guides/transcription-recordings/post-call-transcription)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [ai-meeting-summary](../ai-meeting-summary), [transcript-fetcher](../transcript-fetcher), [webhook-handler-complete](../webhook-handler-complete)

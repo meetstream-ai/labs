@@ -199,12 +199,12 @@ export const handlers = {
 /**
  * Dispatch an envelope to its handler and print the status_code interpretation.
  * Unknown events are logged and ACKed rather than rejected, so a newly added
- * event never causes MeetStream to hammer your endpoint with retries.
+ * event is recorded instead of surfacing as a delivery failure.
  */
 export function dispatch(env, ctx) {
   const meta = EVENT_CATALOG[env.event];
   if (!meta) {
-    log.warn(`unknown event "${env.event}" for bot ${env.botId}. ACKing so it is not retried.`);
+    log.warn(`unknown event "${env.event}" for bot ${env.botId}. ACKing and recording it.`);
     ctx.state.events.push({ event: env.event, botEvent: env.botEvent, at: env.timestamp ?? new Date().toISOString(), known: false });
     return { handled: false };
   }

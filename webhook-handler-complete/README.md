@@ -1,20 +1,8 @@
-# webhook-handler-complete
+# Complete MeetStream Webhook Handler for Meeting Bot Events
 
-The reference MeetStream webhook receiver: handles every documented event, dedupes redeliveries, and reads `status_code` the way the API actually uses it.
+The reference MeetStream webhook receiver for Zoom, Google Meet and Microsoft Teams meeting bots: an Express server that handles every documented lifecycle, recording and transcription event, dedupes duplicate deliveries, decodes every `bot.stopped` reason from `bot_event`, and treats `bot.done` as the single finished signal.
 
-```bash
-npm install && node index.js
-```
-
-Want to see all of it work right now, without a meeting?
-
-```bash
-node index.js --simulate
-```
-
----
-
-## What this does
+## What it does
 
 Runs an Express server that accepts MeetStream webhook deliveries at `POST /webhook` and:
 
@@ -23,19 +11,23 @@ Runs an Express server that accepts MeetStream webhook deliveries at `POST /webh
 - treats duplicate deliveries as no-ops (idempotency keyed on `bot_id` + `bot_event ?? event` + `timestamp`)
 - treats `bot.done` as the single "finished" signal on every path, streaming-only bots included
 - builds a per-bot state record you can inspect at `GET /bots/:botId`
+- replays every lifecycle path offline with `--simulate`, no API key or meeting needed
 - optionally creates a real bot pointed at your public URL (`--create-bot`)
 
 ## Prerequisites
 
 - Node.js 18 or newer (`node --version`)
-- A MeetStream API key, only for `--create-bot`: https://app.meetstream.ai
-- A public HTTPS URL, only for `--create-bot`. See the `webhook-local-tunnel` template.
+- A MeetStream API key, only for `--create-bot`: <https://app.meetstream.ai>
+- A public HTTPS URL, only for `--create-bot`. See the [webhook-local-tunnel](../webhook-local-tunnel/README.md) template.
 
 ## Setup
 
 ```bash
-cp .env.example .env
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/webhook-handler-complete
 npm install
+cp .env.example .env
+node index.js --simulate    # see every branch fire, no API calls
 ```
 
 `--simulate` and the plain receiver need no API key.
@@ -60,6 +52,21 @@ curl localhost:3000/health
 curl localhost:3000/bots
 curl localhost:3000/bots/sim-postcall-1
 ```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY` | `--create-bot` only | API key, sent as `Authorization: Token <key>`. |
+| `PORT` | no | Local port for the webhook server. Default `3000`. |
+| `WEBHOOK_PATH` | no | Path the receiver listens on; `callback_url` must end with it. Default `/webhook`. |
+| `PUBLIC_URL` | `--create-bot` only | Public https origin, no trailing slash. `callback_url` = `PUBLIC_URL` + `WEBHOOK_PATH`. |
+| `MEETING_LINK` | `--create-bot` only | Zoom, Google Meet or Teams link the bot joins. |
+| `BOT_NAME` | no | Display name in the meeting. Default `Webhook Reference Bot`. |
+| `VIDEO_REQUIRED` | no | Record video as well as audio. Default `false`. |
+| `TRANSCRIPT_PROVIDER` | no | Post-call or streaming provider; decides whether a post-call transcript exists. Default `deepgram`. |
+| `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
+| `NO_COLOR` | no | Set to anything to disable ANSI colour in the log output. |
 
 ---
 
@@ -130,11 +137,12 @@ The webhook payload does not tell you which provider was used, so this template 
 
 ---
 
-## Idempotency
+## Delivery and idempotency
 
-MeetStream delivers at least once. A slow handler, a dropped ACK, or a network blip can produce the same event twice.
+MeetStream sends each event once and **does not retry** a failed or timed-out delivery. Two consequences:
 
-`src/dedupe.js` keys deliveries on `bot_id + (bot_event ?? event) + timestamp`. A redelivery repeats the same `timestamp`; a genuinely new event (a second `bot.error`, say) has its own:
+- **ACK fast.** Return 200 as soon as the delivery is recorded and push real work onto a queue. A handler that times out loses the event; there is no second attempt.
+- **Duplicates still happen**, from your own infrastructure: a tunnel or proxy replay, a queue re-driving a job, or you replaying stored bodies. `src/dedupe.js` keys deliveries on `bot_id + (bot_event ?? event) + timestamp`, so a replayed body is a no-op while a genuinely new event (a second `bot.error`, say) has its own timestamp:
 
 ```js
 deliveryKey({ botId: 'abc', event: 'bot.recording', timestamp: '2026-06-18T17:02:11.514Z' })
@@ -148,14 +156,12 @@ Response rules the server follows:
 | Situation | Response | Why |
 | --- | --- | --- |
 | First time seeing this delivery | `200` | processed |
-| Duplicate delivery | `200` | already processed, do no work, do not ask for a retry |
-| Malformed envelope | `400` | redelivering the same bad body will not help |
-| Your handler threw | `500` + dedupe claim released | you genuinely want a redelivery |
-| Unknown event name | `200` | a newly added event must not cause a retry storm |
+| Duplicate delivery | `200` | already processed, do no work |
+| Malformed envelope | `400` | the payload itself is wrong; logged for inspection |
+| Your handler threw | `500` + dedupe claim released + raw body logged | MeetStream will not resend, so the log line is what you replay from |
+| Unknown event name | `200` | a newly added event is recorded, not dropped |
 
 The store here is an in-memory `Map` with a 24 hour TTL so the template runs with zero setup. In production move it to Redis (`SET key NX EX 86400`) or a unique index in your database so it survives restarts and works across instances.
-
-**ACK fast.** Do the minimum needed to record the delivery, return 200, and push real work onto a queue. Long handlers cause redeliveries.
 
 ---
 
@@ -194,19 +200,27 @@ Segments carry `speaker` and `transcript`. The field is `transcript`, not `text`
 
 ## Troubleshooting
 
-**No deliveries arriving at all.** `callback_url` must be a public HTTPS URL. MeetStream cannot reach `http://` or `localhost`. There is no global webhook setting; every bot needs its own `callback_url` on `create_bot`.
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `Missing MEETSTREAM_API_KEY` | `--create-bot` needs a key; the receiver and `--simulate` do not. | `cp .env.example .env` and paste your key. |
+| `PUBLIC_URL is required with --create-bot` | MeetStream must reach your webhook over HTTPS. | Use the webhook-local-tunnel template and set `PUBLIC_URL`. |
+| No deliveries arriving at all | `callback_url` is not a public HTTPS URL, or the bot was created without one. | MeetStream cannot reach `http://` or `localhost`; every bot needs its own `callback_url` on `create_bot`. |
+| 404s in the log | The path in `callback_url` does not match `WEBHOOK_PATH`. | The server logs every unrouted request with the path it expects. |
+| An event is missing from the sequence | Your handler timed out or returned non-2xx; MeetStream does not retry. | ACK first, do the work after; check `GET /bots/{id}/detail` for the timeline. |
+| Same event handled twice | The in-memory dedupe store resets on restart. | Move it to Redis or your database for production. |
+| Waiting forever for `transcription.processed` | Streaming-only provider; it never sends one. | Wait for `bot.done` instead. Set `TRANSCRIPT_PROVIDER` correctly, or stamp `custom_attributes.streaming_only`. |
+| Kicks look like clean exits, or failures slip through | You are reading `bot_status` on `bot.stopped`. | Read `bot_event`. |
+| `create_bot` returns 400 about `in_call_recording_timeout` | The minimum is 600 seconds. | Raise the value. |
+| `create_bot` returns 401 / 403 | No key sent, or the key was rejected. | Check `MEETSTREAM_API_KEY`. |
+| `create_bot` returns 507 | Idempotent replay of an earlier request. | Nothing to fix; the original bot is returned. |
 
-**404s in the log.** The path in your `callback_url` must match `WEBHOOK_PATH` exactly. The server logs every unrouted request with the path it does expect.
+## Related
 
-**Same event handled twice.** The in-memory dedupe store resets on restart. That is expected for a template. Move it to Redis or your database for production.
-
-**Waiting forever for `transcription.processed`.** You are on a streaming-only provider; it never sends one. Wait for `bot.done` instead, which arrives on every path. Set `TRANSCRIPT_PROVIDER` correctly, or stamp `custom_attributes.streaming_only`.
-
-**Kicks look like clean exits, or failures slip through.** You are reading `bot_status` on `bot.stopped`. Read `bot_event`.
-
-**`create_bot` returns 400 about `in_call_recording_timeout`.** The minimum is 600 seconds. Anything lower is rejected.
-
-## Resources
-
-- MeetStream Docs: https://docs.meetstream.ai
-- API Reference: https://docs.meetstream.ai/api-reference
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Local webhook server](https://docs.meetstream.ai/guides/webhooks/local-webhook-server)
+- [Workspace webhooks](https://docs.meetstream.ai/guides/webhooks/workspace-webhooks)
+- [Webhook signature verification](https://docs.meetstream.ai/guides/webhooks/webhook-signature-verification)
+- [Custom attributes](https://docs.meetstream.ai/guides/features/custom-attributes)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Error reference](https://docs.meetstream.ai/errors)
+- Templates: [webhook-local-tunnel](../webhook-local-tunnel/README.md), [bot-lifecycle-state-machine](../bot-lifecycle-state-machine/README.md), [idempotency-and-dedup](../idempotency-and-dedup/README.md), [error-handling-and-retries](../error-handling-and-retries/README.md)

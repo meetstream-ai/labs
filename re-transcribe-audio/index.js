@@ -92,7 +92,9 @@ async function main() {
     if (CALLBACK_URL) {
       console.log("You will receive transcription.processed (or transcription.failed) at your callback_url.");
     }
-    console.log(`Fetch it later with: TRANSCRIPT_ID=${transcriptId} node index.js`);
+    console.log(
+      `Fetch it later with the transcript-fetcher template: TRANSCRIPT_ID=${transcriptId} node ../transcript-fetcher/index.js`,
+    );
     return;
   }
 

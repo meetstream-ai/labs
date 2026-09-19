@@ -43,9 +43,9 @@ export async function listLogins(client) {
 }
 
 /**
- * Logins scoped to one domain. There is no documented query filter on
- * GET /google-logins, but GET /google-login-domains/{domain} returns the
- * domain's logins inline - so that is what we use.
+ * Logins scoped to one domain. GET /google-logins?domain=<domain> filters
+ * server side; GET /google-login-domains/{domain} returns the same logins
+ * inline together with the domain record, so that is what we use here.
  */
 export async function listLoginsForDomain(client, domain) {
   const { data } = await client.request(`/google-login-domains/${encodeURIComponent(domain)}`);

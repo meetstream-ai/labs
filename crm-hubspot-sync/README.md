@@ -1,6 +1,6 @@
-# CRM HubSpot Sync
+# Sync Meeting Notes to HubSpot CRM with the MeetStream API
 
-After a sales call, attach the MeetStream summary, action items and transcript to the matching HubSpot contact and their deals as a note.
+After a sales call on Zoom, Google Meet or Microsoft Teams, a MeetStream API meeting bot records and transcribes it, and this script attaches the AI summary, action items and transcript to the matching HubSpot contact and their deals as a single timeline note.
 
 ```bash
 npm install
@@ -37,11 +37,43 @@ node index.js --bot <bot_id> --emails "buyer@acme.com"
 ## Setup
 
 ```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/crm-hubspot-sync
 npm install
 cp .env.example .env
 ```
 
 Create the private app in HubSpot under **Settings > Integrations > Private Apps**, grant the three scopes above, and copy the access token into `HUBSPOT_ACCESS_TOKEN`.
+
+## Environment variables
+
+| Name | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key from <https://app.meetstream.ai>. Sent as `Authorization: Token <key>`. |
+| `MEETSTREAM_BASE_URL` | no | API base URL. Default `https://api.meetstream.ai/api/v1`. |
+| `HUBSPOT_ACCESS_TOKEN` | yes | HubSpot private app token with the three scopes above. |
+| `HUBSPOT_PORTAL_ID` | no | Only used to print a clickable link to the created note. |
+| `MEETING_LINK` | live mode | Zoom, Google Meet or Teams URL. `--meeting` overrides it. |
+| `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Labs Bot`. |
+| `TRANSCRIPT_PROVIDER` | no | Post-call provider: `meetstream`, `deepgram`, `assemblyai`, `sarvam`, `jigsawstack`. Default `meetstream`. Never a `*_streaming` provider. |
+| `TRANSCRIPT_LANGUAGE` | no | Transcription language code. Default `en`. |
+| `RETENTION_HOURS` | no | Delete the recording after N hours. Default is the API default, 720 (30 days). |
+| `PUBLIC_BASE_URL` | live mode | Public HTTPS URL of this server; `callback_url` is `${PUBLIC_BASE_URL}/webhook`. `--public-url` overrides it. |
+| `PORT` | no | Local webhook port. Default `3000`. |
+| `TRANSCRIPT_POLL_ATTEMPTS` | no | Max `get_transcript` polls while it returns 202. Default `20`. |
+| `TRANSCRIPT_POLL_INTERVAL_MS` | no | Delay between polls. Default `5000`. |
+| `BOT_ID` | replay | Replay a finished meeting by bot id. Same as `--bot`. |
+| `TRANSCRIPT_ID` | replay | Replay a known transcript id. Same as `--transcript`. |
+| `ATTENDEE_EMAILS` | recommended | Comma-separated attendee emails to match on. `--emails` overrides it. |
+| `EXCLUDE_EMAIL_DOMAINS` | no | Comma-separated domains never to log against (your own team). |
+| `ATTACH_TO_DEALS` | no | `false` skips deal associations. Default `true`. |
+| `INCLUDE_TRANSCRIPT` | no | `false` omits the transcript from the note. Default `true`. |
+| `NOTE_MAX_TRANSCRIPT_TURNS` | no | Speaker turns included in the note. Default `200`. |
+| `NOTE_TITLE` | no | `{date}` is replaced with today's date. Default `Meeting notes - {date}`. |
+| `LLM_PROVIDER` | no | `openai` or `anthropic`. Inferred from whichever key is set. Leave blank to skip action items. |
+| `OPENAI_API_KEY`, `OPENAI_MODEL` | no | OpenAI key and model. Default model `gpt-4o-mini`. |
+| `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | no | Anthropic key and model. Default model `claude-sonnet-4-5`. |
+| `LLM_MAX_TRANSCRIPT_CHARS` | no | Transcript characters sent to the LLM. Default `60000`. |
 
 ### Attendee emails
 
@@ -84,8 +116,8 @@ The MeetStream details that matter:
 
 - Auth is `Authorization: Token <key>`. The literal word `Token`, not `Bearer`.
 - The create field is `meeting_link`, not `meeting_url`.
-- The webhook envelope key is `event`. We act on `transcription.processed`.
-- `bot.stopped` is always `status_code: 200`. Read `bot_status` for the reason: `Stopped`, `NotAllowed`, `Denied`, `Error`.
+- Every webhook carries `event`; most also carry `bot_event` with the specific name, so read `bot_event ?? event`. The pipeline acts on `transcription.processed` and treats `bot.done` as the final event on every path.
+- Every ending arrives as `event: "bot.stopped"` and `bot_event` gives the reason: `bot.stopped` (clean, 200), `bot.kicked` (200), `bot.notallowed` (lobby timeout, 500), `bot.denied` (host refused, 500), `bot.failed` (usually 500). `status_code` is not always 200. Branch on `bot_event`, not `bot_status`: a kick and a clean exit both say `Stopped`. The pipeline falls back to `bot_status` (case-insensitive) only when `bot_event` is missing.
 - Webhooks never include `transcript_id`. It comes from `create_bot`, `GET /bots/{id}/detail`, or `GET /bots/{id}/transcriptions`.
 - The transcript is fetched by **transcript_id**, not bot_id, and segments carry text in a field named `transcript`, not `text`.
 - `HTTP 202` means "still processing, poll again". Polling is capped.
@@ -93,23 +125,30 @@ The MeetStream details that matter:
 
 ## Troubleshooting
 
-**HubSpot returns 403.**
-The private app is missing a scope. Add `crm.objects.contacts.read`, `crm.objects.deals.read` and `crm.objects.notes.write`, then regenerate or refresh the token.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required environment variable: MEETSTREAM_API_KEY` | `.env` not created or key blank | `cp .env.example .env` and fill in the key. |
+| MeetStream 401 | No `Authorization` header sent | Check `.env` is loaded and the key is not empty. |
+| MeetStream 403 | Key present but wrong | Regenerate the key in the dashboard. |
+| `get_transcript` returns 202 until the retry cap | Bot used a streaming-only provider (`*_streaming`, `meeting_captions`); those never write a post-call transcript | Use `meetstream`, `deepgram`, `assemblyai`, `sarvam` or `jigsawstack`. |
+| `bot.done` arrived with no `transcription.processed` | No post-call transcript exists for this bot | The pipeline exits; re-check the provider. |
+| `bot.stopped` with `bot_event: bot.notallowed` (500) | Nobody admitted the bot before the waiting-room timeout | Admit it sooner, or raise `automatic_leave.waiting_room_timeout`. |
+| No webhook events | `PUBLIC_BASE_URL` is not public HTTPS, or the tunnel points at another port | Hit `GET /health` through the tunnel, then match `PORT`. |
+| MeetStream 507 | Idempotent replay of a request already made | Treated as success; the existing bot is reused. |
+| HubSpot 401 | `HUBSPOT_ACCESS_TOKEN` missing or expired | Regenerate the private app token. |
+| HubSpot 403 | Private app is missing a scope | Add `crm.objects.contacts.read`, `crm.objects.deals.read`, `crm.objects.notes.write`, then refresh the token. |
+| `None of the attendee emails matched a HubSpot contact` | Email not in the portal, different casing, or on a secondary email property (search is an exact match on primary `email`) | Create the contact first, or pass an email you know exists. |
+| `No attendee emails to match on` | Platform reported no emails and none were passed | Use `--emails` or `ATTENDEE_EMAILS`. |
+| Note on the contact but not the deal | Contact has no associated deals, or `ATTACH_TO_DEALS=false` | Check the console output, which lists every deal found. |
+| HubSpot 400 on note creation | Association type id does not match the object pair | Note to contact is `202`, note to deal is `214`. |
 
-**"None of the attendee emails matched a HubSpot contact".**
-The email is not in your portal, or it is stored with different casing or on a secondary email property. The search here is an exact match on the primary `email` property. Create the contact first, or pass an email you know exists.
+## Related
 
-**"No attendee emails to match on".**
-The meeting platform reported no emails and you did not pass any. Use `--emails` or `ATTENDEE_EMAILS`.
-
-**The note appears on the contact but not the deal.**
-The contact has no associated deals, or `ATTACH_TO_DEALS=false`. Check the console output, which lists every deal it found.
-
-**HubSpot returns 400 on note creation.**
-Usually an association type ID that does not match the object pair. Note to contact must be `202`, note to deal must be `214`.
-
-**`get_transcript` returns 202 until the retry cap.**
-The bot used a streaming-only provider. `deepgram_streaming`, `assemblyai_streaming`, `jigsawstack_streaming`, `meetstream_streaming` and `meeting_captions` never write a post-call transcript. Use `meetstream` or `deepgram`.
-
-**No webhook events.**
-`PUBLIC_BASE_URL` must be a public HTTPS URL pointing at the same `PORT` the script listens on. Hit `GET /health` through the tunnel to confirm.
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
+- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
+- [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Post-call transcription](https://docs.meetstream.ai/guides/transcription-recordings/post-call-transcription)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [ai-meeting-notetaker-email](../ai-meeting-notetaker-email), [action-item-extractor](../action-item-extractor), [notion-meeting-notes](../notion-meeting-notes)

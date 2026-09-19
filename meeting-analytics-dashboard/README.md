@@ -1,13 +1,6 @@
-# Meeting Analytics Dashboard
+# Build a Meeting Analytics Report with the MeetStream API
 
-Everything MeetStream knows about one meeting, consolidated into a single
-report - printed to your terminal and written as JSON and Markdown.
-
-```bash
-cp .env.example .env   # add your MEETSTREAM_API_KEY and a BOT_ID or MEETING_LINK
-npm install
-node index.js
-```
+Everything the MeetStream API knows about one Zoom, Google Meet or Microsoft Teams meeting, consolidated into a single report: participants, talk-time per speaker, in-meeting chat, the AI summary and the bot lifecycle, printed to your terminal and written as JSON and Markdown.
 
 ## What it does
 
@@ -31,8 +24,46 @@ Two modes, chosen by your `.env`:
 ## Prerequisites
 
 - Node.js 18 or newer (uses the built-in `fetch`)
-- A MeetStream API key - <https://app.meetstream.ai>
-- A bot that has finished a meeting, or a live meeting link to send one into
+- A MeetStream API key from <https://app.meetstream.ai>
+- A bot that has finished a meeting, or a live Zoom, Google Meet or Teams link to send one into
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/meeting-analytics-dashboard
+npm install
+cp .env.example .env   # add MEETSTREAM_API_KEY and a BOT_ID or MEETING_LINK
+node index.js
+```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
+| `BOT_ID` | one of | Existing bot to report on. Takes priority over `MEETING_LINK`. |
+| `MEETING_LINK` | one of | Zoom, Google Meet or Teams link. A new bot is created for it. |
+| `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Analytics Bot`. |
+| `TRANSCRIPT_LANGUAGE` | no | Language passed to the Deepgram post-call provider. Default `en`. |
+| `RETENTION_HOURS` | no | `recording_config.retention.hours` on create. Default `72`. |
+| `WAITING_ROOM_TIMEOUT` | no | `automatic_leave.waiting_room_timeout` seconds. Default `600`. |
+| `EVERYONE_LEFT_TIMEOUT` | no | `automatic_leave.everyone_left_timeout` seconds. Default `600`. |
+| `IN_CALL_RECORDING_TIMEOUT` | no | `automatic_leave.in_call_recording_timeout` seconds. Default `14400`, API minimum 600. |
+| `IDEMPOTENCY_KEY` | no | `Idempotency-Key` header on `create_bot`. A replay returns HTTP 507 and is treated as success. |
+| `STATUS_POLL_INTERVAL_MS` | no | Delay between status polls while waiting for the meeting to end. Default `15000`. |
+| `STATUS_POLL_MAX_ATTEMPTS` | no | Status poll cap. Default `240`. |
+| `SECTION_POLL_INTERVAL_MS` | no | Delay between polls while a source answers 202. Default `10000`. |
+| `SECTION_POLL_MAX_ATTEMPTS` | no | Per-source 202 poll cap. Default `12`. |
+| `AUDIO_BYTES_PER_SAMPLE` | no | Used to turn speaker-timeline byte offsets into seconds. Default `2`. |
+| `AUDIO_CHANNELS` | no | Same conversion. Default `1`. |
+| `BAR_WIDTH` | no | Width of the talk-time bars. Default `30`. |
+| `OUTPUT_DIR` | no | Where the JSON and Markdown reports are written. Default `./output`. |
+| `INCLUDE_RAW_RESPONSES` | no | `false` drops the raw API responses from the JSON report. Default `true`. |
+| `REQUEST_TIMEOUT_MS` | no | Per-request timeout. Default `30000`. |
+| `MAX_RETRIES` | no | Retries on network errors and 429/5xx. Default `3`. |
+| `RETRY_BASE_DELAY_MS` | no | Backoff base. Default `1000`. |
+| `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 
 ## Partial data is normal
 
@@ -119,18 +150,27 @@ Files:
 
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-| --- | --- |
-| `MEETSTREAM_API_KEY is not set` | `cp .env.example .env` and paste your key. |
-| HTTP 401 / 403 | No key sent, or the key is inactive for this workspace. |
-| `No bot found with id …` | Wrong bot id, or the data expired via its retention window. |
-| Summary shows "not available" | The bot used a streaming-only provider, or no summary workflow is enabled. |
-| A section shows "still processing" | Post-call processing has not finished. Re-run later with `BOT_ID`, or raise `SECTION_POLL_MAX_ATTEMPTS`. |
-| Talk-time durations look wrong | Adjust `AUDIO_BYTES_PER_SAMPLE` / `AUDIO_CHANNELS`. Shares stay correct either way. |
-| Chat authors all "Unknown" | Your account's key names are not in `src/normalize.js`. Check `chat.unmapped_fields` in the JSON report and add them. |
-| Report is mostly empty | The bot probably never got into the meeting. Check the lifecycle section and `GET /bots/{id}/status`. |
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `MEETSTREAM_API_KEY is not set` | No `.env` or empty key. | `cp .env.example .env` and paste your key. |
+| HTTP 401 / 403 | No key sent, or the key is inactive for this workspace. | Check `.env` is loaded from this directory; regenerate the key at <https://app.meetstream.ai>. |
+| HTTP 400 on create | `in_call_recording_timeout` below its 600 second minimum, or a missing `meeting_link` / `bot_name`. | Fix the value in `.env`. |
+| `No bot found with id ...` (404) | Wrong bot id, or the data expired via its retention window. | Confirm the id with `GET /bots`. |
+| HTTP 507 on create | Idempotent replay of an earlier `create_bot` with the same `Idempotency-Key`. | Nothing to fix; the original bot is returned. |
+| Summary shows "not available" | The bot used a streaming-only provider, or no summary workflow is enabled. | Use a post-call provider such as `deepgram`. |
+| A section shows "still processing" | Post-call processing has not finished (HTTP 202). | Re-run later with `BOT_ID`, or raise `SECTION_POLL_MAX_ATTEMPTS`. |
+| Bot status ends at `NotAllowed` / `Denied` | The bot timed out in the waiting room, or the host refused it. | Admit it faster, or raise `WAITING_ROOM_TIMEOUT`. |
+| Talk-time durations look wrong | The audio is not 16-bit mono PCM. | Adjust `AUDIO_BYTES_PER_SAMPLE` / `AUDIO_CHANNELS`. Shares stay correct either way. |
+| Chat authors all "Unknown" | Your account's key names are not in `src/normalize.js`. | Check `chat.unmapped_fields` in the JSON report and add them. |
+| Report is mostly empty | The bot probably never got into the meeting. | Check the lifecycle section and `GET /bots/{id}/status`. |
 
-## Resources
+## Related
 
-- [MeetStream docs](https://docs.meetstream.ai)
-- [API reference](https://docs.meetstream.ai/api-reference)
+- [Get bot details](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-details)
+- [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
+- [Get speaker timeline](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-speaker-timeline)
+- [Get bot chats](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-chats)
+- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
+- [Participants and speaker timeline guide](https://docs.meetstream.ai/guides/features/participants-and-speaker-timeline)
+- [Error reference](https://docs.meetstream.ai/errors)
+- Templates: [speaker-timeline-analytics](../speaker-timeline-analytics/README.md), [participant-tracker](../participant-tracker/README.md), [ai-meeting-summary](../ai-meeting-summary/README.md), [meeting-chat-logger](../meeting-chat-logger/README.md)

@@ -1,20 +1,12 @@
-# bot-lifecycle-state-machine
+# Model the MeetStream Bot Lifecycle as a Webhook-Driven State Machine
 
-Models the MeetStream bot lifecycle as an explicit, webhook-driven state machine: persists state to a JSON file, refuses to walk backwards on out-of-order deliveries, and flags bots that are stuck or abandoned.
-
-```bash
-npm install && node index.js
-```
-
-See all of it, offline, in about 20 seconds:
+A webhook receiver for MeetStream API meeting bots on Zoom, Google Meet and Microsoft Teams that models the full bot lifecycle as an explicit state machine: it persists state to a JSON file, refuses to walk backwards on out-of-order or duplicate deliveries, decodes all five `bot.stopped` reasons, and flags bots that are stuck or abandoned. Every path can be replayed offline in about 20 seconds with no API calls.
 
 ```bash
-node index.js --replay
+npm install && node index.js --replay
 ```
 
----
-
-## What this does
+## What it does
 
 - Drives a state machine from webhook deliveries, with a rank per state so a late or duplicated event can never regress the record
 - Handles both provider paths: post-call and streaming-only bots both end at `bot.done`; streaming-only bots just never get `transcription.processed`
@@ -42,13 +34,16 @@ Sample ledger:
 ## Prerequisites
 
 - Node.js 18 or newer
-- A public HTTPS URL to receive real webhooks. See the `webhook-local-tunnel` template. `--replay` needs nothing.
+- For real webhooks, a public HTTPS URL. See the [webhook-local-tunnel](../webhook-local-tunnel) template. `--replay` needs nothing.
+- No MeetStream API key: this template only receives webhooks. Create the bot from another template (for example [quickstart-first-bot](../quickstart-first-bot)) with `callback_url` set to your public URL plus `WEBHOOK_PATH`.
 
-## Setup and run
+## Setup
 
 ```bash
-cp .env.example .env
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/bot-lifecycle-state-machine
 npm install
+cp .env.example .env
 
 node index.js            # receiver + monitor
 node index.js --replay   # replay every lifecycle path offline, then report
@@ -62,6 +57,21 @@ curl localhost:3000/bots           # the ledger
 curl localhost:3000/bots/<bot_id>  # full record + health + outcome
 curl localhost:3000/states         # the state table
 ```
+
+## Environment variables
+
+All optional.
+
+| Variable | Required | Meaning |
+| --- | --- | --- |
+| `PORT` | no | Local port for the webhook receiver. Default `3000`. |
+| `WEBHOOK_PATH` | no | Path the receiver listens on. Your `callback_url` must end with this exact path. Default `/webhook`. |
+| `STATE_FILE` | no | Where bot state is persisted (atomic temp-file-and-rename writes). Default `./data/bots.json`. |
+| `MONITOR_INTERVAL_MS` | no | How often the stuck/abandoned scan runs. Default `30000`. |
+| `DEFAULT_STREAMING_ONLY` | no | Fallback path (`true` = streaming-only) for bots not stamped with `custom_attributes.streaming_only`. Default `false` (post-call). |
+| `NO_COLOR` | no | Set to any value to disable ANSI colours in the log output. |
+
+`MEETSTREAM_API_KEY` is not read. The receiver never calls the API.
 
 ---
 
@@ -180,7 +190,7 @@ node index.js --report   # same ledger, new process
 ## How it works
 
 ```
-index.js             CLI: receiver, --replay, --report, graceful flush
+index.js             CLI: receiver, --replay, --report, --help, graceful flush
 src/machine.js       STATES with ranks, STATE_TIMEOUTS_MS, targetStateFor(), applyEvent()
 src/store.js         BotStore: JSON persistence, atomic writes, autoSave
 src/server.js        webhook receiver, dedupe on bot_event ?? event + timestamp,
@@ -195,17 +205,24 @@ src/logger.js        timestamped console output
 
 ## Troubleshooting
 
-**Every bot sits in `created`.** No webhooks are arriving. The `callback_url` must be public HTTPS and set per bot on `create_bot`.
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Every bot sits in `created` | No webhooks are arriving. The `callback_url` must be public HTTPS and is set per bot on `create_bot`. | Start a tunnel, recreate the bot with `callback_url` = `<public URL><WEBHOOK_PATH>`. |
+| `port 3000 is already in use` | Another process owns the port. | Stop it, or set `PORT` in `.env`. |
+| Receiver answers 404 `Not found. Webhook path is /webhook` | The `callback_url` path does not match `WEBHOOK_PATH`. | Align the two. The log line shows the path MeetStream tried. |
+| Receiver answers 400 `Envelope must contain event and bot_id` | A hand-made test POST without the real envelope shape. | Use `--replay` for synthetic deliveries, or include `event` and `bot_id`. |
+| A bot never leaves `processing` or `media_ready` | `bot.done` arrives on every path, streaming-only included, so a bot parked here is genuinely stalled or its `bot.done` delivery was lost. Do not treat `audio.processed` as the end. | Check `GET /bots/{id}/detail`. A 404 there means a wrong id or a recording already removed by its retention window. |
+| States look like they are going backwards | They are not. The machine recorded the event and refused the regression. | Look for `out-of-order` in the log. |
+| `could not parse ./data/bots.json, starting empty` | The state file is corrupt (only possible if edited by hand; writes are atomic). | Delete or fix the file. |
+| `data/bots.json` is missing | It is created on first write and gitignored. | Nothing to fix; `--report` on an empty store just says so. |
+| Wrong stuck alerts | Your budgets do not match your meetings. | Edit `STATE_TIMEOUTS_MS`. If `waiting_room` fires constantly, align it with `automatic_leave.waiting_room_timeout`. |
 
-**A bot never leaves `processing` or `media_ready`.** `bot.done` arrives on every path, streaming-only included, so a bot parked here is genuinely stalled or its `bot.done` delivery was lost. Check `GET /bots/{id}/detail`. Do not treat `audio.processed` as the end.
+## Related
 
-**States look like they are going backwards.** They are not. Look for `out-of-order` in the log: the machine recorded the event and refused the regression.
-
-**`data/bots.json` is missing.** It is created on first write and gitignored. `--report` on an empty store just says so.
-
-**Wrong stuck alerts.** Your budgets do not match your meetings. Edit `STATE_TIMEOUTS_MS`. If `waiting_room` fires constantly, align it with your `automatic_leave.waiting_room_timeout`.
-
-## Resources
-
-- MeetStream Docs: https://docs.meetstream.ai
-- API Reference: https://docs.meetstream.ai/api-reference
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Local webhook server](https://docs.meetstream.ai/guides/webhooks/local-webhook-server)
+- [Debugging bots](https://docs.meetstream.ai/guides/help/debugging-bots)
+- [Automatic leave configuration](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
+- [Custom attributes](https://docs.meetstream.ai/guides/features/custom-attributes)
+- [Get bot details](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-details)
+- Sibling templates: [webhook-local-tunnel](../webhook-local-tunnel), [webhook-handler-complete](../webhook-handler-complete), [bot-status-monitor](../bot-status-monitor), [idempotency-and-dedup](../idempotency-and-dedup)

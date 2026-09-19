@@ -3,8 +3,10 @@ import { createHash } from 'node:crypto';
 /**
  * Idempotent delivery guard.
  *
- * MeetStream can deliver the same webhook more than once (network retries,
- * at-least-once delivery). Your handler must be safe to call twice.
+ * MeetStream itself does not retry a failed delivery, but the same body can
+ * still reach your handler twice: a tunnel or proxy replay, your own queue
+ * re-driving a job, or you replaying stored deliveries. Your handler must be
+ * safe to call twice.
  *
  * Dedupe key is `bot_id + (bot_event ?? event) + timestamp`. Every delivery
  * carries an ISO 8601 `timestamp`, lifecycle events included, and a redelivery

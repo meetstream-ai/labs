@@ -18,13 +18,21 @@ import { STATES } from './src/machine.js';
 import { log } from './src/logger.js';
 
 const args = new Set(process.argv.slice(2));
+const KNOWN_FLAGS = new Set(['--replay', '--report', '--help', '-h']);
+const unknownArgs = [...args].filter((a) => !KNOWN_FLAGS.has(a));
+if (args.has('--help') || args.has('-h') || unknownArgs.length) {
+  if (unknownArgs.length) console.error(`Unknown argument(s): ${unknownArgs.join(' ')}\n`);
+  printUsage();
+  process.exit(unknownArgs.length ? 1 : 0);
+}
 const REPLAY = args.has('--replay');
 const REPORT_ONLY = args.has('--report');
 
-const PORT = Number(process.env.PORT || 3000);
+// No MEETSTREAM_API_KEY here on purpose: this template only receives webhooks.
+const PORT = numberEnv('PORT', 3000);
 const WEBHOOK_PATH = process.env.WEBHOOK_PATH || '/webhook';
 const STATE_FILE = process.env.STATE_FILE || './data/bots.json';
-const MONITOR_INTERVAL_MS = Number(process.env.MONITOR_INTERVAL_MS || 30_000);
+const MONITOR_INTERVAL_MS = numberEnv('MONITOR_INTERVAL_MS', 30_000);
 const DEFAULT_STREAMING_ONLY = process.env.DEFAULT_STREAMING_ONLY === 'true';
 
 const store = new BotStore(STATE_FILE);
@@ -138,6 +146,15 @@ function printReport() {
   console.log('');
 }
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    log.error(`port ${PORT} is already in use. Stop the other process or set PORT in .env to a free port.`);
+  } else {
+    log.error(`server failed to start: ${err.message}`);
+  }
+  process.exit(1);
+});
+
 process.on('SIGINT', () => {
   console.log('');
   log.info('shutting down, flushing state');
@@ -145,3 +162,33 @@ process.on('SIGINT', () => {
   server.close(() => process.exit(0));
   setTimeout(() => process.exit(0), 3000).unref();
 });
+
+/** Read a positive numeric env var, or exit with a clear message. */
+function numberEnv(name, fallback) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === '') return fallback;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) {
+    console.error(`${name} must be a positive number, got "${raw}". Check .env.`);
+    process.exit(1);
+  }
+  return n;
+}
+
+function printUsage() {
+  console.log(
+    [
+      'MeetStream Labs - bot-lifecycle-state-machine',
+      '',
+      'Usage:',
+      '  node index.js            run the webhook receiver + stuck/abandoned monitor',
+      '  node index.js --replay   replay every lifecycle path offline (no API calls), then report',
+      '  node index.js --report   print the persisted state file and exit',
+      '  node index.js --help     this message',
+      '',
+      'Env (all optional, see .env.example): PORT, WEBHOOK_PATH, STATE_FILE,',
+      '  MONITOR_INTERVAL_MS, DEFAULT_STREAMING_ONLY, NO_COLOR.',
+      'No MEETSTREAM_API_KEY is needed: this template only receives webhooks.',
+    ].join('\n'),
+  );
+}

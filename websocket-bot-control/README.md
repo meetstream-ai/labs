@@ -1,12 +1,21 @@
-# WebSocket Bot Control
+# Control a Meeting Bot over WebSocket with the MeetStream API
 
-The bring-your-own bridge control channel. Run a WebSocket server, point a bot at it with `socket_connection_url`, and drive the bot live from an interactive prompt: play audio through its microphone, post chat, interrupt playback, change its camera feed.
+The bring-your-own bridge control channel for a MeetStream meeting bot in Zoom, Google Meet or Microsoft Teams. Run a WebSocket server, point a bot at it with `socket_connection_url`, and drive the bot live from an interactive prompt: play audio through its microphone, post chat, interrupt playback, change its camera feed.
 
 ```bash
 npm install
 cp .env.example .env    # add MEETSTREAM_API_KEY, MEETING_LINK, NGROK_AUTHTOKEN
 node index.js
 ```
+
+## What it does
+
+1. Starts a local server: `WS /control` (the control channel), `POST /webhook` (lifecycle events), `GET /health`.
+2. Resolves a public HTTPS URL for it: `PUBLIC_URL`, or an ngrok tunnel opened from `NGROK_AUTHTOKEN`.
+3. `POST /bots/create_bot` with `socket_connection_url: { websocket_url: "wss://<public>/control" }` and `callback_url`.
+4. The bot joins, dials back to your socket and sends `{ "type": "ready", "bot_id": ... }`.
+5. An interactive `control>` prompt issues every control command by hand: `sendaudio`, `sendmsg`, `sendchat`, `interrupt`, `sendimg`, `sendimg_url`.
+6. `quit` or Ctrl+C removes the bot (`GET /bots/{bot_id}/remove_bot`) and closes the tunnel.
 
 ## Prerequisites
 
@@ -17,11 +26,27 @@ node index.js
 
 ## Setup
 
-1. `npm install`
-2. `cp .env.example .env`
-3. Fill in `MEETSTREAM_API_KEY` and `MEETING_LINK`.
-4. Set `PUBLIC_URL` or `NGROK_AUTHTOKEN`.
-5. `node index.js`, admit the bot, then type commands at the `control>` prompt.
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/websocket-bot-control
+npm install
+cp .env.example .env    # MEETSTREAM_API_KEY, MEETING_LINK, and PUBLIC_URL or NGROK_AUTHTOKEN
+node index.js           # admit the bot, then type commands at the control> prompt
+```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
+| `MEETING_LINK` | yes | Meeting for the bot to join. |
+| `PUBLIC_URL` | one of these two | An `https://` address already pointing at this process. |
+| `NGROK_AUTHTOKEN` | one of these two | Opens an ngrok tunnel automatically. |
+| `PORT` | no | Local port. Default `3000`. |
+| `BOT_NAME` | no | Name shown in the participant list. Default `MeetStream Labs Control Bot`. |
+| `GREETING` | no | A `sendmsg` fired as soon as the channel is ready. Empty: no greeting. |
+| `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
+| `NO_COLOR` | no | Set to any value to disable ANSI colours in the log output. |
 
 ## How it works
 
@@ -53,6 +78,8 @@ From there the channel carries JSON commands from you to the bot. It closes with
 
 > `socket_connection_url` points at **your** server. It is a bridge you host. It is not a MeetStream-hosted endpoint, and it is not how MIA works: a MIA bot is created with `agent_config_id` alone and never with `socket_connection_url` or `live_audio_required`.
 
+Lifecycle webhooks land on `POST /webhook`. `event` is always present; on `bot.stopped` the reason is in `bot_event` (`bot.stopped`, `bot.kicked`, `bot.notallowed`, `bot.denied`, `bot.failed`), which the template prints. The handler ACKs with 200 before doing anything, because MeetStream does not retry a delivery.
+
 ## The commands
 
 Every command is a JSON object with a `command` field and the `bot_id` from the handshake.
@@ -73,7 +100,7 @@ Every command is a JSON object with a `command` field and the `bot_id` from the 
 
 Audio must be **raw PCM, signed 16-bit, little-endian, 48000 Hz, mono, base64-encoded, with no WAV header**. Nothing else is accepted, and nothing is resampled for you.
 
-Send it in 0.5 to 2 second chunks and pace slightly faster than real time: this template sends each chunk after `duration × 0.8`, which keeps the bot's playback queue just ahead of the playhead so there are no gaps, without building a backlog that `interrupt` would then have to discard.
+Send it in 0.5 to 2 second chunks and pace slightly faster than real time: this template sends each chunk after `duration x 0.8`, which keeps the bot's playback queue just ahead of the playhead so there are no gaps, without building a backlog that `interrupt` would then have to discard.
 
 ```bash
 # any input -> the exact format sendaudio wants
@@ -181,39 +208,33 @@ websocket-bot-control/
 └─ README.md
 ```
 
-## Environment variables
-
-| Variable | Required | Description |
-|---|---|---|
-| `MEETSTREAM_API_KEY` | yes | From the MeetStream dashboard |
-| `MEETING_LINK` | yes | Meeting for the bot to join |
-| `PUBLIC_URL` | one of these two | An https:// address already pointing at this process |
-| `NGROK_AUTHTOKEN` | one of these two | Opens a tunnel automatically |
-| `PORT` | no | Local port, default `3000` |
-| `BOT_NAME` | no | Name shown in the participant list |
-| `GREETING` | no | A `sendmsg` fired as soon as the channel is ready |
-
 ## Troubleshooting
 
-| Problem | Fix |
-|---|---|
-| `Control channel is not connected` | The handshake has not arrived. The bot is still joining, or your `wss://` URL is not publicly reachable. |
-| Bot joins but never connects back | Check `socket_connection_url` is `wss://`, not `ws://`, and that the tunnel is still up |
-| Audio plays too fast or too slow | The file is not 48 kHz mono. Re-encode with the ffmpeg command above. |
-| Audio has gaps | Increase the pacing lead (send chunks sooner) or use larger chunks |
-| `interrupt` does nothing | Expected on Zoom and Teams. Only Google Meet clears the queue. |
-| `sendmsg` works on one platform but not another | Set both `message` and `msg` to the same value |
-| Camera feed unchanged after `sendimg_url` | The URL must be publicly reachable and return image bytes directly |
-| Bot left behind in the meeting | `GET /bots/{bot_id}/remove_bot` (it really is a GET) |
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required env var: MEETSTREAM_API_KEY` | No `.env`, or an empty key. | Copy `.env.example` to `.env` and fill it in. |
+| `No public URL available` | Neither `PUBLIC_URL` nor `NGROK_AUTHTOKEN` is set. | Set one of them. |
+| `MeetStream API 401` / `403` | No key was sent, or the key was rejected. | The header is `Authorization: Token <key>`; regenerate the key if 403 persists. |
+| `MeetStream API 400` on create | Bad `meeting_link`, a `ws://` (not `wss://`) socket URL, or `in_call_recording_timeout` below 600. | Check the link and the public URL scheme. |
+| `Control channel is not connected` | The handshake has not arrived. The bot is still joining, or your `wss://` URL is not publicly reachable. | Admit the bot; check `GET /health` and the tunnel. |
+| Bot joins but never connects back | `socket_connection_url` is not `wss://`, or the tunnel went down. | Restart with a live tunnel; `PUBLIC_URL` must be `https://`. |
+| `Bot stopped. Reason: bot.notallowed` / `bot.denied` | Never admitted from the waiting room / host refused. | Admit the bot, or ask the host to allow it. |
+| Audio plays too fast or too slow | The file is not 48 kHz mono. | Re-encode with the ffmpeg command above. |
+| Audio has gaps | Chunks arrive later than the playhead. | Increase the pacing lead (send chunks sooner) or use larger chunks. |
+| `interrupt` does nothing | Expected on Zoom and Teams. | Only Google Meet clears the queue. |
+| `sendmsg` works on one platform but not another | Only one of the two keys was set. | Set both `message` and `msg` to the same value. |
+| Camera feed unchanged after `sendimg_url` | The URL is not publicly reachable or does not return image bytes directly. | Host the image somewhere public. |
+| Bot left behind in the meeting | The process died before cleanup. | `GET /bots/{bot_id}/remove_bot` (it really is a GET). |
 
 ## Related
 
 - [`interactive-meeting-agent`](../interactive-meeting-agent): this control channel combined with live audio in, as a two-way loop
 - [`send-chat-message`](../send-chat-message): the REST equivalent of `sendmsg`
 - [`send-image-bot`](../send-image-bot): images into the chat rather than the camera feed
-
-## Resources
-
+- [`realtime-audio-streaming`](../realtime-audio-streaming): audio out of the meeting over WebSocket
 - [Meeting control and command patterns](https://docs.meetstream.ai/guides/websockets/meeting-control-patterns)
-- [Create Bot endpoint](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
-- [MeetStream docs](https://docs.meetstream.ai)
+- [Bridge server architecture](https://docs.meetstream.ai/guides/websockets/bridge-server-architecture)
+- [Real-time audio streaming](https://docs.meetstream.ai/guides/websockets/real-time-audio-streaming)
+- [Chat and visuals](https://docs.meetstream.ai/guides/features/chat-and-visuals)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Remove bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/remove-bot)

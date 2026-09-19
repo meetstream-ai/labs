@@ -34,10 +34,22 @@ const MAX_POLL_ATTEMPTS = Number.parseInt(process.env.MAX_POLL_ATTEMPTS ?? "36",
 const POLL_INTERVAL_MS = Number.parseInt(process.env.POLL_INTERVAL_MS ?? "5000", 10);
 const OUTPUT_DIR = path.resolve(process.env.OUTPUT_DIR ?? "transcripts");
 
+function printUsage() {
+  console.log("Usage: PROVIDER=<provider> node index.js <meeting_link>");
+  console.log(`Providers: ${PROVIDER_KEYS.join(" | ")} (default deepgram)`);
+  console.log("The meeting link can also come from MEETING_LINK. See .env.example for every option.");
+}
+
 async function main() {
+  const arg = process.argv[2];
+  if (arg === "--help" || arg === "-h" || arg === "help") {
+    printUsage();
+    return;
+  }
+
   requireApiKey();
 
-  const meetingLink = process.argv[2] || process.env.MEETING_LINK || "";
+  const meetingLink = arg || process.env.MEETING_LINK || "";
   if (!meetingLink) {
     console.error("Provide a meeting link: `node index.js <meeting_link>` or set MEETING_LINK.");
     console.error(`Providers: ${PROVIDER_KEYS.join(" | ")}`);

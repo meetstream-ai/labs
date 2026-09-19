@@ -1,6 +1,6 @@
-# idempotency-and-dedup
+# Idempotency Keys and Deduplication for MeetStream Bots
 
-Two different mechanisms stop `create_bot` from producing duplicate bots. This template runs both against the live API so you can see the actual status codes: the `Idempotency-Key` header (replay returns **507**, which is a success) and the `deduplication_key` body field (replay returns **200**, reuse for a different meeting returns **409**).
+Two different MeetStream API mechanisms stop `create_bot` from producing duplicate meeting bots on Zoom, Google Meet or Microsoft Teams. This template runs both against the live API so you can see the actual status codes: the `Idempotency-Key` header (replay returns **507**, which is a success) and the `deduplication_key` body field (replay returns **200**, reuse for a different meeting returns **409**).
 
 ```bash
 npm install
@@ -9,11 +9,27 @@ node index.js --explain   # comparison table, no API key needed
 node index.js             # run the live demo
 ```
 
+## How it works
+
+1. Sends `POST /bots/create_bot` with a fresh `Idempotency-Key`, then sends the identical request again and shows the 507 replay.
+2. Sends `create_bot` with a `deduplication_key`, repeats it for the same meeting (200), then reuses the key for `MEETING_LINK_ALT` (409).
+3. Calls `GET /bots/{id}/remove_bot` on every bot it created unless `--no-cleanup` is set.
+
 ## Prerequisites
 
 - Node.js 18 or newer
 - A MeetStream API key from https://app.meetstream.ai
-- A meeting link, and optionally a second, different one (`MEETING_LINK_ALT`) to see the 409
+- A Zoom, Google Meet or Teams meeting link, and optionally a second, different one (`MEETING_LINK_ALT`) to see the 409
+
+## Setup
+
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/idempotency-and-dedup
+npm install
+cp .env.example .env
+node index.js --explain
+```
 
 ## Usage
 
@@ -92,21 +108,33 @@ Pick a key that identifies the booking, not the attempt: a calendar event id, a 
 | 500 / 503 | Transient server error | yes, with backoff |
 | **507** | **Idempotent replay, success** | **no, it worked** |
 
-## Configuration
+## Environment variables
 
-| Variable | Required | Default | Notes |
+| Name | Required | Default | Meaning |
 |---|---|---|---|
-| `MEETSTREAM_API_KEY` | yes | | Not needed for `--explain` |
+| `MEETSTREAM_API_KEY` | yes | | API key, sent as `Authorization: Token <key>`. Not needed for `--explain` |
 | `MEETING_LINK` | yes | | The meeting the demo bots join |
 | `MEETING_LINK_ALT` | no | | A **different** meeting link. Without it the 409 case is skipped |
-| `MEETSTREAM_API_BASE_URL` | no | production | Override for testing |
+| `MEETSTREAM_API_BASE_URL` | no | `https://api.meetstream.ai/api/v1` | Override for testing |
 
 ## Troubleshooting
 
-**The retry returned 201 instead of 507** - the second request did not carry the same `Idempotency-Key`, or the body differed. Both have to match.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required config: MEETSTREAM_API_KEY, MEETING_LINK` | `.env` not filled in | `cp .env.example .env` and set both values. |
+| HTTP 401 | No API key sent | Set `MEETSTREAM_API_KEY`. |
+| HTTP 403 | Key rejected | Copy the whole key from the dashboard. |
+| HTTP 400 | Body failed validation | Check `meeting_link` is a full meeting URL. |
+| The retry returned 201 instead of 507 | The second request did not carry the same `Idempotency-Key`, or the body differed | Both have to match exactly. |
+| The 409 case was skipped | `MEETING_LINK_ALT` is not set, or equals `MEETING_LINK` | Set it to a genuinely different meeting. |
+| Everything returns 409 on a second run | `deduplication_key` values persist | The demo timestamps its key so each run is fresh; do the same in your code. |
+| HTTP 429 | Rate limited | Back off and retry. |
+| Bots piled up in the meeting | `--no-cleanup` was used, or cleanup failed | Use the [list-and-manage-bots](../list-and-manage-bots) template to find and remove them. |
 
-**The 409 case was skipped** - `MEETING_LINK_ALT` is not set, or it is the same URL as `MEETING_LINK`. It has to be a genuinely different meeting.
+## Related
 
-**Everything returns 409 on a second run** - `deduplication_key` values persist. The demo timestamps its key for this reason, so each run gets a fresh one.
-
-**Bots piled up in the meeting** - you used `--no-cleanup`, or cleanup failed. Use the `list-and-manage-bots` template to find and remove them.
+- [Deduplication and idempotency keys](https://docs.meetstream.ai/guides/features/deduplication-idempotency-keys)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Remove bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/remove-bot)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Labs: [error-handling-and-retries](../error-handling-and-retries), [bulk-bot-operations](../bulk-bot-operations), [list-and-manage-bots](../list-and-manage-bots)

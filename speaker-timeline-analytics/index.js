@@ -22,6 +22,12 @@ import { analyzeTimeline } from './src/analytics.js';
 import { renderReport } from './src/report.js';
 
 async function main() {
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    console.log('Usage: node index.js');
+    console.log('  Reads .env: MEETSTREAM_API_KEY plus BOT_ID (analyse a past meeting) or MEETING_LINK (send a bot, then analyse).');
+    console.log('  Writes output/speaker-timeline-<bot_id>.json and output/speaker-analytics-<bot_id>.json.');
+    return;
+  }
   const apiKey = readApiKey();
   const client = new MeetStreamClient({
     apiKey,

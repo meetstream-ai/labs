@@ -1,14 +1,15 @@
-# Interactive Meeting Agent
+# Build an Interactive Voice Agent for Meetings with the MeetStream API
 
-A two-way meeting bot: it hears the room over `live_audio_required`, decides what to do, and responds over the `socket_connection_url` control channel. The decision function is a clearly-marked stub: everything around it is real API plumbing.
+A two-way meeting bot for Zoom, Google Meet and Microsoft Teams built on the MeetStream API: it hears the room over `live_audio_required`, reads live transcription from a webhook, decides what to do, and responds in chat or speech over the `socket_connection_url` control channel. The decision function is a clearly-marked stub; everything around it is real API plumbing.
 
-```bash
-npm install
-cp .env.example .env    # add MEETSTREAM_API_KEY, MEETING_LINK, NGROK_AUTHTOKEN
-node index.js
-```
+## How it works
 
-Then say **"hey bot, what did I miss"** in the meeting.
+- `create_bot` is called with `live_audio_required` (PCM frames in), `live_transcription_required` (transcript segments in), `callback_url` (lifecycle events in) and `socket_connection_url` (commands out), all pointing at this process over a public HTTPS/WSS URL.
+- `src/audio-in.js` does energy-based turn detection on the PCM frames; the live transcript webhook supplies the words.
+- `src/brain.js` matches a wake word on `is_final` segments and returns actions; `index.js` executes them as `sendchat`, `sendmsg`, `sendaudio` or `interrupt` frames.
+- Ctrl+C removes the bot with `GET /bots/{bot_id}/remove_bot`, closes the tunnel and exits.
+
+Once it is running, say **"hey bot, what did I miss"** in the meeting.
 
 ## Prerequisites
 
@@ -47,11 +48,15 @@ Both `websocket_url` fields point at **your** server. This is a bring-your-own b
 
 ## Setup
 
-1. `npm install`
-2. `cp .env.example .env`
-3. Fill in `MEETSTREAM_API_KEY`, `MEETING_LINK`, and either `PUBLIC_URL` or `NGROK_AUTHTOKEN`.
-4. `node index.js` and admit the bot.
-5. Say the wake word. The stub brain answers in chat.
+```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/interactive-meeting-agent
+npm install
+cp .env.example .env    # add MEETSTREAM_API_KEY, MEETING_LINK, and PUBLIC_URL or NGROK_AUTHTOKEN
+node index.js
+```
+
+Admit the bot when it appears in the lobby, then say the wake word. The stub brain answers in chat.
 
 **To have the bot reply with speech**, give it a real audio file:
 
@@ -192,41 +197,49 @@ interactive-meeting-agent/
 
 ## Environment variables
 
-| Variable | Required | Description |
+| Variable | Required | Meaning |
 |---|---|---|
-| `MEETSTREAM_API_KEY` | yes | From the MeetStream dashboard |
-| `MEETING_LINK` | yes | Meeting for the bot to join |
-| `PUBLIC_URL` | one of these two | An https:// address already pointing at this process |
-| `NGROK_AUTHTOKEN` | one of these two | Opens a tunnel automatically |
-| `WAKE_WORD` | no | Default `hey bot` |
-| `RESPONSE_AUDIO_FILE` | no | PCM16/48k/mono file played as a spoken reply |
-| `BARGE_IN` | no | `false` disables interrupt-on-human-speech |
-| `RMS_THRESHOLD` | no | Speech energy threshold, default `500` |
-| `SILENCE_MS` | no | Gap that ends a turn, default `900` |
-| `PORT` | no | Local port, default `3000` |
-| `BOT_NAME` | no | Name shown in the participant list |
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
+| `MEETING_LINK` | yes | Zoom, Google Meet or Teams link for the bot to join. |
+| `PUBLIC_URL` | one of these two | An https:// address already pointing at this process. |
+| `NGROK_AUTHTOKEN` | one of these two | Opens an ngrok tunnel automatically. |
+| `WAKE_WORD` | no | Phrase that triggers the brain. Default `hey bot`. |
+| `RESPONSE_AUDIO_FILE` | no | PCM16/48k/mono file played as a spoken reply. Unset means chat only. |
+| `BARGE_IN` | no | `false` disables interrupt-on-human-speech. Default `true`. |
+| `RMS_THRESHOLD` | no | Speech energy threshold. Default `500`. |
+| `SILENCE_MS` | no | Gap that ends a turn. Default `900`. |
+| `PORT` | no | Local port. Default `3000`. |
+| `BOT_NAME` | no | Name shown in the participant list. Default `MeetStream Labs Agent`. |
+| `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
+| `NO_COLOR` | no | Set to anything to disable ANSI colour in the log output. |
+| `ANTHROPIC_API_KEY` | no | Not read by the stub. Only needed once you wire a model into `src/brain.js`. |
 
 ## Troubleshooting
 
-| Problem | Fix |
-|---|---|
-| Bot joins but nothing is heard | Check the `/audio` socket connected. `live_audio_required.websocket_url` must be `wss://`. |
-| Audio arrives, no transcripts | The provider must be a `*_streaming` one. A post-call provider does not feed the live webhook. |
-| Wake word never matches | The transcript is lowercased before matching, but check the log line for what was actually heard. Set a simpler `WAKE_WORD`. |
-| Replies never appear | The control channel has not handshaked. `GET /health` shows `control_connected`. |
-| Spoken reply sounds fast or slow | The file is not 48 kHz mono. Re-encode with the ffmpeg command above. |
-| Bot talks over people | `BARGE_IN=true`, and remember `interrupt` only clears the queue on Google Meet |
-| Bot reacts to half-sentences | Something is acting on interim segments. The brain should only handle `is_final: true`. |
-| Waiting forever for `transcription.processed` | Streaming-only providers never send it. Wait for `bot.done` instead: it is the final event on every path, streaming-only included. |
-| Bot left behind in the meeting | `GET /bots/{bot_id}/remove_bot` (it really is a GET) |
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required env var` | `.env` is missing or `MEETSTREAM_API_KEY` / `MEETING_LINK` is empty. | `cp .env.example .env` and fill it in. |
+| `No public URL available` | Neither `PUBLIC_URL` nor `NGROK_AUTHTOKEN` is set. | Set one of them; `PUBLIC_URL` must be `https://`. |
+| `MeetStream API 401` / `403` | No key was sent, or the key was rejected. | Check `.env` is loaded from this directory and the key is complete. |
+| `MeetStream API 400` on create | Invalid `meeting_link`, `in_call_recording_timeout` below 600, or a `websocket_url` that is not `wss://`. | Fix the value; the tunnel URL must be HTTPS. |
+| Bot joins but nothing is heard | The `/audio` socket never connected. | `live_audio_required.websocket_url` must be `wss://` and publicly reachable. |
+| Audio arrives, no transcripts | The provider is not a `*_streaming` one; a post-call provider does not feed the live webhook. | Keep `meetstream_streaming` or another streaming provider. |
+| Wake word never matches | The transcript is lowercased before matching, but the recogniser heard something else. | Check the log line for what was heard; set a simpler `WAKE_WORD`. |
+| Replies never appear | The control channel has not handshaked. | `GET /health` shows `control_connected`; wait for the `ready` frame. |
+| Spoken reply sounds fast or slow | The file is not 48 kHz mono PCM16. | Re-encode with the ffmpeg command above. |
+| Bot talks over people | Barge-in is off, or the platform ignores `interrupt`. | Set `BARGE_IN=true`; only Google Meet clears the queue. |
+| Bot reacts to half-sentences | Something is acting on interim segments. | The brain should only handle `is_final: true`. |
+| Waiting forever for `transcription.processed` | Streaming-only providers never send it. | Wait for `bot.done` instead: it is the final event on every path, streaming-only included. |
+| Bot stopped early with `bot_event` `bot.notallowed` or `bot.denied` | Never admitted from the lobby, or the host refused it. | Admit the bot; raise `waiting_room_timeout` if the host is slow. |
+| Bot left behind in the meeting | The process exited without the shutdown hook. | `GET /bots/{bot_id}/remove_bot` (it really is a GET). |
 
 ## Related
 
-- [`websocket-bot-control`](../websocket-bot-control): the control channel on its own, with an interactive prompt
-- [`realtime-audio-streaming`](../realtime-audio-streaming): live audio in, without the response path
-
-## Resources
-
 - [Meeting control and command patterns](https://docs.meetstream.ai/guides/websockets/meeting-control-patterns)
-- [Create Bot endpoint](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
-- [MeetStream docs](https://docs.meetstream.ai)
+- [Real-time audio streaming](https://docs.meetstream.ai/guides/websockets/real-time-audio-streaming)
+- [Bridge server architecture](https://docs.meetstream.ai/guides/websockets/bridge-server-architecture)
+- [Live transcription](https://docs.meetstream.ai/guides/transcription-recordings/live-transcription)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Remove bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/remove-bot)
+- [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- Templates: [websocket-bot-control](../websocket-bot-control/README.md) is the control channel on its own, with an interactive prompt; [realtime-audio-streaming](../realtime-audio-streaming/README.md) is live audio in, without the response path.

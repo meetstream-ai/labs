@@ -1,6 +1,6 @@
-# bulk-bot-operations
+# Create Meeting Bots in Bulk with the MeetStream API
 
-The "we need 50 bots today" template: a concurrency-limited queue, a deterministic per-job `Idempotency-Key` so retries and re-runs never duplicate a bot, live progress, and an aggregated report you can feed back in.
+Create many MeetStream meeting bots at once, for Zoom, Google Meet and Microsoft Teams, from a jobs file: a concurrency-limited queue around `POST /bots/create_bot`, a deterministic per-job `Idempotency-Key` so retries and re-runs never duplicate a bot, live progress, and an aggregated JSON report you can feed back in.
 
 ```bash
 npm install && node index.js --simulate
@@ -59,10 +59,35 @@ That is the whole point.
 ## Setup
 
 ```bash
-cp .env.example .env
-cp jobs.example.json jobs.json   # then edit
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/bulk-bot-operations
 npm install
+cp .env.example .env             # then set MEETSTREAM_API_KEY
+cp jobs.example.json jobs.json   # then edit
+node index.js --simulate         # no key needed
+node index.js --dry-run --file jobs.json
+node index.js --file jobs.json --batch-id nightly-2026-08-23
 ```
+
+## Environment variables
+
+Every value can also be passed as a flag (`--file`, `--concurrency`, `--stagger`, `--batch-id`, `--report`), and flags win.
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes (not for `--simulate` / `--dry-run`) | API key, sent as `Authorization: Token <key>` |
+| `MEETSTREAM_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
+| `JOBS_FILE` | no | Batch definition (default `./jobs.json`; `--simulate` uses `jobs.example.json`) |
+| `CONCURRENCY` | no | `create_bot` calls in flight at once (default `5`) |
+| `STAGGER_MS` | no | Delay between job starts in ms (default `100`) |
+| `MAX_ATTEMPTS` | no | Attempts per job including the first; retries reuse the same `Idempotency-Key` (default `4`) |
+| `BATCH_ID` | no | Stable batch id that seeds every `Idempotency-Key` (default: a timestamp, so every run is a new batch) |
+| `REPORT_PATH` | no | Where the JSON report goes (default `./output/batch-<batch id>.json`) |
+| `CALLBACK_URL` | no | Per-bot webhook URL, must be public HTTPS (see [../webhook-local-tunnel](../webhook-local-tunnel)) |
+| `DEFAULT_PROVIDER` | no | Transcription provider for jobs that set none (default `deepgram`) |
+| `DEFAULT_VIDEO_REQUIRED` | no | `true` / `false` for jobs that set none (default `false`) |
+| `DEFAULT_BOT_NAME` | no | Bot display name for jobs that set none |
+| `NO_COLOR` | no | Set to anything to disable coloured output (already plain when stdout is not a TTY) |
 
 ---
 
@@ -186,21 +211,25 @@ src/simulate.js      deterministic fake API (201 / 507 / 409 / 503), state persi
 
 ## Troubleshooting
 
-**Duplicate bots after a re-run.** Your `--batch-id` changed. Without one it defaults to a timestamp, which makes every run a new batch. Pass a stable id.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing MEETSTREAM_API_KEY` | `.env` missing or empty | `cp .env.example .env` and set the key, or use `--simulate` / `--dry-run` |
+| Everything fails with 401 / 403 | 401 = no key sent (a `Bearer` header counts as none), 403 = wrong key | Use `Authorization: Token <key>`; check for stray quotes in `.env` |
+| Duplicate bots after a re-run | `--batch-id` changed (it defaults to a timestamp) | Pass a stable `--batch-id` or set `BATCH_ID` |
+| `created: 0, replayed: N` but you expected new bots | Same batch id and unchanged file: every job replayed as 507 | That is the safety net working; change the batch id to create new bots |
+| Lots of 429s | Too many concurrent `create_bot` calls | Lower `CONCURRENCY`, raise `STAGGER_MS`; retries honour `Retry-After`, but staying under the limit is cheaper |
+| A job fails with 409 | A bot already exists for that meeting link (two jobs in `jobs.example.json` collide on purpose) | Find it with `GET /bots` and reuse its `bot_id`; 409 is never retried |
+| A job fails with 400 | Payload rejected (missing `meeting_link` / `bot_name`, bad option) | Fix the job; 400 is never retried. `--dry-run` shows the exact payload |
+| `in_call_recording_timeout must be at least 600 seconds.` | Real API floor | Raise the value; local validation catches it before the batch starts |
+| No webhooks from any bot | `CALLBACK_URL` is set per bot on `create_bot` and must be public HTTPS | Set it in `.env` or per job; for local dev see [../webhook-local-tunnel](../webhook-local-tunnel) |
+| 507 on a job | Idempotent replay of a key the API already processed | Success; the original `bot_id` is returned and counted under `replayed` |
 
-**Lots of 429s.** Lower `CONCURRENCY`, raise `STAGGER_MS`. The retry wrapper honors `Retry-After`, but staying under the limit is cheaper than recovering from it.
+## Related
 
-**Everything fails with 401.** The header is `Authorization: Token <key>`. `Bearer` is rejected.
-
-**A job fails with 409.** A bot already exists for that meeting link. Two jobs in `jobs.example.json` deliberately collide to demonstrate this. Find the existing bot with `GET /bots` and reuse its `bot_id` instead of creating another.
-
-**`in_call_recording_timeout must be at least 600 seconds.`** Real floor. Validation catches it locally before the batch starts.
-
-**No webhooks from any of the bots.** `CALLBACK_URL` is per bot on `create_bot`. There is no account-wide webhook setting, and the URL must be public HTTPS.
-
-**`created: 0, replayed: N` and you expected new bots.** You re-ran an unchanged file with the same batch id. That is the safety net working. Change the batch id to create genuinely new bots.
-
-## Resources
-
-- MeetStream Docs: https://docs.meetstream.ai
-- API Reference: https://docs.meetstream.ai/api-reference
+- [Deduplication and idempotency keys](https://docs.meetstream.ai/guides/features/deduplication-idempotency-keys)
+- [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Create bot payload reference](https://docs.meetstream.ai/api-reference/create-bot-payload-reference)
+- [Automatic leave configuration](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
+- [Custom attributes](https://docs.meetstream.ai/guides/features/custom-attributes)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Related templates: [../idempotency-and-dedup](../idempotency-and-dedup), [../error-handling-and-retries](../error-handling-and-retries), [../webhook-local-tunnel](../webhook-local-tunnel)

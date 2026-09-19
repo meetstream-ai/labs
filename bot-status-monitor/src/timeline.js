@@ -121,25 +121,41 @@ export class Timeline {
  * with how the bot was configured, so pick out the fields that are useful for
  * a lifecycle view and skip anything absent rather than assuming a schema.
  */
-function interestingFields(detail) {
-  if (!detail || typeof detail !== "object") return [];
+function interestingFields(payload) {
+  if (!payload || typeof payload !== "object") return [];
+
+  // GET /bots/{id}/detail wraps everything in `bot_details` and uses
+  // PascalCase keys (BotID, Platform, StartTime, ...). Accept both shapes.
+  const detail =
+    payload.bot_details && typeof payload.bot_details === "object"
+      ? payload.bot_details
+      : payload;
 
   const candidates = [
+    "BotID",
     "bot_id",
+    "BotUsername",
     "bot_name",
+    "Status",
     "bot_status",
     "status",
+    "Platform",
     "platform",
+    "OfferingType",
+    "MeetingLink",
     "meeting_url",
     "meeting_link",
     "transcript_id",
     "caption_file",
+    "ManifestStatus",
+    "Duration",
     "duration",
+    "CreatedAt",
     "created_at",
     "join_at",
-    "joined_at",
-    "left_at",
+    "StartTime",
     "started_at",
+    "EndTime",
     "ended_at",
   ];
 

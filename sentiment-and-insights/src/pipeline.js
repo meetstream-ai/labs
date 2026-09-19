@@ -13,9 +13,10 @@
  *               meeting that already finished. This is the fast way to iterate.
  *
  * The MeetStream lifecycle it follows is the real one:
- *   bot.joining → bot.in_waiting_room → bot.inmeeting → bot.recording → bot.leaving
- *   → bot.stopped → manifest.completed → audio.processed → transcription.processed
- *   → video.processed → bot.done → data_deletion
+ *   bot.joining -> bot.in_waiting_room -> bot.inmeeting -> bot.recording -> bot.leaving
+ *   -> bot.stopped (reason in bot_event) -> audio.processed / manifest.completed
+ *   -> transcription.processed -> bot.transcriptionready -> video.processed
+ *   -> bot.done (final on every path) -> data_deletion (after delete or retention expiry)
  *
  * Note: webhooks never carry `transcript_id`. We take it from the create_bot
  * response (and fall back to /bots/{id}/detail or /bots/{id}/transcriptions).
@@ -234,7 +235,9 @@ async function liveMode({ args, onMeetingComplete }) {
 }
 
 async function handleWebhookEvent(payload, state, onMeetingComplete) {
-  // The envelope key is `event`. Anything claiming it is `bot_event` is out of date.
+  // Every delivery carries the generic name under `event`. Most also carry
+  // `bot_event`, which differs only on terminals: every ending is
+  // event "bot.stopped" and bot_event holds the reason.
   const { event, bot_id: botId, bot_status: botStatus, message } = payload || {};
   if (!event) return;
 

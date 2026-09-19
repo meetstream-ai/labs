@@ -82,7 +82,7 @@ export function createServer({ store, webhookPath = '/webhook', defaultStreaming
       log.event(event, botId, `[${record.state}] ${transition.note}`);
     }
 
-    if (STATES[record.state].terminal) {
+    if (STATES[record.state]?.terminal) {
       const outcome = summarizeOutcome(record);
       log.banner(`Bot ${botId} reached a terminal state: ${outcome.state}`);
       log.detail('outcome', outcome.outcome);

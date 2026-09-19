@@ -25,7 +25,8 @@ function loadConfig() {
     botName: optional('BOT_NAME', 'MIA Voice Agent'),
     callbackUrl: optionalHttpsUrl('CALLBACK_URL'),
     deleteAgentOnExit: optionalBoolean('DELETE_AGENT_ON_EXIT', false),
-    pollIntervalMs: optionalNumber('POLL_INTERVAL_SECONDS', 10) * 1000
+    pollIntervalMs: optionalNumber('POLL_INTERVAL_SECONDS', 10) * 1000,
+    pollMaxAttempts: optionalNumber('POLL_MAX_ATTEMPTS', 720)
   };
 }
 
@@ -69,6 +70,7 @@ async function main() {
 
   const finalStatus = await watchBot(config.apiKey, state.botId, {
     intervalMs: config.pollIntervalMs,
+    maxAttempts: config.pollMaxAttempts,
     shouldStop: () => Boolean(stopping),
     onStatus: (status) => console.log(`     status: ${status}`)
   });

@@ -1,6 +1,6 @@
-# screenshot-capture
+# Capture Meeting Screenshots on a Timeline with the MeetStream API
 
-Download a meeting's screenshots from `GET /bots/{bot_id}/get_screenshots` and generate a report placing each one on the meeting timeline, cross-referenced with the speaker timeline.
+Download the screenshots a MeetStream meeting bot captured in a Zoom, Google Meet or Microsoft Teams call from `GET /bots/{bot_id}/get_screenshots`, and generate a report placing each one on the meeting timeline, cross-referenced with the speaker timeline from `GET /bots/{bot_id}/get_speaker_timeline`.
 
 ```bash
 npm install && node index.js
@@ -47,8 +47,11 @@ No public URL or tunnel is needed: this template is poll-only and never receives
 ## Setup
 
 ```bash
+git clone https://github.com/meetstream-ai/labs.git
+cd labs/screenshot-capture
 npm install
 cp .env.example .env
+node index.js
 ```
 
 Then set **one** of the two modes in `.env`:
@@ -62,6 +65,24 @@ BOT_ID=bot_abc123
 # Mode B - create a new bot and wait for the meeting to end
 MEETING_LINK=https://meet.google.com/abc-defg-hij
 ```
+
+## Environment variables
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>` |
+| `BOT_ID` | mode A | Fetch screenshots from a bot that already ran |
+| `MEETING_LINK` | mode B | Create a new bot for this Zoom, Google Meet or Teams link and wait for the meeting to end |
+| `BOT_NAME` | no | Bot display name in mode B (default `MeetStream Screenshot Bot`) |
+| `OUTPUT_DIR` | no | Where screenshots and the report go (default `./screenshots-out`) |
+| `EVERYONE_LEFT_TIMEOUT` | no | Seconds the bot stays after everyone else left (default `60`) |
+| `MEETING_POLL_MAX_ATTEMPTS` | no | Mode B: cap on `GET /bots/{id}/status` polls (default `240`) |
+| `MEETING_POLL_INTERVAL_MS` | no | Mode B: delay between status polls (default `15000`) |
+| `SCREENSHOT_POLL_MAX_ATTEMPTS` | no | Cap on `get_screenshots` polls while it answers 202/404 (default `30`) |
+| `SCREENSHOT_POLL_INTERVAL_MS` | no | Delay between those polls (default `10000`) |
+| `REQUEST_TIMEOUT_MS` | no | Per-request timeout (default `30000`) |
+| `MAX_RETRIES` | no | Retries for 429/5xx (default `4`); 4xx is never retried |
+| `LOG_LEVEL` | no | `silent`, `error`, `warn`, `info` (default) or `debug` |
 
 ## Run
 
@@ -105,17 +126,24 @@ Auth is `Authorization: Token <key>` - literally `Token`, not `Bearer`. Error bo
 
 ## Troubleshooting
 
-**`get_screenshots` never returns 200** - the most common cause is a bot that recorded audio only. Screenshots come from video capture. Confirm with `GET /bots/{bot_id}/detail`.
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Missing required environment variable "MEETSTREAM_API_KEY"` | `.env` missing or empty | `cp .env.example .env` and fill it in |
+| `Set either BOT_ID ... or MEETING_LINK` | Neither mode was configured | Set one of the two in `.env` |
+| 401 / 403 | 401 = no key sent, 403 = wrong key | Check the key for stray quotes or whitespace |
+| 400 on `create_bot` | Bad `MEETING_LINK` | Use the full meeting URL |
+| 404 on `get_screenshots` after the meeting | Wrong bot id, nothing captured yet, or the data expired via retention (default 30 days) | Check `GET /bots/{bot_id}/detail`; the loop polls 404 until the cap |
+| `get_screenshots` never returns 200 | The bot recorded audio only; screenshots come from video capture | Create the bot with `video_required: true` (the default) |
+| Bot ended `NotAllowed` / `Denied` | Never admitted, or the host refused | Nothing was captured; admit the bot from the lobby next time |
+| Elapsed column is all `-` | The response had no time field | Look at `raw_get_screenshots_response.json`; if the URLs contain a timestamp in the filename you can sort on that manually |
+| Speaker column is missing | The speaker timeline was empty, or the two payloads use different time bases | `timeline.md` states which case applied |
+| Some images failed to download | Storage URLs are presigned and expire | Re-run to fetch fresh URLs; the failure is recorded per row in `timeline.json` |
 
-**Elapsed column is all `-`** - the response had no time field. Look at `raw_get_screenshots_response.json`; if the URLs contain a timestamp in the filename you can sort on that manually.
+## Related
 
-**Speaker column is missing** - either the speaker timeline was empty, or the two payloads use different time bases. `timeline.md` states which case applied.
-
-**Some images failed to download** - storage URLs are presigned and expire. Re-run to fetch fresh URLs; the failure is recorded per row in `timeline.json`.
-
-**`Set either BOT_ID ... or MEETING_LINK`** - neither mode was configured in `.env`.
-
-## Reference
-
-- [MeetStream docs](https://docs.meetstream.ai)
-- [API reference](https://docs.meetstream.ai/api-reference)
+- [Get bot screenshots](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-screenshots)
+- [Get speaker timeline](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-speaker-timeline)
+- [Participants and speaker timeline](https://docs.meetstream.ai/guides/features/participants-and-speaker-timeline)
+- [Retrieve recordings](https://docs.meetstream.ai/guides/transcription-recordings/retrieve-recordings)
+- [Error codes](https://docs.meetstream.ai/errors)
+- Related templates: [../speaker-timeline-analytics](../speaker-timeline-analytics), [../video-recording-downloader](../video-recording-downloader)

@@ -234,7 +234,9 @@ async function liveMode({ args, onMeetingComplete }) {
 }
 
 async function handleWebhookEvent(payload, state, onMeetingComplete) {
-  // The envelope key is `event`. Anything claiming it is `bot_event` is out of date.
+  // `event` is always present and is the generic name. Most deliveries also
+  // carry `bot_event`, which equals `event` except on terminals, where it
+  // holds the reason (see the bot.stopped case below).
   const { event, bot_id: botId, bot_status: botStatus, message } = payload || {};
   if (!event) return;
 
@@ -285,6 +287,18 @@ async function handleWebhookEvent(payload, state, onMeetingComplete) {
     case "bot.error":
       // Non-terminal streaming-provider error. The bot keeps running.
       console.warn(`[${event}] Non-fatal error: ${message ?? "no message"}`);
+      break;
+    case "bot.done":
+      // bot.done is the final event on every path. If transcription.processed
+      // never arrived, no post-call transcript exists (streaming-only provider),
+      // so stop instead of waiting forever.
+      if (!state.done) {
+        console.error(
+          `[${event}] Session finished without a transcription.processed event - ` +
+            `no post-call transcript exists for this bot. Check TRANSCRIPT_PROVIDER.`
+        );
+        process.exit(1);
+      }
       break;
     case "transcription.processed": {
       if (state.done) return;

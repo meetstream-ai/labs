@@ -35,6 +35,14 @@ import { Relay } from "./src/relay.js";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
+if (process.argv.includes("--help") || process.argv.includes("-h")) {
+  console.log("Usage: node index.js");
+  console.log("  Reads .env: MEETSTREAM_API_KEY, MEETING_LINK (Google Meet or Teams), and PUBLIC_URL or NGROK_AUTHTOKEN.");
+  console.log("  Starts the /webhook + /video server, creates the bot, writes fMP4 to OUTPUT_DIR and relays on /stream.");
+  console.log("  Consumers: node consumer-example.js");
+  process.exit(0);
+}
+
 for (const key of ["MEETSTREAM_API_KEY", "MEETING_LINK"]) {
   if (!process.env[key]) {
     console.error(`\nMissing required env var: ${key}`);
