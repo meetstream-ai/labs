@@ -2,7 +2,7 @@
 
 Open source, runnable templates for the [MeetStream API](https://meetstream.ai) - the meeting bot API for Zoom, Google Meet and Microsoft Teams.
 
-**63 templates covering every endpoint in the API.** Each folder is standalone: clone it, add your API key, run it.
+**64 templates covering every endpoint in the API.** Each folder is standalone: clone it, add your API key, run it.
 
 ```bash
 git clone https://github.com/meetstream-ai/labs.git
@@ -122,6 +122,7 @@ MIA agents run on MeetStream's own hosted bridge. Attach one by passing **only**
 | [gmeet-lobby-handling](./gmeet-lobby-handling) | Google Meet waiting room: detect `NotAllowed` and `Denied`, then react |
 | [google-signed-in-bots-setup](./google-signed-in-bots-setup) | SAML SSO, certificates and domain registration, end to end |
 | [google-login-management](./google-login-management) | Admin CLI for signed-in bot domains and logins |
+| [teams-signed-in-bots-setup](./teams-signed-in-bots-setup) | Microsoft Teams signed-in bots: tenant checklist, domain and account registration, then a signed-in join |
 
 ## Webhooks and reliability
 

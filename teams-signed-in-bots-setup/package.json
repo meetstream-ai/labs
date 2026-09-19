@@ -1,0 +1,30 @@
+{
+  "name": "@meetstream-labs/teams-signed-in-bots-setup",
+  "version": "1.0.0",
+  "private": true,
+  "description": "End-to-end setup for MeetStream Microsoft Teams signed-in bots: Microsoft 365 tenant checklist, login domain and bot account registration, account management, and a create_bot call with teams.login_required.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "checklist": "node index.js checklist",
+    "setup": "node index.js setup",
+    "status": "node index.js status",
+    "verify": "node index.js verify",
+    "create-bot": "node index.js create-bot"
+  },
+  "keywords": [
+    "meetstream",
+    "microsoft-teams",
+    "signed-in-bots",
+    "microsoft-365",
+    "meeting-bot"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

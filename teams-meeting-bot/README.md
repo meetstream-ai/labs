@@ -28,7 +28,7 @@ curl -X POST "https://api.meetstream.ai/api/v1/bots/create_bot" \
   }'
 ```
 
-There is no `teams` block on `create_bot` the way Zoom has `zoom` and Google Meet has `google_meet` - the platform is inferred from the link. Use the join URL exactly as it appears in the invite; do not trim its query string.
+The platform is inferred from the link, so a guest join needs no Teams-specific fields. Use the join URL exactly as it appears in the invite; do not trim its query string. To join as a signed-in Microsoft 365 account instead of a guest, pass a `teams` block (`{ "login_required": true, "teams_login_domain": "bots.acme.com" }`) after registering the domain and accounts; see [teams-signed-in-bots-setup](../teams-signed-in-bots-setup).
 
 Azure app registration is only needed for the **Outlook Calendar** integration (auto-joining scheduled meetings), never for sending a bot at a link you already have.
 
