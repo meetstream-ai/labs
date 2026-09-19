@@ -69,6 +69,7 @@ Good to know:
 
 - `live_transcription_required` **requires** a streaming provider (`deepgram_streaming`, `assemblyai_streaming`, `jigsawstack_streaming`, `meetstream_streaming`). Pairing it with a post-call provider is an HTTP 400.
 - Streaming-only bots deliver everything live and produce **no post-call transcript**: no `transcription.processed`, and a post-call `get_transcript` returns HTTP 202 indefinitely. `bot.done` still fires at the end. Treat the live stream as the record of truth, and persist committed turns yourself.
+- Nothing in this template polls. The `create-bot*` scripts make one `create_bot` call and exit; the receivers are long-running servers that stay up until Ctrl+C and never wait for a bot state. If you add a wait loop of your own (for example polling `GET /bots/{bot_id}/status` until `InMeeting`, or `get_transcript` after a re-transcription), give it a maximum number of attempts and print why it gave up: against a streaming-only bot an uncapped `get_transcript` loop never ends.
 - The receiver ACKs every POST with 200 before doing any work. MeetStream does not retry a delivery.
 - `word_is_final: false` means the text may still change; `end_of_turn: true` is the signal to commit.
 - The chunk payload and the committed-turn shape are documented in [how-to-run.md](./how-to-run.md#webhook-payload-reference).

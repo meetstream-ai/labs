@@ -94,8 +94,20 @@ async function runReplay() {
   store.touch();
 
   const url = `http://localhost:${PORT}${WEBHOOK_PATH}`;
-  const results = await replay(allScenarios(), url, { delayMs: 40 });
-  log.info(`replayed ${results.length} deliveries, all ACKed ${results.every((r) => r.status === 200) ? '200' : 'with mixed statuses'}`);
+  let results;
+  try {
+    results = await replay(allScenarios(), url, { delayMs: 40 });
+  } catch (err) {
+    log.error(err.message);
+    process.exit(1);
+  }
+  const rejected = results.filter((r) => !r.ok);
+  if (rejected.length) {
+    log.warn(`replayed ${results.length} deliveries, ${rejected.length} rejected by the receiver:`);
+    for (const r of rejected) log.detail(`${r.event} ${r.botId}`, `${r.status} ${r.message}`);
+  } else {
+    log.info(`replayed ${results.length} deliveries, all ACKed 200`);
+  }
 
   store.save({ force: true });
   printReport();

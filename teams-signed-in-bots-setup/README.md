@@ -12,6 +12,25 @@ node index.js setup               # registers the domain and accounts, then show
 
 ---
 
+## Prerequisites
+
+- Node 18+
+- A MeetStream API key from [app.meetstream.ai](https://app.meetstream.ai)
+- A Microsoft 365 tenant prepared as below (`node index.js checklist` prints this list)
+
+### Microsoft 365 checklist
+
+| # | Requirement | Why |
+| --- | --- | --- |
+| 1 | A **dedicated** Microsoft 365 tenant just for bot accounts | The settings below relax sign-in security. Keep them away from real users. |
+| 2 | **Microsoft 365 Business Basic** or higher, one licence per bot account | The account needs a Teams licence to join meetings. |
+| 3 | One regular, **non-admin**, licensed user per bot, on the domain you register (e.g. `bot1@bots.acme.com`) | Admin accounts get extra sign-in checks. Give each a permanent password (untick "require password change at first sign-in"), and set the display name and photo you want meetings to show. |
+| 4 | **Security defaults disabled** (Entra admin center -> Overview -> Properties -> Manage security defaults) | Otherwise Microsoft forces an MFA registration prompt the bot cannot answer. |
+| 5 | **Self-service password reset set to None** for the bot accounts (Entra admin center -> Password reset -> Properties) | Keeps "more information required" screens out of the sign-in flow. |
+| 6 | Meetings are **work or school Teams** (`teams.microsoft.com`) | `teams.live.com` meetings are not supported. |
+
+---
+
 ## What a signed-in Teams bot is
 
 By default a MeetStream bot joins a Teams meeting as an **anonymous guest** under `bot_name`. A **signed-in bot** first logs into a real Microsoft 365 account that you own, and joins as that user: it shows that account's display name and profile picture.
@@ -32,25 +51,6 @@ Three rules shape everything else:
 - **One account = one concurrent bot.** An account that is in a meeting is leased until it leaves. For N simultaneous signed-in bots, register N accounts.
 - **The name and picture come from Microsoft.** `bot_name` and `bot_image_url` are not applied to a signed-in Teams bot. Set the display name and photo on the Microsoft 365 user.
 - **Work or school Teams only.** Meetings on `teams.microsoft.com` work; Teams for personal use (`teams.live.com`) does not.
-
----
-
-## Prerequisites
-
-- Node 18+
-- A MeetStream API key from [app.meetstream.ai](https://app.meetstream.ai)
-- A Microsoft 365 tenant prepared as below (`node index.js checklist` prints this list)
-
-### Microsoft 365 checklist
-
-| # | Requirement | Why |
-| --- | --- | --- |
-| 1 | A **dedicated** Microsoft 365 tenant just for bot accounts | The settings below relax sign-in security. Keep them away from real users. |
-| 2 | **Microsoft 365 Business Basic** or higher, one licence per bot account | The account needs a Teams licence to join meetings. |
-| 3 | One regular, **non-admin**, licensed user per bot, on the domain you register (e.g. `bot1@bots.acme.com`) | Admin accounts get extra sign-in checks. Give each a permanent password (untick "require password change at first sign-in"), and set the display name and photo you want meetings to show. |
-| 4 | **Security defaults disabled** (Entra admin center -> Overview -> Properties -> Manage security defaults) | Otherwise Microsoft forces an MFA registration prompt the bot cannot answer. |
-| 5 | **Self-service password reset set to None** for the bot accounts (Entra admin center -> Password reset -> Properties) | Keeps "more information required" screens out of the sign-in flow. |
-| 6 | Meetings are **work or school Teams** (`teams.microsoft.com`) | `teams.live.com` meetings are not supported. |
 
 ---
 
@@ -169,6 +169,69 @@ node index.js create-bot
 
 ---
 
+## What you should see
+
+`node index.js setup` (or the individual commands) prints plain text, one block per step. A first-time run with two accounts looks like this:
+
+```
+== 1. Register the login domain
+Domain registered.
+{
+  "domain": "bots.acme.com",
+  "name": "Acme Teams bots",
+  "login_mode": "always",
+  "created_at": "2026-09-18T10:02:11Z"
+}
+
+Next: node index.js add-accounts
+
+== 2. Register the bot accounts
+added bot1@bots.acme.com  login_id=<login_id>  lease_status=available  (password from TEAMS_BOT_PASSWORD_1)
+added bot2@bots.acme.com  login_id=<login_id>  lease_status=available  (password from TEAMS_BOT_PASSWORD_2)
+
+2 added, 0 skipped, 0 failed.
+Remember: one account runs one bot at a time. Check leases with: node index.js status
+
+== 3. Accounts and lease status
+
+bots.acme.com
+  name        Acme Teams bots
+  login_mode  always
+  created_at  2026-09-18T10:02:11Z
+  2 account(s), 2 active = up to 2 concurrent signed-in bot(s). Free right now: 2.
+  bot1@bots.acme.com
+    login_id             <login_id>
+    is_active            true
+    lease_status         available
+    last_session_result  -
+  bot2@bots.acme.com
+    ...
+
+Set MEETING_LINK and run "node index.js create-bot" to send a signed-in bot.
+```
+
+Re-running is safe: the domain step prints `Domain "bots.acme.com" is already registered on this API key (login_mode=always).` and each known email prints `skip  bot1@bots.acme.com is already registered (login_id=...)`.
+
+`node index.js verify` prints one `OK` / `WARN` / `FAIL` line per check, for example `OK    domain "bots.acme.com" is registered.` followed by `OK    SIGN_IN_EMAIL "bot1@bots.acme.com" is active and free.`
+
+`node index.js create-bot` prints the request body it is about to send, then:
+
+```
+Bot created.
+{
+  "bot_id": "<bot_id>",
+  ...
+}
+
+That account is now leased to this bot until it leaves; it cannot run a second bot meanwhile.
+Watch progress with GET /bots/{bot_id}/status. If the bot shows up as a guest under
+bot_name, the teams block was not applied: compare it with the request above.
+```
+
+In the meeting the bot appears under the Microsoft account's display name and picture, not `bot_name`. With `--dry-run` every command instead prints `[dry-run] <METHOD> <URL>` plus the redacted body (see below) and exits 0.
+
+---
+
 ## Managing accounts
 
 `<login>` is an email or a `login_id`. An email is looked up with `GET /teams-logins?domain=`.
@@ -238,6 +301,15 @@ src/errors.js     documented status codes -> what to do next
 | `teams.live.com is Teams for personal use` | Consumer Teams meeting | Use a work or school Teams meeting |
 | Bot still waits in the lobby | Admission is still governed by the meeting organiser's lobby settings; a bot account from your own tenant is an external user to other organisations | Admit it, or adjust the meeting's lobby options. Raise `WAITING_ROOM_TIMEOUT` (max 1800) |
 | `401` | No API key sent | Header must be `Authorization: Token <key>` |
+| `Configuration error: Missing required environment variable MEETSTREAM_API_KEY` | `.env` missing or the key is blank | `cp .env.example .env` and fill it in. Only `--dry-run` runs without a key |
+| `Configuration error: TEAMS_BOT_ACCOUNTS ...` / `No password for <email>` / `The two passwords did not match. Nothing changed.` | Bad account list, or a password was missing or mistyped at the hidden prompt | Fix `TEAMS_BOT_ACCOUNTS` / `TEAMS_BOT_PASSWORD_<n>`, or re-run and type the password again |
+| `MeetStream 429 on ...` or `MeetStream 5xx on ...` after several seconds | Rate limit or transient server error on the login endpoints | The client already retried 3 times with backoff; wait a moment and re-run. On `create_bot` a 429 is not retried because it means every account is busy |
+| `Network error calling <METHOD> <path>: ...` | DNS, connection or 30 s timeout failure, retried 3 times | Check connectivity and `MEETSTREAM_BASE_URL` |
+| `Domain already registered (507 replay).` / `ok    (507 replay)` / `Idempotent replay (507) - the bot already exists.` | An `Idempotency-Key` you already used | Not an error: the original request succeeded and its result was returned |
+| `FAIL  every account is inactive; create_bot would return 409.` (`verify`) | All accounts were deactivated after failed sign-ins | `node index.js status` for `last_login_error`, fix it in Microsoft 365, then `rotate-password` |
+| `WARN  no account is free right now; create_bot would return 409 or 429 until one is.` | Every account is leased to a running bot | Wait for a bot to leave, or `add-accounts` |
+| `Not an interactive terminal, so the confirmation prompt cannot run.` | `remove-account` / `remove-domain` run from a script or CI | Run it in a terminal, or add `--force` if you are certain |
+| `Not confirmed. Nothing was deleted.` | The typed email or domain did not match | Type it back exactly as shown |
 
 ---
 

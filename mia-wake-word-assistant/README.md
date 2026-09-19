@@ -6,6 +6,14 @@ A MIA voice agent, deployed as a MeetStream meeting bot into Zoom, Google Meet o
 npm install && node index.js
 ```
 
+## Prerequisites
+
+- Node.js 18 or newer (built-in `fetch` and ESM).
+- A MeetStream API key from [app.meetstream.ai](https://app.meetstream.ai), set as `MEETSTREAM_API_KEY`. It is checked before any request is made; the `.env.example` placeholder counts as missing.
+- The provider integrations the pipeline agent uses, connected under **Integrations** in the MeetStream dashboard. With the defaults that is **OpenAI** (model layer `gpt-4.1-mini` and voice `nova`) and **Deepgram** (transcriber `nova-3`). MeetStream hosts the agent and calls those providers itself, so this program reads no OpenAI or Deepgram key; a missing integration surfaces as a `POST /mia` or `create_bot` error, not as a local one.
+- A full `https://` Zoom, Google Meet or Microsoft Teams link, set as `MEETING_LINK`, for a meeting where someone can admit the bot from the waiting room. Wake-word gating is pipeline only, so the saved agent must be a pipeline agent.
+- Only if you set `CALLBACK_URL`: a public HTTPS URL MeetStream can reach for per-bot lifecycle webhooks (see [webhook-local-tunnel](../webhook-local-tunnel)). Without it the program follows the bot by polling `GET /bots/{id}/detail`, so no tunnel is needed.
+
 ## What it does
 
 1. `POST /mia` saves a pipeline agent whose config includes a `wake_word` block.
@@ -22,13 +30,6 @@ An always-on assistant in a meeting fails in three ways at once:
 - **It costs money for nothing.** Every final transcript segment becomes an LLM call. A one-hour meeting with six people produces hundreds of segments that were never meant for the agent.
 
 The `wake_word` block moves the gate into MeetStream, before the model runs. That is the difference between "filter the model's output" and "do not call the model", and it is what makes the cost math work for long meetings.
-
-## Prerequisites
-
-- Node.js 18 or newer (built-in `fetch` and ESM)
-- A MeetStream API key from [app.meetstream.ai](https://app.meetstream.ai)
-- Model, voice, and transcriber integrations enabled in your MeetStream dashboard
-- A meeting link you can admit a bot into
 
 ## Setup
 

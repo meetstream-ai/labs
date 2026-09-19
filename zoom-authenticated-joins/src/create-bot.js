@@ -20,6 +20,33 @@ import { assertPublicHttpsUrl } from './config.js';
 
 const MAX_URL_LENGTH = 4096;
 const MODES = new Set(['zak', 'obf', 'guest']);
+// create_bot retry policy: only 429, 5xx and network errors are retried, with a
+// hard cap. Any other 4xx (400/401/403/404/409) is final and thrown at once.
+const MAX_ATTEMPTS = 3;
+const RETRY_BASE_DELAY_MS = 1000;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Strip anything secret out of text that is about to be printed: the mint
+ * shared secret (it rides on every zak_url / obf_url, and an API validation
+ * error may echo the URL back) and the Zoom meeting passcode (`pwd=`).
+ */
+export function scrubSecrets(text, { mintSecret, meeting } = {}) {
+  let out = String(text ?? '');
+  if (mintSecret) out = out.split(mintSecret).join('***');
+  if (mintSecret) out = out.split(encodeURIComponent(mintSecret)).join('***');
+  out = out.replace(/([?&]pwd=)[^&\s"']+/gi, '$1***');
+  if (meeting) {
+    try {
+      const pwd = new URL(meeting).searchParams.get('pwd');
+      if (pwd) out = out.split(pwd).join('***');
+    } catch {
+      /* not a URL, nothing more to scrub */
+    }
+  }
+  return out;
+}
 
 export const CREATE_BOT_USAGE = `
 node index.js create-bot --meeting <zoom link> --mode zak|obf|guest --user <user_id> [options]
@@ -99,7 +126,13 @@ export async function createBot(config, flags) {
   try {
     meetingUrl = new URL(flags.meeting);
   } catch {
-    throw new Error(`--meeting is not a valid URL: "${flags.meeting}"`);
+    throw new Error(`--meeting is not a valid URL: "${scrubSecrets(flags.meeting)}"`);
+  }
+  // Fail fast, before any network call. --dry-run legitimately needs no key.
+  if (!flags.dryRun && !config.apiKey) {
+    throw new Error(
+      'MEETSTREAM_API_KEY is not set. Add it to .env (from https://app.meetstream.ai) or use --dry-run.'
+    );
   }
   if (!/(^|\.)zoom\.(us|com)$/i.test(meetingUrl.hostname) && !/zoomgov\.com$/i.test(meetingUrl.hostname)) {
     console.warn(`[warn] ${meetingUrl.hostname} does not look like a Zoom host. zak_url / obf_url only apply to Zoom.`);
@@ -117,9 +150,10 @@ export async function createBot(config, flags) {
 
   const printable = {
     ...body,
+    meeting_link: scrubSecrets(flags.meeting),
     ...(zoom ? { zoom: Object.fromEntries(Object.entries(zoom).map(([k, v]) => [k, redactUrl(v)])) } : {})
   };
-  console.log('create_bot body (auth redacted):');
+  console.log('create_bot body (auth and pwd redacted):');
   console.log(JSON.stringify(printable, null, 2));
 
   if (flags.dryRun) {
@@ -127,27 +161,48 @@ export async function createBot(config, flags) {
     return;
   }
 
-  let response;
-  try {
-    response = await fetch(`${config.apiBaseUrl}/bots/create_bot`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Token ${config.apiKey}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-  } catch (cause) {
-    throw new Error(`Could not reach MeetStream: ${cause.message}`);
-  }
+  const scrub = (text) => scrubSecrets(text, { mintSecret: config.mintSecret, meeting: flags.meeting });
 
-  const text = await response.text();
+  let response;
   let data;
-  try {
-    data = text ? JSON.parse(text) : {};
-  } catch {
-    data = { raw: text.slice(0, 500) };
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      response = await fetch(`${config.apiBaseUrl}/bots/create_bot`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Token ${config.apiKey}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+    } catch (cause) {
+      if (attempt === MAX_ATTEMPTS) {
+        throw new Error(`Could not reach MeetStream after ${MAX_ATTEMPTS} attempts: ${scrub(cause.message)}`);
+      }
+      const delay = RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
+      console.warn(`[warn] Could not reach MeetStream (${scrub(cause.message)}). Retrying in ${delay}ms (${attempt}/${MAX_ATTEMPTS})...`);
+      await sleep(delay);
+      continue;
+    }
+
+    const text = await response.text();
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = { raw: text.slice(0, 500) };
+    }
+
+    // Transient: 429 and 5xx. Bounded retry with backoff, honouring Retry-After.
+    const transient = response.status === 429 || response.status >= 500;
+    if (transient && attempt < MAX_ATTEMPTS) {
+      const retryAfter = Number(response.headers.get('retry-after'));
+      const delay = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
+      console.warn(`[warn] create_bot returned HTTP ${response.status}. Retrying in ${delay}ms (${attempt}/${MAX_ATTEMPTS})...`);
+      await sleep(delay);
+      continue;
+    }
+    break;
   }
 
   // 507 is MeetStream's idempotent replay: the same request already succeeded.
@@ -156,11 +211,15 @@ export async function createBot(config, flags) {
     // Validation errors can come back as an object of field -> messages.
     const message = !found ? JSON.stringify(data) : typeof found === 'string' ? found : JSON.stringify(found);
     const hint = HINTS.find(([pattern]) => pattern.test(String(message)))?.[1];
-    throw new Error(`create_bot returned HTTP ${response.status}: ${message}${hint ? `\n     ${hint}` : ''}`);
+    const gaveUp = response.status === 429 || response.status >= 500 ? ` (gave up after ${MAX_ATTEMPTS} attempts)` : '';
+    throw new Error(`create_bot returned HTTP ${response.status}${gaveUp}: ${scrub(message)}${hint ? `\n     ${hint}` : ''}`);
   }
 
   const botId = data?.bot_id || data?.id;
-  console.log(`\n[ok] HTTP ${response.status}${response.status === 507 ? ' (idempotent replay)' : ''}. bot_id=${botId ?? '(not in response)'}`);
+  if (!botId) {
+    throw new Error(`create_bot returned HTTP ${response.status} but no bot_id: ${scrub(JSON.stringify(data).slice(0, 500))}`);
+  }
+  console.log(`\n[ok] HTTP ${response.status}${response.status === 507 ? ' (idempotent replay)' : ''}. bot_id=${botId}`);
   if (zoom) {
     console.log(
       `When the bot joins, it will call ${config.publicBaseUrl}/zoom/${flags.mode}. Watch the token server's log for a [mint] line.`

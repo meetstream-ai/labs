@@ -146,6 +146,10 @@ export function createClient({
 
     let lastError = null;
 
+    // The only loop in this CLI. It is bounded: 1 try + maxRetries retries
+    // (default 4 calls in all), only on 429/5xx/network errors, backoff capped
+    // at 8 s. Nothing here waits for a state: a 202 is returned as
+    // `pending: true` and reported, never polled.
     for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
       if (attempt > 0) await sleep(Math.min(2 ** attempt * 500, 8_000));
 
@@ -188,7 +192,11 @@ export function createClient({
       });
     }
 
-    throw lastError ?? new MeetStreamError(`Request to ${method} ${path} failed`, { path });
+    const attempts = maxRetries + 1;
+    throw new MeetStreamError(
+      `Gave up on ${method} ${path} after ${attempts} attempts: ${lastError?.message ?? 'no response'}`,
+      { status: lastError?.status ?? null, body: lastError?.body ?? null, path }
+    );
   }
 
   return { request, baseUrl: root };

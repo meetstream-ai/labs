@@ -45,6 +45,7 @@ node index.js           # admit the bot, then type commands at the control> prom
 | `PORT` | no | Local port. Default `3000`. |
 | `BOT_NAME` | no | Name shown in the participant list. Default `MeetStream Labs Control Bot`. |
 | `GREETING` | no | A `sendmsg` fired as soon as the channel is ready. Empty: no greeting. |
+| `JOIN_TIMEOUT_MINUTES` | no | Give up, remove the bot and exit 1 if no ready handshake or `bot.stopped` arrives in this many minutes. Default `12`. |
 | `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 | `NO_COLOR` | no | Set to any value to disable ANSI colours in the log output. |
 
@@ -216,6 +217,17 @@ websocket-bot-control/
 | `No public URL available` | Neither `PUBLIC_URL` nor `NGROK_AUTHTOKEN` is set. | Set one of them. |
 | `MeetStream API 401` / `403` | No key was sent, or the key was rejected. | The header is `Authorization: Token <key>`; regenerate the key if 403 persists. |
 | `MeetStream API 400` on create | Bad `meeting_link`, a `ws://` (not `wss://`) socket URL, or `in_call_recording_timeout` below 600. | Check the link and the public URL scheme. |
+| `MeetStream API 404` on `remove_bot` | Wrong bot id, or the bot already left and was cleaned up. | Nothing to do; confirm with `GET /bots/{bot_id}/status`. |
+| `MeetStream API 409` | Deduplication conflict: an equivalent request is already in flight. | Wait for the first request to finish; do not resend. |
+| `MeetStream API 429` / `5xx` after `retrying in ...s (attempt n/4)` lines | Rate limit or transient server error; the client retried 4 times with backoff and gave up. | Wait a minute and run again. |
+| `Network error on /bots/...` | DNS, connection reset or timeout; retried 4 times. | Check connectivity and `MEETSTREAM_BASE_URL`. |
+| `507` from `create_bot` | Idempotent replay of a request you already made. | Treated as success; the earlier bot is used. |
+| `Gave up waiting for the control channel after N minutes` | No ready handshake and no `bot.stopped` within `JOIN_TIMEOUT_MINUTES`. | Check `MEETING_LINK`, admit the bot, `curl <public url>/health`; raise `JOIN_TIMEOUT_MINUTES` for a long lobby wait. |
+| `Control channel dropped while streaming audio.` | The bot's socket closed mid-`audio`. | Wait for `Control channel ready` again (or a new bot) and resend. |
+| `Audio is already streaming. Use interrupt first.` | A second `audio` command while one is playing. | Type `interrupt`, then send the next file. |
+| `sendAudio needs a non-empty PCM buffer.` / wrong format | The file is empty or not raw PCM16 / WAV. | Re-encode with the ffmpeg command above. |
+| `The bot has left. Commands will fail until another bot connects.` | The control socket closed (bot removed, kicked, or meeting ended). | Start a new run; the old bot cannot be re-attached. |
+| `Unknown command "..."` | Typo at the `control>` prompt. | Type `help`. |
 | `Control channel is not connected` | The handshake has not arrived. The bot is still joining, or your `wss://` URL is not publicly reachable. | Admit the bot; check `GET /health` and the tunnel. |
 | Bot joins but never connects back | `socket_connection_url` is not `wss://`, or the tunnel went down. | Restart with a live tunnel; `PUBLIC_URL` must be `https://`. |
 | `Bot stopped. Reason: bot.notallowed` / `bot.denied` | Never admitted from the waiting room / host refused. | Admit the bot, or ask the host to allow it. |

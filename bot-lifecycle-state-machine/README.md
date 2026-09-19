@@ -160,7 +160,7 @@ Nothing in the webhook stream tells you a bot went quiet. The only way to notice
 | **stuck** | In one non-terminal state past that state's budget. Might still recover. | Long meeting, slow post-processing |
 | **abandoned** | Silent for 4x the budget, or created with zero webhooks ever. Will not recover. | Unreachable `callback_url`, dead meeting link |
 
-Budgets live in `STATE_TIMEOUTS_MS` in `src/machine.js`. Tune them to your own `automatic_leave` settings.
+Budgets live in `STATE_TIMEOUTS_MS` in `src/machine.js`. Tune them to your own `automatic_leave` settings. The receiver itself runs until Ctrl+C, but no bot is waited on forever: past its budget it is reported as stuck, past 4x the budget as abandoned, on every scan until you act. `--replay` is bounded too: each synthetic delivery has a 5 second timeout and the run exits with `replay could not reach the local receiver` if the server does not answer.
 
 The most valuable finding is the ghost: a bot created through the API that never produced a single webhook.
 

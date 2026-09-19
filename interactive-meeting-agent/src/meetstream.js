@@ -67,6 +67,16 @@ export class MeetStreamClient {
     const url = `${this.baseUrl}${path}`;
     let lastError = null;
 
+    // Bounded: 1 try + MAX_RETRIES retries, only on network errors, 429 and 5xx.
+    // 4xx other than 429 fails on the first answer. When the budget is spent the
+    // error says so and carries the API's own message.
+    const giveUp = (err) =>
+      new MeetStreamError(
+        `Gave up after ${MAX_RETRIES + 1} attempts on ${method} ${path}: ${err.message}`,
+        err.status,
+        path
+      );
+
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       let res;
       let text;
@@ -85,7 +95,7 @@ export class MeetStreamClient {
           await sleep(backoff(attempt));
           continue;
         }
-        throw lastError;
+        throw giveUp(lastError);
       }
 
       let data;
@@ -112,22 +122,30 @@ export class MeetStreamClient {
           await sleep(Number.isFinite(delay) ? delay : backoff(attempt));
           continue;
         }
-        throw lastError;
+        throw giveUp(lastError);
       }
 
       throw new MeetStreamError(message, res.status, path);
     }
 
-    throw lastError ?? new MeetStreamError("Request failed", 0, path);
+    throw giveUp(lastError ?? new MeetStreamError("Request failed", 0, path));
   }
 
   /** POST /bots/create_bot */
   async createBot(payload) {
-    const { data, replayed } = await this.request("POST", "/bots/create_bot", {
+    const { status, data, replayed } = await this.request("POST", "/bots/create_bot", {
       body: payload,
       headers: { "Idempotency-Key": randomUUID() },
     });
     if (replayed) this.logger?.info("create_bot replayed an earlier identical request (507).");
+    // A 2xx alone is not enough: without a bot_id there is nothing to remove on Ctrl+C.
+    if (!data || typeof data !== "object" || !data.bot_id) {
+      throw new MeetStreamError(
+        `create_bot answered ${status} without a bot_id: ${JSON.stringify(data)}`,
+        status,
+        "/bots/create_bot"
+      );
+    }
     return data;
   }
 

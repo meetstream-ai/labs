@@ -161,6 +161,8 @@ src/capacity.js   the logins-per-peak-sessions math
 
 Deletes prompt for confirmation unless you pass `--yes`, and refuse to run unattended without it.
 
+There are no wait or poll loops in this CLI: every command is one request and exits. The only retry is inside `src/client.js`, and it is capped: one try plus 3 retries (4 calls in all), only on 429, 5xx or a network error, with backoff of 1, 2 and 4 seconds, then it gives up with `Gave up on <METHOD> <path> after 4 attempts: <API message>`. A 202 is reported as pending, not polled.
+
 ---
 
 ## Troubleshooting
@@ -175,6 +177,7 @@ Deletes prompt for confirmation unless you pass `--yes`, and refuse to run unatt
 | A login has `last_test_status` other than success | The Workspace SSO profile or that login's certificate is wrong | Re-check the SSO profile URLs and re-upload `cert.pem` / `key.pem` for that mail ID |
 | `active_sessions` pinned at the maximum | That login is saturated | Run `node index.js capacity --peak <your peak>` and add logins |
 | 507 on `domains add` / `logins add` | Idempotent replay of a request you already sent | Treated as success; the CLI reports it as a replay |
+| `Gave up on GET /google-logins after 4 attempts: ...` | 429 or 5xx on every retry, or no network; the message after the colon is the API's own | Wait and re-run; check your network if it persists |
 
 ## Related
 

@@ -7,6 +7,23 @@ import { sleep, backoffDelay } from './utils.js';
 const BASE_URL = 'https://api.meetstream.ai/api/v1';
 
 /**
+ * Pull the human-readable message out of a MeetStream error body.
+ * @param {any} data
+ * @returns {string}
+ */
+function extractApiMessage(data) {
+  if (data == null) return '';
+  if (typeof data === 'string') return data.slice(0, 300);
+  const msg = data.message ?? data.error ?? data.detail;
+  if (typeof msg === 'string') return msg;
+  try {
+    return JSON.stringify(data).slice(0, 300);
+  } catch {
+    return '';
+  }
+}
+
+/**
  * Dedicated MeetStream API client.
  *
  * Centralizes:
@@ -71,6 +88,12 @@ export class MeetStreamClient {
 
         if (!isRetryable || attempt === this.maxRetries) {
           if (err.response) {
+            // Surface the API's own message (MeetStream returns `message`,
+            // `error` or `detail`) instead of axios's generic text. The
+            // original `err.response` is kept so callers can still branch
+            // on status.
+            const apiMessage = extractApiMessage(err.response.data);
+            err.message = `${label} failed with HTTP ${status}${apiMessage ? `: ${apiMessage}` : ''}`;
             logger.debug(
               `${label} error body: ${JSON.stringify(err.response.data)}`
             );

@@ -55,6 +55,10 @@ const PORT = Number.parseInt(process.env.PORT ?? "3000", 10);
 const BOT_NAME = process.env.BOT_NAME || "MeetStream Labs Video Bot";
 const OUTPUT_DIR = process.env.OUTPUT_DIR || "./output";
 const MAX_RELAY_CLIENTS = Number.parseInt(process.env.MAX_RELAY_CLIENTS ?? "5", 10);
+// Cap on the wait for the bot to join and start streaming. Slightly above the
+// bot's own waiting_room_timeout (600 s), so MeetStream's bot.notallowed
+// normally arrives first; this is the local safety net if nothing does.
+const JOIN_TIMEOUT_MINUTES = Number.parseInt(process.env.JOIN_TIMEOUT_MINUTES ?? "12", 10);
 
 // ── Server ────────────────────────────────────────────────────────────────────
 
@@ -66,6 +70,8 @@ const relay = new Relay(log);
 const sink = new VideoSink({ outputDir: OUTPUT_DIR, relay, logger: log });
 
 let botId = null;
+let botJoined = false;   // bot.inmeeting seen
+let botStopped = false;  // bot.stopped (any reason) or bot.done seen
 
 app.post("/webhook", (req, res) => {
   res.sendStatus(200); // ack fast: MeetStream does not retry non-2xx
@@ -75,6 +81,9 @@ app.post("/webhook", (req, res) => {
     return;
   }
   log.event(body);
+  const name = body.bot_event ?? body.event;
+  if (name === "bot.inmeeting") botJoined = true;
+  if (body.event === "bot.stopped" || name === "bot.done") botStopped = true;
   if (body.event === "bot.stopped") {
     log.warn(`Bot stopped. Reason: ${body.bot_event ?? "unknown"} (bot_status: ${body.bot_status ?? "n/a"})`);
   }
@@ -171,10 +180,25 @@ async function main() {
 
   botId = bot.bot_id;
   log.success(`Bot created: ${c("bold", botId)} (status: ${bot.status})`);
-  log.info("Waiting for the bot to join and start streaming…");
+  log.info(`Waiting for the bot to join and start streaming… (gives up after ${JOIN_TIMEOUT_MINUTES} min)`);
   log.detail(`Relay for your own consumers: ws://localhost:${PORT}/stream`);
   log.detail("Press Ctrl+C to remove the bot and finalise the file.");
   console.log("");
+
+  // Bounded wait for the join. If no bot.inmeeting, no video bytes and no
+  // terminal bot.stopped arrive in time, say why and clean up rather than
+  // sitting silent forever.
+  const joinTimer = setTimeout(() => {
+    if (botJoined || botStopped || sink.bytes > 0) return;
+    log.error(
+      `Gave up waiting for the bot to join after ${JOIN_TIMEOUT_MINUTES} minutes: ` +
+      "no bot.inmeeting, no video bytes and no bot.stopped received. Check MEETING_LINK, " +
+      "admit the bot from the waiting room, and confirm the public URL reaches this process.",
+      new Error("join timeout")
+    );
+    void shutdown("join timeout", 1);
+  }, JOIN_TIMEOUT_MINUTES * 60 * 1000);
+  joinTimer.unref();
 
   // ── Shutdown ────────────────────────────────────────────────────────────────
   let shuttingDown = false;

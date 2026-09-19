@@ -202,6 +202,8 @@ Adjust the resource ARN if you changed `S3_PREFIX`, and add each override from `
 3. **Wait for the bot to leave.** The `bot.stopped` webhook is the fast path (the reason is in its `bot_event`: `bot.stopped`, `bot.kicked`, `bot.notallowed`, `bot.denied` or `bot.failed`); a capped poll over `GET /bots/{id}/status` is the guarantee. `bot.done` is the final webhook on every path.
 4. **List your bucket.** Post-processing runs after the bot leaves, so this polls `ListObjectsV2` on `<prefix>/<bot_id>_` until objects appear or the attempt budget runs out.
 
+Both waits are capped at `POLL_MAX_ATTEMPTS` polls, `POLL_INTERVAL_MS` apart (defaults 80 x 15 s, about 20 minutes each). When a cap is hit the run logs `Gave up ...` with the numbers; the bot wait then continues to the bucket check, and the bucket wait exits with code 1.
+
 Press `Ctrl+C` to pull the bot out of the meeting early. A second `Ctrl+C` exits immediately.
 
 Pass `--skip-verify` to stop after step 3 and just print where to look.
@@ -231,9 +233,25 @@ Auth is `Authorization: Token <key>`, literally `Token`, not `Bearer`. Errors ar
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `Missing required environment variable "MEETSTREAM_API_KEY"` | No `.env` or empty key. | `cp .env.example .env` and paste your key. |
+| `Missing required environment variable "MEETSTREAM_API_KEY"` | No `.env` or empty key. Every command except `set --dry-run` checks this before any network call. | `cp .env.example .env` and paste your key. |
+| `Missing required environment variable "S3_BUCKET"` (or `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_KEY`, `MEETING_LINK`) | A value the command needs is blank. | Fill it in `.env`. `MEETING_LINK` is only needed by `record`. |
+| `S3_ACCESS_MODE must be one of read_write \| write_only` / `S3_PREFIX must not contain ".." path segments` / `S3_PREFIX cannot be only slashes` / `S3_ENDPOINT_URL is not a valid URL` | Local validation of the config body failed before anything was sent. | Fix the named variable. |
+| `Environment variable "POLL_MAX_ATTEMPTS" must be a number` | A numeric setting has a non-numeric value. | Use plain integers for `POLL_*`, `PORT`, `REQUEST_TIMEOUT_MS`, `MAX_RETRIES`, `EVERYONE_LEFT_TIMEOUT`. |
 | `MeetStream API error 401` / `403` | Key missing or rejected, or BYOB is not enabled on the account. | Check `MEETSTREAM_API_KEY`; contact support if the key is valid but `set` returns 403. |
 | `MeetStream API error 400` from `set` | MeetStream validated the credentials against the bucket and the check failed: wrong region, bucket name typo, or a key pair without `s3:PutObject` on the prefix. | Run `set` without `--skip-preflight` so the local `HeadBucket` names the real problem first. |
+| `MeetStream API error 400` from `record` | `create_bot` rejected the body: bad `MEETING_LINK`, or `EVERYONE_LEFT_TIMEOUT` outside the allowed range. | Use the full meeting URL; keep the timeout a positive number of seconds. |
+| `MeetStream API error 404` | `GET /bots/{id}/status` or `remove_bot` for a bot id MeetStream does not know, or whose data was already deleted. `remove_bot` treats 404 as "already gone" and continues. | Nothing to fix for `remove_bot`. Elsewhere, check the bot id in the dashboard. |
+| `MeetStream API error 409` | `create_bot` was retried with the same `Idempotency-Key` but a different body. | Re-run `record`; each run generates a fresh key. |
+| `... -> 429 (...). Retrying in Nms (attempt x/4)` | Rate limited. The client honours `Retry-After` and backs off. | Wait; it retries up to `MAX_RETRIES` times, then fails with the API message. |
+| `... -> 500` / `502` / `503` / `504` retried, then `MeetStream API error 5xx` | Transient server problem that outlasted `MAX_RETRIES`. | Re-run. Raise `MAX_RETRIES` if it keeps happening. |
+| `GET /bots/<id>/status failed: timed out after 30000ms` | No response headers within `REQUEST_TIMEOUT_MS`, on every retry. | Check connectivity, or raise `REQUEST_TIMEOUT_MS`. |
+| `Refusing to delete the storage config without --yes` | Safety check on `delete`. | Run `node index.js delete --yes`. |
+| `Unknown option --foo` / `Unknown command "foo"` | Typo in the CLI. | `node index.js --help`. |
+| `Gave up waiting for the bot after 80 status checks (about 20 minutes)` | The meeting outlasted `POLL_MAX_ATTEMPTS x POLL_INTERVAL_MS`. The run continues to the bucket check. | Raise `POLL_MAX_ATTEMPTS` or `POLL_INTERVAL_MS`, or press Ctrl+C to pull the bot out. |
+| `Gave up: nothing appeared under s3://... after 80 listings` | Post-processing did not land anything in the poll budget, or the config was empty. Exit code 1. | Check `show`, then `GET /bots/{id}/detail`; raise `POLL_MAX_ATTEMPTS` for long recordings. |
+| `Could not list s3://<bucket>: ...` | The local credentials cannot `ListObjectsV2`. | Add `s3:ListBucket` on the bucket ARN for the key pair in `.env`. |
+| `listen EADDRINUSE` when `record` starts | Another process owns `PORT`. | Stop it or set `PORT`. |
+| `record` shows only `[bot n/80] status:` lines and no `Bot is in the meeting.` | `PUBLIC_WEBHOOK_URL` unset (poll-only mode, which is fine) or not reachable by MeetStream. | Leave it unset, or point it at a public HTTPS tunnel and confirm `GET <url>/healthz` answers. |
 | `Access denied on bucket ...` | The credentials lack `s3:ListBucket` on the bucket ARN. `arn:aws:s3:::bucket` and `arn:aws:s3:::bucket/*` are different resources. | Add the bucket ARN statement from the policy above. |
 | `Bucket ... does not exist` | Usually a region mismatch. | Set `S3_REGION` to the bucket's actual region. |
 | `show` prints `{}` | No storage config is set; bots write to the MeetStream platform bucket. | Run `node index.js set`. |

@@ -289,7 +289,25 @@ async function main() {
   log.detail("Press Ctrl+C to remove the bot and exit.");
   console.log("");
 
-  channel.onReady = () => log.success("Agent is live: listening and able to respond.");
+  // The only thing this process waits for is the bot's control-channel handshake,
+  // and that wait is capped: waiting_room_timeout (600 s) plus a minute of grace.
+  // Past that, say so once rather than sitting silent forever. The bot itself is
+  // left alone: MeetStream ends it via automatic_leave, and Ctrl+C removes it.
+  const HANDSHAKE_TIMEOUT_MS = (600 + 60) * 1000;
+  const handshakeTimer = setTimeout(() => {
+    if (channel.connected) return;
+    log.warn(
+      `No control-channel handshake ${HANDSHAKE_TIMEOUT_MS / 1000}s after create_bot. ` +
+        "The bot was never admitted, has already stopped, or cannot reach your public URL. " +
+        "Check the webhook lines above and GET /health, then Ctrl+C to remove the bot."
+    );
+  }, HANDSHAKE_TIMEOUT_MS);
+  handshakeTimer.unref();
+
+  channel.onReady = () => {
+    clearTimeout(handshakeTimer);
+    log.success("Agent is live: listening and able to respond.");
+  };
   channel.onClose = () => log.warn("Control channel gone: responses will be dropped.");
 
   // ── Shutdown ────────────────────────────────────────────────────────────────

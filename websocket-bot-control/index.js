@@ -64,6 +64,10 @@ for (const key of ["MEETSTREAM_API_KEY", "MEETING_LINK"]) {
 const PORT = Number.parseInt(process.env.PORT ?? "3000", 10);
 const BOT_NAME = process.env.BOT_NAME || "MeetStream Labs Control Bot";
 const GREETING = process.env.GREETING ?? "";
+// Cap on the wait for the bot's ready handshake. Slightly above the bot's own
+// waiting_room_timeout (600 s) so MeetStream's bot.notallowed normally arrives
+// first; this is the local safety net if nothing does.
+const JOIN_TIMEOUT_MINUTES = Number.parseInt(process.env.JOIN_TIMEOUT_MINUTES ?? "12", 10);
 
 // ── Server ────────────────────────────────────────────────────────────────────
 
@@ -74,6 +78,7 @@ const server = createServer(app);
 const channel = new ControlChannel(log);
 
 let botId = null;
+let botStopped = false; // bot.stopped (any reason) or bot.done seen
 
 app.post("/webhook", (req, res) => {
   res.sendStatus(200); // ack fast: MeetStream does not retry non-2xx
@@ -83,6 +88,7 @@ app.post("/webhook", (req, res) => {
     return;
   }
   log.event(body);
+  if (body.event === "bot.stopped" || (body.bot_event ?? body.event) === "bot.done") botStopped = true;
   if (body.event === "bot.stopped") {
     log.warn(`Bot stopped. Reason: ${body.bot_event ?? "unknown"} (bot_status: ${body.bot_status ?? "n/a"})`);
   }
@@ -147,7 +153,22 @@ async function main() {
 
   botId = bot.bot_id;
   log.success(`Bot created: ${c("bold", botId)} (status: ${bot.status})`);
-  log.info("Waiting for the bot to join and open the control channel…");
+  log.info(`Waiting for the bot to join and open the control channel… (gives up after ${JOIN_TIMEOUT_MINUTES} min)`);
+
+  // Bounded wait for the handshake. If no ready frame and no terminal
+  // bot.stopped arrive in time, say why and clean up instead of leaving the
+  // prompt open against a bot that never connected.
+  const joinTimer = setTimeout(() => {
+    if (channel.ready || botStopped) return;
+    log.error(
+      `Gave up waiting for the control channel after ${JOIN_TIMEOUT_MINUTES} minutes: ` +
+      "no ready handshake and no bot.stopped received. Check MEETING_LINK, admit the bot " +
+      "from the waiting room, and confirm the wss:// URL is reachable from the internet.",
+      new Error("join timeout")
+    );
+    void shutdown("join timeout", 1);
+  }, JOIN_TIMEOUT_MINUTES * 60 * 1000);
+  joinTimer.unref();
 
   channel.onReady = () => {
     if (GREETING) {

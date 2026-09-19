@@ -40,6 +40,10 @@ for (const key of REQUIRED) {
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
 const MAX_STREAM_CLIENTS = parseInt(process.env.MAX_STREAM_CLIENTS || "10", 10);
+// Cap on how long we wait for bot.inmeeting before giving up. Slightly above
+// the bot's own waiting_room_timeout (600 s) so MeetStream's bot.notallowed
+// normally arrives first; this is the local safety net if it never does.
+const JOIN_TIMEOUT_MINUTES = parseInt(process.env.JOIN_TIMEOUT_MINUTES || "12", 10);
 const logger      = new Logger();
 const broadcaster = new Broadcaster(logger);
 const audioHandler = new AudioHandler(logger, broadcaster);
@@ -52,6 +56,8 @@ expressWs(app, server);
 app.use(express.json());
 
 let botId = null;
+let botJoined = false;   // set on bot.inmeeting
+let botStopped = false;  // set on bot.stopped (any reason) / bot.done
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 
@@ -68,6 +74,10 @@ app.post("/webhook/callback", (req, res) => {
     return;
   }
   logger.event(body);
+
+  const name = body.bot_event ?? body.event;
+  if (name === "bot.inmeeting") botJoined = true;
+  if (body.event === "bot.stopped" || name === "bot.done") botStopped = true;
 });
 
 /**
@@ -206,8 +216,24 @@ async function main() {
   });
 
   logger.success(`Bot created! ID: ${chalk.bold(botId)}`);
-  logger.info("Waiting for bot to join the meeting…");
+  logger.info(`Waiting for bot to join the meeting… (gives up after ${JOIN_TIMEOUT_MINUTES} min without bot.inmeeting)`);
   logger.info(chalk.dim("Press Ctrl+C to stop the bot and exit.\n"));
+
+  // Bounded wait for the join: if neither bot.inmeeting nor a terminal
+  // bot.stopped arrives in time, say so clearly and clean up instead of
+  // sitting silent forever.
+  const joinTimer = setTimeout(async () => {
+    if (botJoined || botStopped) return;
+    logger.error(
+      `Gave up waiting for the bot to join after ${JOIN_TIMEOUT_MINUTES} minutes ` +
+      "(no bot.inmeeting and no bot.stopped received). Check the meeting link, " +
+      "admit the bot from the waiting room, and confirm webhooks reach the ngrok URL.",
+      new Error("join timeout")
+    );
+    await shutdown("join timeout");
+    process.exit(1);
+  }, JOIN_TIMEOUT_MINUTES * 60 * 1000);
+  joinTimer.unref?.();
 
   // ── Shared shutdown path ─────────────────────────────────────────────────
   // Used by SIGINT/SIGTERM *and* by the crash handlers below, so an

@@ -58,14 +58,16 @@ export async function commandSet(options) {
     return;
   }
 
+  // Build the MeetStream client first so a missing MEETSTREAM_API_KEY fails
+  // before the local HeadBucket call goes out.
+  const client = makeClient();
+
   if (!options.flags.skipPreflight) {
     const s3 = makeS3Client(config.region);
     await assertBucketAccess(s3, config.bucket_name);
   } else {
     log.warn('--skip-preflight, so the local HeadBucket check was not run.');
   }
-
-  const client = makeClient();
 
   log.warn('Sending S3 credentials to MeetStream. They are stored on your MeetStream account.');
   await client.setStorageConfig(config, CONFIG_TYPE);
@@ -239,8 +241,11 @@ export async function commandRecord(options) {
     });
 
     if (objects.length === 0) {
-      log.error(`Nothing appeared under s3://${bucket}/<prefix>/${bot.bot_id}_ within the poll budget.`);
-      log.error('Check GET /admin/configs, and see the troubleshooting section of the README.');
+      log.error(
+        `Gave up: nothing appeared under s3://${bucket}/<prefix>/${bot.bot_id}_ after ${maxAttempts} listings ` +
+          `(about ${budgetMinutes(maxAttempts, intervalMs)} minutes).`
+      );
+      log.error('Check GET /admin/configs, GET /bots/{id}/detail and the prefix, or raise POLL_MAX_ATTEMPTS. See the README troubleshooting table.');
       process.exitCode = 1;
       return;
     }
@@ -310,6 +315,10 @@ function handleEvent(state, event, payload) {
  * @param {{ maxAttempts: number, intervalMs: number }} opts
  */
 async function waitForBotToFinish(state, { maxAttempts, intervalMs }) {
+  log.info(
+    `Waiting for the bot to leave: up to ${maxAttempts} status checks, ${Math.round(intervalMs / 1000)}s apart ` +
+      `(about ${budgetMinutes(maxAttempts, intervalMs)} minutes; POLL_MAX_ATTEMPTS / POLL_INTERVAL_MS).`
+  );
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     if (state.botStopped) return;
 
@@ -327,7 +336,15 @@ async function waitForBotToFinish(state, { maxAttempts, intervalMs }) {
     await state.waiter.wait(intervalMs);
   }
 
-  log.warn(`The bot was still running after ${maxAttempts} status checks. Moving on to the bucket check anyway.`);
+  log.warn(
+    `Gave up waiting for the bot after ${maxAttempts} status checks (about ${budgetMinutes(maxAttempts, intervalMs)} minutes). ` +
+      'It may still be in the meeting. Raise POLL_MAX_ATTEMPTS or POLL_INTERVAL_MS to wait longer. Moving on to the bucket check anyway.'
+  );
+}
+
+/** Whole minutes a poll loop can run for, for log messages. */
+function budgetMinutes(maxAttempts, intervalMs) {
+  return Math.max(1, Math.round((maxAttempts * intervalMs) / 60_000));
 }
 
 /**
@@ -338,7 +355,10 @@ async function waitForBotToFinish(state, { maxAttempts, intervalMs }) {
  * @returns {Promise<Array<{key: string, size: number}>>}
  */
 async function waitForObjects(state, { s3, bucket, prefixes, botId, maxAttempts, intervalMs }) {
-  log.info(`Listing s3://${bucket}/<prefix>/${botId}_* every ${Math.round(intervalMs / 1000)}s ...`);
+  log.info(
+    `Listing s3://${bucket}/<prefix>/${botId}_* every ${Math.round(intervalMs / 1000)}s, up to ${maxAttempts} times ` +
+      `(about ${budgetMinutes(maxAttempts, intervalMs)} minutes) ...`
+  );
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     let objects = [];

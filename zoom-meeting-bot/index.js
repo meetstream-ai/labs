@@ -36,6 +36,7 @@ import {
   createZoomBot,
   hasPasswordComponent,
   isZoomLink,
+  redactSecrets,
 } from './src/bot.js';
 
 function readConfig() {
@@ -67,6 +68,11 @@ function readConfig() {
     transcriptProvider: optionalEnv('TRANSCRIPT_PROVIDER'),
     transcriptLanguage: optionalEnv('TRANSCRIPT_LANGUAGE', 'en'),
     retentionHours: intEnv('RETENTION_HOURS', { min: 1, max: 8760 }),
+
+    // Local cap on how long `node index.js` waits for bot.done before giving
+    // up. Default covers the longest possible session: waiting room (20 min)
+    // + in-call recording cap (4 h) + post-call processing headroom.
+    maxSessionMinutes: intEnv('MAX_SESSION_MINUTES', { fallback: 330, min: 1, max: 1440 }),
   };
 }
 
@@ -101,7 +107,9 @@ function buildRequest(config, callbackUrl) {
     throw new ConfigError('MEETING_LINK is required. Put your Zoom invite link in .env.');
   }
   if (!isZoomLink(config.meetingLink)) {
-    throw new ConfigError(`MEETING_LINK "${config.meetingLink}" does not look like a Zoom link.`);
+    throw new ConfigError(
+      `MEETING_LINK "${redactSecrets(config.meetingLink)}" does not look like a Zoom link.`
+    );
   }
 
   return {
@@ -149,8 +157,11 @@ async function cmdCheck(config) {
     ...(buildZoomAuth(opts.zoomAuth) ? { zoom: buildZoomAuth(opts.zoomAuth) } : {}),
   };
 
-  console.log('Config is valid. This is the body that would be POSTed to /bots/create_bot:\n');
-  console.log(JSON.stringify(preview, null, 2));
+  console.log(
+    'Config is valid. This is the body that would be POSTed to /bots/create_bot ' +
+      '(pwd and auth values shown as ***):\n'
+  );
+  console.log(JSON.stringify(redactSecrets(preview), null, 2));
 }
 
 async function runListenOnly(config) {
@@ -194,6 +205,10 @@ async function run(config) {
   let botId = null;
   let permissionOutcome = null;
   let shuttingDown = false;
+  let joined = false;
+  let finished = false;
+  let joinTimer = null;
+  let sessionTimer = null;
 
   const { close } = await startWebhookServer({
     port: config.port,
@@ -203,6 +218,9 @@ async function run(config) {
       const info = classify(payload);
 
       if (info.botId && botId && info.botId !== botId) return;
+
+      if (info.specific === 'bot.inmeeting') joined = true;
+      if (info.terminal) finished = true;
 
       console.log(
         `  <- ${info.event ?? 'unknown'}` +
@@ -254,6 +272,8 @@ async function run(config) {
 
       if (info.event === 'bot.done') {
         console.log('\nPipeline complete. Shutting down.');
+        clearTimeout(joinTimer);
+        clearTimeout(sessionTimer);
         if (!shuttingDown) {
           shuttingDown = true;
           await close().catch(() => {});
@@ -277,8 +297,8 @@ async function run(config) {
     const { bot, replayed, request } = await createZoomBot(client, opts);
     botId = bot?.bot_id ?? null;
 
-    console.log('Request:');
-    console.log(JSON.stringify(request, null, 2));
+    console.log('Request (pwd and auth values shown as ***):');
+    console.log(JSON.stringify(redactSecrets(request), null, 2));
     console.log(replayed ? '\nIdempotent replay (507).' : '\nBot created.');
     console.log(`  bot_id        ${bot?.bot_id ?? '-'}`);
     console.log(`  transcript_id ${bot?.transcript_id ?? '(none - no post-call provider set)'}`);
@@ -287,8 +307,43 @@ async function run(config) {
       `\nZoom gates recording on host consent. After bot.inmeeting the bot asks, then waits up to ` +
         `${config.recordingPermissionDeniedTimeout}s for an answer.\n`
     );
+    console.log(
+      `Waiting for webhooks until bot.done (gives up after ${config.maxSessionMinutes} min; ` +
+        'set MAX_SESSION_MINUTES to change).\n'
+    );
+
+    // Bounded waits. Webhook deliveries are not retried, so a lost event must
+    // not leave this process hanging forever.
+    //
+    // 1. Join watchdog: warn if the bot has neither joined nor stopped once the
+    //    waiting-room window (plus grace) has passed.
+    const joinWindowMs = ((config.waitingRoomTimeout ?? 600) + 120) * 1000;
+    joinTimer = setTimeout(() => {
+      if (joined || finished) return;
+      console.warn(
+        `\nWARN  No bot.inmeeting and no bot.stopped after ${Math.round(joinWindowMs / 60000)} min. ` +
+          `Check GET /bots/${botId ?? '{bot_id}'}/status; the bot may be stuck, or webhooks are not ` +
+          'reaching PUBLIC_WEBHOOK_URL.'
+      );
+    }, joinWindowMs);
+    joinTimer.unref();
+
+    // 2. Session cap: give up cleanly if bot.done never arrives.
+    sessionTimer = setTimeout(async () => {
+      if (shuttingDown) return;
+      shuttingDown = true;
+      console.error(
+        `\nGave up waiting for bot.done after ${config.maxSessionMinutes} minutes. ` +
+          `Last state: ${finished ? 'bot.stopped received, post-call events missing' : joined ? 'in meeting' : 'never joined'}. ` +
+          `Check GET /bots/${botId ?? '{bot_id}'}/status and GET /bots/${botId ?? '{bot_id}'}/detail; ` +
+          'raise MAX_SESSION_MINUTES for very long meetings.'
+      );
+      await close().catch(() => {});
+      process.exit(1);
+    }, config.maxSessionMinutes * 60 * 1000);
+    sessionTimer.unref();
   } catch (error) {
-    await notifier.error('Could not create the Zoom bot', { error: error.message });
+    await notifier.error('Could not create the Zoom bot', { error: redactSecrets(error.message) });
     await close().catch(() => {});
     throw error;
   }
@@ -305,9 +360,10 @@ async function main() {
 
 main().catch((error) => {
   if (error instanceof ConfigError) {
-    console.error(`\nConfiguration error: ${error.message}`);
+    console.error(`\nConfiguration error: ${redactSecrets(error.message)}`);
   } else if (error instanceof MeetStreamError) {
-    console.error(`\n${error.message}`);
+    // The API may echo the request (meeting link, token URL) back in its message.
+    console.error(`\n${redactSecrets(error.message)}`);
     if (error.status === 400) {
       console.error(
         'HTTP 400 on Zoom usually means: an out-of-range automatic_leave value ' +
@@ -322,7 +378,7 @@ main().catch((error) => {
       );
     }
   } else {
-    console.error(`\n${error.stack ?? error.message}`);
+    console.error(`\n${redactSecrets(error.stack ?? error.message)}`);
   }
   process.exitCode = 1;
 });

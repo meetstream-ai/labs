@@ -45,7 +45,16 @@ export async function listDomains(client) {
 
 export async function getDomain(client, domain) {
   if (!domain) throw new Error('getDomain requires a domain.');
-  const { data } = await client.request(`/google-login-domains/${encodeURIComponent(domain)}`);
+  const { status, data, pending } = await client.request(
+    `/google-login-domains/${encodeURIComponent(domain)}`
+  );
+  // 2xx alone is not proof: a 202 or an empty body carries no domain record.
+  if (pending || !data || typeof data !== 'object') {
+    throw new Error(
+      `GET /google-login-domains/${domain} answered ${status} without a domain record` +
+        `${pending ? ' (202, still processing; re-run in a moment)' : ''}.`
+    );
+  }
   return data;
 }
 

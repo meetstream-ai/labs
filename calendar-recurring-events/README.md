@@ -8,6 +8,14 @@ cp .env.example .env      # fill in MEETSTREAM_API_KEY
 node index.js list
 ```
 
+## Prerequisites
+
+- Node.js 18 or newer (uses the built-in `fetch`).
+- A MeetStream API key from <https://app.meetstream.ai>, set as `MEETSTREAM_API_KEY`.
+- A Google or Outlook calendar connected to your MeetStream account through the calendar OAuth flow, with at least one recurring meeting in the sync window. Connect one with [../google-calendar-integration](../google-calendar-integration) or [../outlook-calendar-integration](../outlook-calendar-integration) first; `list` prints `No events in the sync window. Connect a calendar first.` until you do.
+- Only if you set `CALLBACK_URL`: a public HTTPS URL that MeetStream can reach for bot lifecycle webhooks (see [../webhook-local-tunnel](../webhook-local-tunnel)). Without it the bots still record; you just get no webhooks.
+- No other third-party keys. The Zoom, Google Meet or Teams link comes from the calendar event itself.
+
 ## What it does
 
 | Command | Call | Effect |
@@ -20,12 +28,6 @@ node index.js list
 | `schedule-one <eventId> <iso>` | `POST /calendar/schedule/{id}` `occurrence_date` | Book exactly one occurrence |
 | `cancel-series <eventId>` | `DELETE /calendar/schedule/{id}` `cancel_all_occurrences: true` | Cancel the whole series |
 | `cancel-from <eventId> <iso>` | same, plus `from_date` | Cancel from a date onward, keep earlier ones |
-
-## Prerequisites
-
-- Node.js 18 or newer.
-- A MeetStream API key from <https://app.meetstream.ai>.
-- A connected Google or Outlook calendar with at least one recurring meeting (see [../google-calendar-integration](../google-calendar-integration) or [../outlook-calendar-integration](../outlook-calendar-integration)).
 
 ## Setup
 
@@ -48,6 +50,54 @@ node index.js schedule-chain <eventId>
 | `VIDEO_REQUIRED` | no | `true` records video as well as audio (default `false`) |
 | `CALLBACK_URL` | no | Per-bot webhook URL for lifecycle events, public HTTPS |
 | `MEETSTREAM_API_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
+
+## What you should see
+
+`node index.js list` prints one block per event in the sync window, sorted by start time, then a recurrence tally. Ids and titles come from your calendar:
+
+```text
+3 event(s):
+
+  <event_id>
+    Weekly standup  [series: FREQ=WEEKLY;BYDAY=MO,WE,FR]
+    starts 2026-04-14T10:00:00Z  link: yes
+  <event_id>
+    Weekly standup  [occurrence of a series]
+    starts 2026-04-16T10:00:00Z  link: yes  bots: 1
+  <event_id>
+    Vendor call  [single]
+    starts 2026-04-17T15:00:00Z  link: no
+
+2 of 3 look recurring.
+That reading comes from the raw provider payload and is a hint only.
+toggle-recurrence is the authority: it returns 400 for an event with no rule.
+```
+
+`node index.js schedule-chain <eventId>` on a recurring event:
+
+```text
+Scheduling <event_id> with recurring_event: true
+(one bot now, and the next occurrence is booked automatically after each meeting)
+
+Scheduled.
+  Bot id              : <bot_id>
+  Schedule id         : <schedule_id>
+  Joins at            : 2026-04-14T09:58:00Z
+  Recurring occurrence: true
+```
+
+`node index.js on <eventId>` on a one-off event is the documented 400, printed as an outcome rather than an error:
+
+```text
+Enabling auto-rescheduling for <event_id>...
+
+This event is not recurring (HTTP 400).
+
+toggle-recurrence only applies to events with a recurrence rule.
+For a one-off meeting use the calendar-schedule-bot template instead.
+```
+
+`node index.js cancel-series <eventId>` ends with `Cancelled.` followed by `Schedules cancelled`, `Bots deleted` and `Recurring series` counts from the API response. Any other API failure prints `API error <status>: <message>` with a `Hint:` line and exits 1.
 
 ## Series versus occurrence
 

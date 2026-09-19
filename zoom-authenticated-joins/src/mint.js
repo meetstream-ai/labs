@@ -69,7 +69,12 @@ export function createMinter(config, store) {
     return refresh(userId);
   }
 
-  /** Mint one ZAK or OBF. Retries once with a fresh access token if Zoom says 401. */
+  /**
+   * Mint one ZAK or OBF. If Zoom answers 401 the cached access token has
+   * expired: refresh it ONCE and send the request again with the new token.
+   * That is a credential refresh, not a retry of the failed request; any other
+   * 4xx from Zoom (400/403/404) is final and reported to the bot as 502.
+   */
   async function mint(userId, mode, meetingNumber) {
     const accessToken = await accessTokenFor(userId);
     try {

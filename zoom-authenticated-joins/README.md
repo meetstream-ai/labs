@@ -110,7 +110,9 @@ node index.js create-bot --meeting "https://zoom.us/j/123456789?pwd=..." --mode 
 node index.js create-bot --meeting "https://zoom.us/j/123456789" --mode obf --user alice --dry-run
 ```
 
-`create-bot` treats HTTP 201 and 507 (idempotent replay) as success and prints the API `message` on any error.
+`create-bot` treats HTTP 201 and 507 (idempotent replay) as success, fails if the response has no `bot_id`, and prints the API `message` on any error. It retries only 429, 5xx and network errors (3 attempts, exponential backoff, `Retry-After` honoured); every other 4xx is final. Nothing in this template polls: `create-bot` exits after the one call, and the token server is a long-running process that answers mint requests until Ctrl+C. If you add a wait for the bot to reach the meeting (for example polling `GET /bots/{bot_id}/status`), cap the attempts and print why you gave up.
+
+Secrets never reach the terminal: the `auth` value on the mint URL and the Zoom `pwd` passcode are shown as `***` in the printed body and in any error message, `--dry-run` output included, and no route logs a ZAK, OBF, access or refresh token.
 
 ## Test the mint URL without a bot
 
@@ -165,7 +167,7 @@ Both return `{ "token": "..." }`. OBF tokens are short-lived and single-use, so 
 | `ZOOM_CLIENT_SECRET` | server | | Zoom General App |
 | `PUBLIC_BASE_URL` | yes | | Public https tunnel URL, no trailing slash, never `localhost` |
 | `MINT_SHARED_SECRET` | yes | | `?auth=` value on every mint URL. Use 32+ random characters |
-| `MEETSTREAM_API_KEY` | create-bot | | From https://app.meetstream.ai, sent as `Authorization: Token <key>` |
+| `MEETSTREAM_API_KEY` | create-bot | | From https://app.meetstream.ai, sent as `Authorization: Token <key>`. The token server (`node index.js`) never calls MeetStream and does not need it; `create-bot --dry-run` does not either |
 | `ZOOM_REDIRECT_URI` | no | `PUBLIC_BASE_URL/zoom/callback` | Must match the Zoom app exactly |
 | `PORT` | no | `3000` | Point the tunnel here |
 | `DATA_DIR` | no | `./data` | Where refresh tokens are written |
@@ -176,7 +178,11 @@ Both return `{ "token": "..." }`. OBF tokens are short-lived and single-use, so 
 | Symptom | Cause | Fix |
 |---|---|---|
 | `Missing ... in .env` | Placeholders still in `.env` | Copy `.env.example` to `.env` and replace every placeholder. |
+| `MEETSTREAM_API_KEY is not set` / `Missing MEETSTREAM_API_KEY in .env` | `create-bot` run without a key (the server does not need one) | Add it to `.env`, or use `--dry-run`. |
 | MeetStream 401 / 403 on `create-bot` | `MEETSTREAM_API_KEY` missing or rejected | Set or regenerate it; header is `Authorization: Token <key>`. |
+| `create_bot returned HTTP 429` / `5xx (gave up after 3 attempts)` | Rate limit or transient server error; retried with backoff | Wait a minute and run again. |
+| `Could not reach MeetStream after 3 attempts` | DNS or connection failure, retried 3 times | Check connectivity and `MEETSTREAM_API_BASE_URL`. |
+| `create_bot returned HTTP 2xx but no bot_id` | Unexpected response shape | Inspect the printed body; check `MEETSTREAM_API_BASE_URL` points at the real API. |
 | MeetStream 400: `Pass only one of zoom.zak_url or zoom.obf_url` | Both URLs were sent | Pick one per bot. |
 | MeetStream 400: `use_zoom_obf is no longer supported` | Old code still sends `use_zoom_obf` or `zoom_oauth_connection_user_id` | Remove them and send `zoom.zak_url` or `zoom.obf_url`. |
 | MeetStream 507 on `create-bot` | Idempotent replay | Treated as success; the original bot is returned. |

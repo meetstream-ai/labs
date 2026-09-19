@@ -18,6 +18,35 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Error raised for any non-2xx MeetStream response. `status` is the HTTP
+ * code and `apiMessage` is the API's own `message` / `error` / `detail`
+ * field, so callers and the terminal see why the call failed instead of
+ * a bare status code.
+ */
+export class MeetStreamApiError extends Error {
+  constructor(method, path, status, data) {
+    const apiMessage = extractApiMessage(data);
+    super(`MeetStream API ${method} ${path} -> HTTP ${status}${apiMessage ? `: ${apiMessage}` : ""}`);
+    this.name = "MeetStreamApiError";
+    this.status = status;
+    this.apiMessage = apiMessage;
+    this.body = data;
+  }
+}
+
+function extractApiMessage(data) {
+  if (data == null) return "";
+  if (typeof data === "string") return data.slice(0, 300);
+  const msg = data.message ?? data.error ?? data.detail ?? data.raw;
+  if (typeof msg === "string") return msg.slice(0, 300);
+  try { return JSON.stringify(data).slice(0, 300); } catch { return ""; }
+}
+
+function isRetryableStatus(status) {
+  return status === 429 || (status >= 500 && status < 600);
+}
+
 export class MeetStreamClient {
   constructor(apiKey, logger) {
     this.apiKey = apiKey;
@@ -58,13 +87,16 @@ export class MeetStreamClient {
 
         if (res.ok) return data;
 
-        // Non-retryable: bad request / auth / not found - fail fast
-        if (res.status >= 400 && res.status < 500 && res.status !== 429) {
-          throw new Error(`MeetStream API ${method} ${path} → ${res.status}: ${text}`);
-        }
+        // Every non-2xx response becomes a MeetStreamApiError that carries
+        // the API's own message field.
+        const apiErr = new MeetStreamApiError(method, path, res.status, data);
+
+        // Non-retryable: 400 / 401 / 403 / 404 / 409 - fail fast, retrying
+        // will not fix a malformed request, a bad key or a missing bot.
+        if (!isRetryableStatus(res.status)) throw apiErr;
 
         // Retryable: 429 (rate limited) or 5xx (server-side issue)
-        lastErr = new Error(`MeetStream API ${method} ${path} → ${res.status}: ${text}`);
+        lastErr = apiErr;
 
         if (attempt < MAX_RETRIES) {
           const retryAfterHeader = res.headers.get("retry-after");
@@ -82,7 +114,7 @@ export class MeetStreamClient {
       } catch (err) {
         // Network-level failure (DNS, connection reset, timeout, etc.)
         lastErr = err;
-        if (err.message?.includes("MeetStream API") && !err.message.includes("→ 5") && !err.message.includes("→ 429")) {
+        if (err instanceof MeetStreamApiError) {
           throw err; // non-retryable API error thrown above - propagate immediately
         }
         if (attempt < MAX_RETRIES) {
@@ -167,6 +199,9 @@ export class MeetStreamClient {
 
     this.logger.info("Creating MeetStream bot…");
     const data = await this.#request("POST", "/bots/create_bot", payload);
+    if (!data?.bot_id) {
+      throw new Error(`create_bot returned 2xx but no bot_id: ${JSON.stringify(data).slice(0, 300)}`);
+    }
     return data.bot_id;
   }
 

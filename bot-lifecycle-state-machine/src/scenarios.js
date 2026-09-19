@@ -178,16 +178,38 @@ export function allScenarios() {
   ];
 }
 
-/** POST each envelope to the local server, in order. */
+/** Each replay POST to the local receiver must answer within this long. */
+const REPLAY_REQUEST_TIMEOUT_MS = 5000;
+
+/**
+ * POST each envelope to the local server, in order. This only ever talks to
+ * the local receiver, never to the MeetStream API. The loop is bounded by the
+ * number of envelopes and each request is capped at REPLAY_REQUEST_TIMEOUT_MS.
+ * Every response is checked: a non-2xx status is recorded with the receiver's
+ * `message` so the caller can report it instead of assuming success.
+ */
 export async function replay(envelopes, url, { delayMs = 60 } = {}) {
   const out = [];
   for (const envelope of envelopes) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(envelope),
-    });
-    out.push({ event: envelope.event, botId: envelope.bot_id, status: res.status });
+    let res;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(envelope),
+        signal: AbortSignal.timeout(REPLAY_REQUEST_TIMEOUT_MS),
+      });
+    } catch (err) {
+      throw new Error(
+        `replay could not reach the local receiver at ${url} (${err.name === 'TimeoutError' ? `no answer within ${REPLAY_REQUEST_TIMEOUT_MS / 1000}s` : err.message}). Is the server listening on that PORT and WEBHOOK_PATH?`,
+      );
+    }
+    let message = '';
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      message = body.message ?? res.statusText;
+    }
+    out.push({ event: envelope.event, botId: envelope.bot_id, status: res.status, ok: res.ok, message });
     if (delayMs) await new Promise((r) => setTimeout(r, delayMs));
   }
   return out;

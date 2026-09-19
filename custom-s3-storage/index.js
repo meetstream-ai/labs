@@ -18,6 +18,7 @@ import { MeetStreamError } from './src/client.js';
 import { parseArgs, USAGE } from './src/cli.js';
 import { commandDelete, commandRecord, commandSet, commandShow } from './src/commands.js';
 import { log } from './src/log.js';
+import { requireEnv } from './src/util.js';
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
@@ -26,6 +27,11 @@ async function main() {
     console.log(USAGE);
     return;
   }
+
+  // Fail fast on the API key before any network call (the local S3 preflight
+  // included). `set --dry-run` is the one command that never calls anything.
+  const dryRun = args.command === 'set' && args.flags.dryRun;
+  if (!dryRun) requireEnv('MEETSTREAM_API_KEY');
 
   const options = { flags: args.flags, json: Boolean(args.flags.json) };
 

@@ -12,7 +12,7 @@
 
 import 'dotenv/config';
 
-import { CREATE_BOT_USAGE, createBot, parseCreateBotArgs } from './src/create-bot.js';
+import { CREATE_BOT_USAGE, createBot, parseCreateBotArgs, scrubSecrets } from './src/create-bot.js';
 import { loadCreateBotConfig, loadServerConfig } from './src/config.js';
 import { createApp } from './src/server.js';
 
@@ -84,5 +84,10 @@ async function main() {
 
 main().catch((error) => {
   process.exitCode = 1;
-  console.error(`[!!] ${error.message}`);
+  // Never let a mint secret, Zoom passcode or client secret reach the terminal.
+  console.error(
+    `[!!] ${scrubSecrets(error.message, { mintSecret: process.env.MINT_SHARED_SECRET })
+      .split(process.env.ZOOM_CLIENT_SECRET || '\u0000')
+      .join('***')}`
+  );
 });

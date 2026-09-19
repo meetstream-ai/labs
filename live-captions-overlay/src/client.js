@@ -60,18 +60,36 @@ export function requireApiKey() {
  *        intend to poll.
  * @returns {Promise<{ status: number, data: any }>}
  */
+/** Every request must answer within this long; there is no retry loop here. */
+const REQUEST_TIMEOUT_MS = 30_000;
+
 export async function api(path, options = {}) {
   const { method = "GET", body, headers = {}, acceptStatuses = [] } = options;
 
-  const res = await fetch(`${apiBaseUrl()}${path}`, {
-    method,
-    headers: {
-      Authorization: `Token ${requireApiKey()}`,
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
-      ...headers,
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  let res;
+  try {
+    res = await fetch(`${apiBaseUrl()}${path}`, {
+      method,
+      headers: {
+        Authorization: `Token ${requireApiKey()}`,
+        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+        ...headers,
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (err) {
+    // No response at all: DNS, TLS, connection refused, or the timeout above.
+    const reason =
+      err?.name === "TimeoutError"
+        ? `no response within ${REQUEST_TIMEOUT_MS / 1000}s`
+        : err?.cause?.message || err?.message || String(err);
+    throw new MeetStreamError(
+      `Network error calling ${method} ${path}: ${reason}. Check your connection and MEETSTREAM_API_BASE_URL.`,
+      0,
+      null,
+    );
+  }
 
   // Read as text first: error bodies are not always JSON.
   const text = await res.text();

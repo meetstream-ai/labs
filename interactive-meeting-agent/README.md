@@ -67,6 +67,81 @@ echo 'RESPONSE_AUDIO_FILE=./reply.pcm' >> .env
 
 The file is validated at startup, before any bot is created, so a wrong sample rate fails immediately rather than playing back as chipmunks mid-meeting.
 
+## Environment variables
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. Checked before anything else starts. |
+| `MEETING_LINK` | yes | Zoom, Google Meet or Teams link for the bot to join. |
+| `PUBLIC_URL` | one of these two | An `https://` address already pointing at this process. Nothing is started for you. |
+| `NGROK_AUTHTOKEN` | one of these two | Opens an ngrok tunnel automatically (capped at 30 s to come up). Ignored when `PUBLIC_URL` is set. |
+| `WAKE_WORD` | no | Phrase that triggers the brain. Default `hey bot`. |
+| `RESPONSE_AUDIO_FILE` | no | PCM16/48k/mono `.pcm`, `.raw` or WAV file played as a spoken reply. Validated at startup. Unset means chat only. |
+| `BARGE_IN` | no | `false` disables interrupt-on-human-speech. Default `true`. |
+| `RMS_THRESHOLD` | no | Speech energy threshold for turn detection. Default `500`. |
+| `SILENCE_MS` | no | Gap that ends a turn. Default `900`. |
+| `PORT` | no | Local HTTP and WebSocket port. Default `3000`. |
+| `BOT_NAME` | no | Name shown in the participant list. Default `MeetStream Labs Agent`. |
+| `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
+| `NO_COLOR` | no | Set to anything to disable ANSI colour in the log output. |
+| `ANTHROPIC_API_KEY` | no | Not read by the stub. Only needed once you wire a model into `src/brain.js`. |
+
+## What you should see
+
+Startup, with ngrok (timestamps are local time; `<...>` values come from your run):
+
+```text
+──────────────────────────────────────────────
+  MeetStream Labs: Interactive Meeting Agent
+  live audio in, control channel out
+──────────────────────────────────────────────
+
+10:21:40 i  Local server on port 3000
+10:21:41 i  Public URL (ngrok): https://<subdomain>.ngrok-free.app
+10:21:41 ·  socket_connection_url = wss://<subdomain>.ngrok-free.app/control
+10:21:41 ·  live_audio_required   = wss://<subdomain>.ngrok-free.app/audio
+10:21:41 ·  live transcription    = https://<subdomain>.ngrok-free.app/transcript
+10:21:41 i  Creating bot…
+10:21:42 ok Bot created: <bot_id> (status: <status>)
+10:21:42 i  Wake word: "hey bot": say it in the meeting to trigger the brain.
+10:21:42 ·  The brain in src/brain.js is a stub. Plug your LLM in there.
+10:21:42 ·  Press Ctrl+C to remove the bot and exit.
+```
+
+Then the lifecycle webhooks arrive one per line (label is the `event`, green for `status_code` 200), followed by the two sockets connecting once the bot is admitted:
+
+```text
+10:21:50 bot.joining
+10:21:55 bot.in_waiting_room
+10:22:10 bot.inmeeting
+10:22:10 ok Live audio WebSocket connected
+10:22:10 ·  Live audio handshake from bot <bot_id>
+10:22:11 ok Control channel ready: bot <bot_id>
+10:22:11 ok Agent is live: listening and able to respond.
+10:22:12 bot.recording
+```
+
+Say the wake word and the transcript, the match and the reply follow:
+
+```text
+10:22:30 ·  [interim] Amy Stace: hey bot what did
+10:22:31 ·  [final] Amy Stace: Hey bot, what did I miss?
+10:22:31 i  Wake word matched in: "Hey bot, what did I miss?"
+10:22:32 ok sendchat → "Amy Stace, I heard: "what did I miss?". This template ships with a stub …"
+10:22:33 ·  Amy Stace spoke for 2.1s
+```
+
+Ctrl+C removes the bot and exits 0:
+
+```text
+10:30:00 i  Shutting down (SIGINT)…
+10:30:01 ok Bot <bot_id> removed from the meeting.
+10:30:01 i  Control socket closed: code 1000
+10:30:01 i  Live audio WebSocket closed (code 1000)
+```
+
+`GET http://localhost:3000/health` returns `{"ok":true,"bot_id":"<bot_id>","control_connected":true,"audio_bytes":<n>}`. If the bot ends on its own you see `bot.stopped` followed by `! Bot stopped. Reason: <bot_event> (bot_status: <bot_status>)`, then `bot.done` last.
+
 ## The brain is a stub. Everything else is not.
 
 `src/brain.js` is the one placeholder in this template, and it says so at the top of the file. It matches a wake word and returns canned text. Replace it.
@@ -117,6 +192,8 @@ Keep responses short and the model call fast. Past roughly two seconds, the meet
 **Audio pacing.** `sendaudio` chunks at 500ms and sends each chunk after `duration × 0.8`, keeping the bot's playback queue just ahead of the playhead: no gaps, no unbounded backlog.
 
 **Interim versus final.** The brain only acts on `is_final: true` transcript segments. Interim segments are logged and ignored, otherwise the bot reacts to half-finished sentences.
+
+**Every wait is capped.** The process itself runs until Ctrl+C, but nothing inside it waits forever: API calls retry at most 4 times on 429, 5xx or network errors and then fail with `Gave up after 5 attempts on <METHOD> <path>: <API message>`; the ngrok tunnel must come up within 30 s; and if the bot has not opened its control channel 660 s after `create_bot` (the 600 s `waiting_room_timeout` plus a minute), a warning tells you to check the webhook log and `GET /health` and to Ctrl+C. `sendaudio` and streamed chat loops are bounded by the data they send and stop on `interrupt`.
 
 ## Bot configuration
 
@@ -195,33 +272,31 @@ interactive-meeting-agent/
 └─ README.md
 ```
 
-## Environment variables
-
-| Variable | Required | Meaning |
-|---|---|---|
-| `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
-| `MEETING_LINK` | yes | Zoom, Google Meet or Teams link for the bot to join. |
-| `PUBLIC_URL` | one of these two | An https:// address already pointing at this process. |
-| `NGROK_AUTHTOKEN` | one of these two | Opens an ngrok tunnel automatically. |
-| `WAKE_WORD` | no | Phrase that triggers the brain. Default `hey bot`. |
-| `RESPONSE_AUDIO_FILE` | no | PCM16/48k/mono file played as a spoken reply. Unset means chat only. |
-| `BARGE_IN` | no | `false` disables interrupt-on-human-speech. Default `true`. |
-| `RMS_THRESHOLD` | no | Speech energy threshold. Default `500`. |
-| `SILENCE_MS` | no | Gap that ends a turn. Default `900`. |
-| `PORT` | no | Local port. Default `3000`. |
-| `BOT_NAME` | no | Name shown in the participant list. Default `MeetStream Labs Agent`. |
-| `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
-| `NO_COLOR` | no | Set to anything to disable ANSI colour in the log output. |
-| `ANTHROPIC_API_KEY` | no | Not read by the stub. Only needed once you wire a model into `src/brain.js`. |
-
 ## Troubleshooting
+
+API failures are printed as `x  MeetStream API <status> on <path>: <message>` (the API's own `message`) followed by a `·` hint line, and the process exits 1.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `Missing required env var` | `.env` is missing or `MEETSTREAM_API_KEY` / `MEETING_LINK` is empty. | `cp .env.example .env` and fill it in. |
-| `No public URL available` | Neither `PUBLIC_URL` nor `NGROK_AUTHTOKEN` is set. | Set one of them; `PUBLIC_URL` must be `https://`. |
-| `MeetStream API 401` / `403` | No key was sent, or the key was rejected. | Check `.env` is loaded from this directory and the key is complete. |
-| `MeetStream API 400` on create | Invalid `meeting_link`, `in_call_recording_timeout` below 600, or a `websocket_url` that is not `wss://`. | Fix the value; the tunnel URL must be HTTPS. |
+| `Missing required env var: MEETSTREAM_API_KEY` (or `MEETING_LINK`) | `.env` is missing or the value is empty. Checked before the server starts. | `cp .env.example .env` and fill it in. |
+| `No public URL available` | Neither `PUBLIC_URL` nor `NGROK_AUTHTOKEN` is set. | Set one of them. |
+| `PUBLIC_URL must be an https:// URL` | Plain `http://` or `ws://` given. | MeetStream only dials TLS endpoints; use `https://`. |
+| `Could not load @ngrok/ngrok` | Dependencies not installed. | `npm install`, or set `PUBLIC_URL` instead. |
+| `ngrok did not open a tunnel within 30s` | No network, or a bad `NGROK_AUTHTOKEN`. | Fix the token or the connection, or set `PUBLIC_URL`. |
+| `listen EADDRINUSE` | Another process owns `PORT`. | Stop it or set `PORT`. |
+| `<file> is the wrong format: 44100 Hz, need 48000 Hz` / `is not a WAV file and does not have a .pcm/.raw extension` / `has an odd byte count` / `is empty` | `RESPONSE_AUDIO_FILE` is not PCM16 LE, 48 kHz, mono. Rejected at startup, before any bot exists. | Re-encode with the ffmpeg command above. |
+| `MeetStream API 401 on /bots/create_bot` | No key was sent. | Check `.env` is loaded from this directory. |
+| `MeetStream API 403 on /bots/create_bot` | The key was rejected. | Copy the complete key; regenerate it in the dashboard if needed. |
+| `MeetStream API 400 on /bots/create_bot` | Invalid `meeting_link`, `in_call_recording_timeout` below 600, or a `websocket_url` that is not `wss://`. | Fix the value; the tunnel URL must be HTTPS. |
+| `MeetStream API 404 on /bots/<id>/remove_bot` at shutdown | The bot had already left and been cleaned up. | Nothing to do. |
+| `MeetStream API 409 on /bots/create_bot` | An equivalent request with the same `Idempotency-Key` is already in flight. | Re-run; every start uses a fresh key. |
+| `POST /bots/create_bot → 429: retrying in 2.0s (attempt 1/4)` | Rate limited; the client honours `Retry-After`. | Wait; it retries 4 times then gives up. |
+| `Gave up after 5 attempts on POST /bots/create_bot: ...` | 429, 5xx or a network error on every retry. The text after the colon is the API message. | Re-run; check connectivity if it persists. |
+| `create_bot answered 200 without a bot_id` | Unexpected 2xx body. | Check the printed body; retry. |
+| `No control-channel handshake 660s after create_bot` | The bot was never admitted, already stopped, or cannot reach your public URL. | Read the webhook lines above it (`bot.stopped` with `bot_event` `bot.notallowed` means lobby timeout), check `GET /health`, then Ctrl+C. |
+| `Dropping N action(s): control channel is not connected` / `Control channel is not connected: the bot has not sent its ready handshake yet` | The brain answered before the bot's `ready` frame arrived, or after the socket closed. | Wait for `Control channel ready`; if it never comes, see the row above. |
+| `Audio is already streaming. Use interrupt first.` | Two `say` actions overlapped. | Return one `say` per turn, or an `interrupt` first. |
+| `A second bot connected to the control socket: closing the older one.` | Two bots were created against the same public URL. | Run one agent process per bot, or use separate `PORT`s and tunnels. |
 | Bot joins but nothing is heard | The `/audio` socket never connected. | `live_audio_required.websocket_url` must be `wss://` and publicly reachable. |
 | Audio arrives, no transcripts | The provider is not a `*_streaming` one; a post-call provider does not feed the live webhook. | Keep `meetstream_streaming` or another streaming provider. |
 | Wake word never matches | The transcript is lowercased before matching, but the recogniser heard something else. | Check the log line for what was heard; set a simpler `WAKE_WORD`. |

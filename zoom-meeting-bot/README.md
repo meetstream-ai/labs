@@ -28,6 +28,65 @@ node index.js check       # validates config, no API call
 node index.js
 ```
 
+## What you should see
+
+`node index.js check` prints `Config is valid. This is the body that would be POSTed to /bots/create_bot (pwd and auth values shown as ***):` followed by the JSON body, and exits 0 without calling the API.
+
+`node index.js` on the happy path (host admits the bot and accepts the recording prompt):
+
+```
+Webhook receiver on http://localhost:3000/webhook
+callback_url: https://a1b2-203-0-113-0.ngrok-free.app/webhook
+
+Request (pwd and auth values shown as ***):
+{
+  "meeting_link": "https://zoom.us/j/123456789?pwd=***",
+  "bot_name": "MeetStream Notetaker",
+  "video_required": false,
+  "callback_url": "https://a1b2-203-0-113-0.ngrok-free.app/webhook",
+  "automatic_leave": { "recording_permission_denied_timeout": 60 }
+}
+
+Bot created.
+  bot_id        <bot_id>
+  transcript_id (none - no post-call provider set)
+  status        Joining
+
+Zoom gates recording on host consent. After bot.inmeeting the bot asks, then waits up to 60s for an answer.
+
+Waiting for webhooks until bot.done (gives up after 330 min; set MAX_SESSION_MINUTES to change).
+
+  <- bot.joining  bot_status=Joining
+  <- bot.in_waiting_room  bot_status=InWaitingRoom
+     Zoom waiting room. The host has to admit the bot before anything else happens.
+  <- bot.inmeeting  bot_status=InMeeting
+     In the meeting. On Zoom the bot now asks the host for recording permission, so expect a gap before bot.recording. ...
+  <- bot.recording_permission_allowed  bot_status=RecordingPermissionAllowed
+     Host granted recording permission.
+[INFO ] Zoom host granted recording permission
+    bot_id: <bot_id>
+  <- bot.recording  bot_status=Recording
+     Recording started.
+  <- bot.leaving  bot_status=Leaving
+  <- bot.stopped  bot_event=bot.stopped  bot_status=Stopped
+     Clean exit. bot.done follows as the final event.
+[INFO ] Bot finished: Stopped
+    bot_id: <bot_id>
+    recording_permission: allowed
+
+Post-call processing continues after the bot leaves. Keep listening for audio.processed / transcription.processed / bot.done.
+  <- audio.processed  bot_status=Stopped
+     post-call: audio.processed
+  <- bot.done  bot_status=Stopped
+     post-call: bot.done
+
+Pipeline complete. Shutting down.
+```
+
+When the host refuses the prompt you get `bot.recording_permission_denied` with `[WARN ] Zoom recording permission was denied` and its `fixes:` line, then `bot.stopped  bot_event=bot.denied`, then `bot.done`, and no recording. If the bot is never admitted, the terminal line is `bot.stopped  bot_event=bot.notallowed`.
+
+`node index.js listen` prints one line per delivery: `<ISO timestamp>  <event>  bot_status=<status>  bot=<bot_id>`.
+
 ## Environment variables
 
 | Variable | Required | Meaning |
@@ -45,6 +104,7 @@ node index.js
 | `WAITING_ROOM_TIMEOUT` | no | Seconds to wait in the waiting room. Zoom range 60-1200, API default 600. |
 | `EVERYONE_LEFT_TIMEOUT` | no | Leave once the count hits zero. Range 60-1800, API default 300. |
 | `IN_CALL_RECORDING_TIMEOUT` | no | Hard cap on recording. Range 600-18000, API default 14400. |
+| `MAX_SESSION_MINUTES` | no | Local cap: `node index.js` gives up and exits 1 if `bot.done` has not arrived after this many minutes. Default `330`. |
 | `TRANSCRIPT_PROVIDER` | no | `deepgram`, `assemblyai`, `sarvam`, `jigsawstack` or `meetstream`. `meeting_captions` is refused on Zoom. Unset means no transcript. |
 | `TRANSCRIPT_LANGUAGE` | no | Language for the provider. Default `en`. |
 | `RETENTION_HOURS` | no | `recording_config.retention.hours`. Unset means the API default of 720 (30 days). |
@@ -192,6 +252,8 @@ src/notify.js    stdout + optional JSON webhook alerts
 
 Every `automatic_leave` value is range-checked locally before the request goes out, so you get a clear error instead of a bare HTTP 400. Each create call carries an `Idempotency-Key`, and a `507` reply is treated as success - that status means an idempotent retry hit a request that already completed.
 
+Nothing secret is printed: the `?pwd=` passcode on the meeting link and the `auth=` value on a `zak_url` / `obf_url` are shown as `***` in the printed request body, in `check` output, in error messages and in alert-webhook payloads. The API key is only ever sent in the `Authorization` header.
+
 The receiver acknowledges each delivery with `200` before running the handler. MeetStream does not retry a failed or timed-out delivery, so a slow handler risks losing the event rather than seeing it again.
 
 ### Signatures
@@ -216,6 +278,16 @@ Deliveries to a per-bot `callback_url` are **not signed**. Signature verificatio
 | `bot_event: "bot.denied"` | The host refused the bot entry or recording. | Tell the host the bot is coming; make the bot's account a co-host. |
 | OBF joins suddenly fail for one user | Their connection was revoked: a Zoom password change, uninstalling the app, or 90+ days idle. | They need to reconnect through your token server. |
 | `Port 3000 is already in use` | Another process owns the port. | Set `PORT` to a free port and update the tunnel. |
+| `Configuration error: ... must be between <min> and <max>` / `meeting_captions is not available on Zoom` / `Set only one of ZOOM_ZAK_URL or ZOOM_OBF_URL` | A value in `.env` failed the local range or combination check (nothing was sent). | Fix the value; see the Environment variables table for ranges. |
+| `MeetStream 404 on /bots/create_bot` | `MEETSTREAM_BASE_URL` points at the wrong base, or the path was changed. | Use `https://api.meetstream.ai/api/v1`. |
+| `MeetStream 429` / `500` / `502` / `503` / `504` after a few seconds | Rate limit or transient server error; the client retried 3 times with backoff and gave up. | Wait a minute and run again. |
+| `Network error calling POST /bots/create_bot` | DNS, connection or 30 s timeout failure, retried 3 times. | Check connectivity and `MEETSTREAM_BASE_URL`. |
+| `WARN  No bot.inmeeting and no bot.stopped after N min` | The bot is stuck, or webhooks are not reaching `PUBLIC_WEBHOOK_URL`. | `curl <PUBLIC_WEBHOOK_URL>/healthz` through the tunnel; check `GET /bots/{bot_id}/status`. |
+| `Gave up waiting for bot.done after N minutes` (exit 1) | `bot.done` never arrived within `MAX_SESSION_MINUTES`: a lost delivery (they are not retried) or a very long meeting. | Check `GET /bots/{bot_id}/detail` for the media; raise `MAX_SESSION_MINUTES` for long sessions. |
+| `Rejected a webhook delivery: bad or missing signature.` | `WEBHOOK_SECRET` is set but the delivery came to a per-bot `callback_url`, which is never signed. | Unset `WEBHOOK_SECRET` for per-bot callbacks; use it only on a workspace endpoint. |
+| `Webhook handler threw: ...` | The handler crashed on one payload; the delivery was already acknowledged with 200. | Read the stack trace; the event is not redelivered. |
+| `(notify webhook returned HTTP ...)` / `(notify webhook failed: ...)` | `NOTIFY_WEBHOOK_URL` is unreachable or rejecting the JSON. | Fix or unset it; alerts still print to stdout. |
+| `{"message":"No handler for POST /..."}` in the tunnel log | `callback_url` path does not match `WEBHOOK_PATH`. | Keep them in sync; the default is `/webhook`. |
 
 ---
 

@@ -143,6 +143,7 @@ realtime-video-streaming/
 | `OUTPUT_DIR` | no | Default `./output` |
 | `VIDEO_RECORDING` | no | `true` also produces a post-call downloadable recording |
 | `MAX_RELAY_CLIENTS` | no | Default `5` |
+| `JOIN_TIMEOUT_MINUTES` | no | Give up, remove the bot and exit 1 if no `bot.inmeeting`, video bytes or `bot.stopped` arrive in this many minutes. Default `12` |
 | `RELAY_URL` | no | Used by `consumer-example.js`. Default `ws://localhost:3000/stream` |
 | `MEETSTREAM_BASE_URL` | no | API base URL. Default `https://api.meetstream.ai/api/v1` |
 | `NO_COLOR` | no | Set to anything to disable coloured terminal output |
@@ -157,6 +158,7 @@ realtime-video-streaming/
 | `400` from `create_bot` | Body failed validation | Check `meeting_link` and that `websocket_url` is `wss://`. |
 | `429` / `5xx` from the API | Rate limit or transient error | The client retries with backoff. |
 | `507` from `create_bot` | Idempotent replay | Treated as success; the earlier bot is used. |
+| `Gave up waiting for the bot to join after N minutes` | Nothing reached `/webhook` or `/video` within `JOIN_TIMEOUT_MINUTES` | Check `MEETING_LINK`, admit the bot, and `curl <public url>/health`; raise `JOIN_TIMEOUT_MINUTES` if the lobby wait is legitimately long. |
 | Bot joins but no `video_stream_start` | You are on Zoom | Live video is Google Meet and Teams only; use `video_required: true` and `GET /bots/{id}/get_video` instead. |
 | Connection opens then drops | Pongs are not going out | Every `video_latency_ping` must be answered; a sink that stops answering is treated as dead. |
 | `1009` close code / oversized frame | `maxPayload` on the WebSocket server is too small for a 1080p keyframe | Raise `maxPayload` (this template sets it above the `ws` default). |

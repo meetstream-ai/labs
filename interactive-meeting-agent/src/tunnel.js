@@ -42,7 +42,25 @@ export async function resolvePublicUrl(port) {
     );
   }
 
-  const listener = await ngrok.connect({ addr: port, authtoken });
+  // ngrok.connect can hang when the network is down. Cap it so startup fails
+  // with a clear message instead of waiting forever.
+  const NGROK_CONNECT_TIMEOUT_MS = 30_000;
+  let timer;
+  const listener = await Promise.race([
+    ngrok.connect({ addr: port, authtoken }),
+    new Promise((_, reject) => {
+      timer = setTimeout(
+        () =>
+          reject(
+            new Error(
+              `ngrok did not open a tunnel within ${NGROK_CONNECT_TIMEOUT_MS / 1000}s. ` +
+                "Check your network and NGROK_AUTHTOKEN, or set PUBLIC_URL instead."
+            )
+          ),
+        NGROK_CONNECT_TIMEOUT_MS
+      );
+    }),
+  ]).finally(() => clearTimeout(timer));
   return {
     url: listener.url().replace(/\/+$/, ""),
     source: "ngrok",

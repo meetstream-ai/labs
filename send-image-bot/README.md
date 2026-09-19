@@ -122,6 +122,44 @@ node index.js --bot-id <id> --img-url https://example.com/x.png --dry-run
 | `--dry-run` | Validate and print, call nothing |
 | `-h`, `--help` | Usage |
 
+## What you should see
+
+**Chat mode**, after the bot is already in the meeting (timestamps are local time):
+
+```
+──────────────────────────────────────────────────────────
+  MeetStream Labs: Send Image Bot
+  POST /bots/{id}/send_image: image into the meeting chat
+──────────────────────────────────────────────────────────
+
+10:42:05 i  Posting https://example.com/q3-chart.png into the chat of bot <bot_id> …
+10:42:06 ok send_image accepted
+10:42:06 ·  {
+10:42:06 ·    "message": "..."
+10:42:06 ·  }
+```
+
+The image appears in the meeting chat a moment later. If the request was an idempotent replay the line reads `send_image accepted (idempotent replay: already delivered)`.
+
+**Video-frame mode** creates its own bot and waits for the handshake:
+
+```
+10:42:01 i  Control server on port 3000
+10:42:03 i  Public URL (ngrok): https://a1b2-203-0-113-0.ngrok-free.app
+10:42:03 ·  socket_connection_url = wss://a1b2-203-0-113-0.ngrok-free.app/control
+10:42:03 i  Creating a bot for https://meet.google.com/abc-defg-hij …
+10:42:04 ok Bot created: <bot_id> (status: Joining)
+10:42:04 i  Waiting for the bot to join and open the control socket…
+10:42:04 ·  Press Ctrl+C to remove the bot and exit.
+10:42:31 ok Bot connected to the control socket
+10:42:31 ok Handshake received: bot <bot_id> is ready for commands
+10:42:31 ok sendimg_url sent → https://example.com/avatar.png
+```
+
+With several `--img-url` values the last line repeats as `sendimg_url [2/3] → ...` every `--interval` seconds after `Slideshow running: 3 frames every 15s`. On Ctrl+C or when `--duration` elapses you get `Bot <bot_id> removed from the meeting.`
+
+**`--dry-run`** prints the mode and each `img_url` followed by `--dry-run: no API calls made.` and exits 0 without touching the API.
+
 ## How video-frame mode works
 
 An existing bot has no control channel, so this mode creates its own:

@@ -70,6 +70,7 @@ That's it. Watch the terminal.
 | `MEETING_LINK` | yes | Google Meet, Zoom or Teams URL |
 | `PORT` | no | Local server port (default `3000`) |
 | `MAX_STREAM_CLIENTS` | no | Max simultaneous `/stream` consumers (default `10`) |
+| `JOIN_TIMEOUT_MINUTES` | no | Give up, remove the bot and exit if no `bot.inmeeting` (or `bot.stopped`) arrives in this many minutes (default `12`) |
 | `STREAM_URL` | no | Where `bridge.js` and `consumer-example.js` read audio from (default `ws://localhost:3000/stream`) |
 | `STT_PROVIDER` | no | Provider `bridge.js` forwards to: `console` (default), `deepgram`, `assemblyai`, `openai-whisper` |
 | `DEEPGRAM_API_KEY` | if `STT_PROVIDER=deepgram` | Deepgram key |
@@ -284,6 +285,7 @@ Speak in the meeting. With `STT_PROVIDER=console` you will see byte counters pro
 | 400 on `create_bot` | Bad `MEETING_LINK` or an unsupported option | Use the full meeting URL |
 | `ngrok tunnel failed` | Wrong `NGROK_AUTHTOKEN`, or a free account already has a tunnel open | Fix the token; close the other tunnel |
 | Bot stuck in the waiting room | Nobody admitted it; `waiting_room_timeout` is 600 s | Admit the bot; it ends as `bot.stopped` with `bot_event: bot.notallowed` otherwise |
+| `Gave up waiting for the bot to join after N minutes` | No `bot.inmeeting` or `bot.stopped` reached the webhook within `JOIN_TIMEOUT_MINUTES` | Check the meeting link and that the ngrok URL is reachable; raise `JOIN_TIMEOUT_MINUTES` if the lobby wait is legitimately long |
 | `bot.stopped` with `bot_event: bot.kicked` / `bot.denied` | A participant removed the bot, or the host refused | Rejoin with a new bot |
 | No audio frames received | The WebSocket URL is not `wss://` or not publicly reachable | Check the tunnel; audio is always captured (there is no `audio_required` opt-in) |
 | No transcript segments | `meeting_captions` depends on platform captions being available | Switch the provider to `deepgram: { model: "nova-3" }` in `src/meetstream.js` if you have a key |
@@ -294,7 +296,8 @@ Speak in the meeting. With `STT_PROVIDER=console` you will see byte counters pro
 
 | Concern | Status | Where |
 |---|---|---|
-| MeetStream API retry on 429/5xx | Yes: exponential backoff, respects `Retry-After`; 4xx fails fast | `src/meetstream.js` |
+| MeetStream API retry on 429/5xx | Yes: exponential backoff, respects `Retry-After`; 4xx fails fast with the API's `message` in the error | `src/meetstream.js` |
+| Bot never joins | Yes: bounded by `JOIN_TIMEOUT_MINUTES` (default 12); prints why it gave up, removes the bot, exits 1 | `index.js` |
 | Provider socket reconnect (Deepgram) | Yes: auto-reconnect with backoff, drops frames while down | `src/providers/reconnect-helper.js` |
 | Provider socket reconnect (AssemblyAI, OpenAI) | Not yet wired; follow the Deepgram pattern | `src/providers/*.js` |
 | Slow `/stream` consumer backpressure | Yes: disconnected if buffered output exceeds 2 MB | `src/broadcaster.js` |

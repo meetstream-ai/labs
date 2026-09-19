@@ -29,6 +29,40 @@
 
 import { randomUUID } from 'node:crypto';
 
+/** Query parameters that are credentials: a Zoom passcode, a mint-URL secret, tokens. */
+const SECRET_QUERY_PARAMS = new Set(['pwd', 'auth', 'token', 'secret', 'key', 'api_key', 'signature']);
+
+/**
+ * Deep-copy `value` with every credential-bearing query parameter inside any
+ * URL replaced by `***`. Used before a request body, a meeting link or an
+ * error message is printed or sent to the alert webhook, so `?pwd=` passcodes
+ * and the `auth=` secret on a zak_url / obf_url never reach a log.
+ */
+export function redactSecrets(value) {
+  if (typeof value === 'string') {
+    return value.replace(/https?:\/\/[^\s"'<>]+/g, (raw) => {
+      try {
+        const url = new URL(raw);
+        let changed = false;
+        for (const name of [...url.searchParams.keys()]) {
+          if (SECRET_QUERY_PARAMS.has(name.toLowerCase())) {
+            url.searchParams.set(name, '***');
+            changed = true;
+          }
+        }
+        return changed ? url.toString().replace(/%2A%2A%2A/g, '***') : raw;
+      } catch {
+        return raw;
+      }
+    });
+  }
+  if (Array.isArray(value)) return value.map(redactSecrets);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, redactSecrets(v)]));
+  }
+  return value;
+}
+
 /**
  * The `zoom` block for an authenticated join, or undefined for a guest join.
  * The API returns 400 when both URLs are sent, so refuse that up front.
@@ -39,7 +73,9 @@ export function buildZoomAuth({ zakUrl, obfUrl } = {}) {
   }
   for (const url of [zakUrl, obfUrl].filter(Boolean)) {
     if (!url.startsWith('https://')) {
-      throw new Error(`Zoom token URL must be https (bots run in the cloud and cannot reach localhost): ${url}`);
+      throw new Error(
+        `Zoom token URL must be https (bots run in the cloud and cannot reach localhost): ${redactSecrets(url)}`
+      );
     }
   }
   if (obfUrl && /[?&]meeting_number=/.test(obfUrl)) {
@@ -154,7 +190,7 @@ export async function createZoomBot(client, opts) {
 
   if (!meetingLink) throw new Error('createZoomBot requires a meetingLink.');
   if (!isZoomLink(meetingLink)) {
-    throw new Error(`"${meetingLink}" does not look like a Zoom meeting link.`);
+    throw new Error(`"${redactSecrets(meetingLink)}" does not look like a Zoom meeting link.`);
   }
 
   const body = {

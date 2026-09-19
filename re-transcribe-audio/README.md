@@ -2,6 +2,12 @@
 
 Re-run transcription on a MeetStream meeting bot that has already finished a Zoom, Google Meet or Microsoft Teams call, with a different provider, model or language, via `POST /bots/{bot_id}/transcribe`. The stored recording is untouched and every run gets its own `transcript_id`.
 
+## Prerequisites
+
+- Node.js 18 or newer (uses built-in `fetch`)
+- A MeetStream API key from [app.meetstream.ai](https://app.meetstream.ai)
+- A bot that has finished and has stored audio (past `audio.processed`, and inside its retention window, 30 days by default)
+
 ## What it does
 
 ```
@@ -23,12 +29,6 @@ This template triggers the run, works out which `transcript_id` is the new one, 
 **You want better quality.** The first pass used a fast, cheap provider. For the calls that turn out to matter, re-run with a higher-quality model, or with diarization enabled so you get speaker attribution you did not ask for the first time.
 
 **A streaming-only bot needs a post-call transcript.** This is the big one. A bot created with `deepgram_streaming` (or any `*_streaming` provider) delivers transcripts live over your webhook and **never produces a post-call transcript**: `GET /transcript/{id}/get_transcript` returns HTTP 202 forever, and its lifecycle never includes `transcription.processed` (it still ends with `bot.done`, like every bot). If your live consumer dropped chunks, crashed mid-meeting, or you simply want a durable record afterwards, `POST /bots/{id}/transcribe` with a post-call provider is how you get one. The audio was recorded either way.
-
-## Prerequisites
-
-- Node.js 18 or newer (uses built-in `fetch`)
-- A MeetStream API key from [app.meetstream.ai](https://app.meetstream.ai)
-- A bot that has finished and has stored audio (past `audio.processed`, and inside its retention window, 30 days by default)
 
 ## Setup
 
@@ -60,6 +60,48 @@ PROVIDER=deepgram node index.js <bot_id>
 CALLBACK_URL=https://your-server.example.com/webhook \
 WAIT_FOR_TRANSCRIPT=false node index.js <bot_id>
 ```
+
+## What you should see
+
+With the defaults, a successful run prints roughly this (ids shortened):
+
+```
+Bot      : <bot_id>
+Provider : deepgram
+Config   : {"model":"nova-3"}
+
+Existing transcription runs (1):
+  <transcript_id_1>  provider=deepgram_streaming  status=Success  created=2026-09-18T10:02:11Z
+
+POST /bots/<bot_id>/transcribe
+Accepted.
+
+New transcript_id: <transcript_id_2>
+  provider=deepgram  status=Processing
+
+GET /transcript/<transcript_id_2>/get_transcript?raw=false
+  HTTP 202 - transcription still running (1/36)...
+  HTTP 202 - transcription still running (2/36)...
+
+42 segment(s) → 9 speaker turn(s)
+
+------------------------------------------------------------------------------
+
+[00:12] Alice
+    Can you walk me through the roadmap?
+
+[00:15] Bob
+    Sure, there are three tiers ...
+
+------------------------------------------------------------------------------
+
+Saved JSON → transcripts/<transcript_id_2>.json
+Saved text → transcripts/<transcript_id_2>.txt
+```
+
+Two files land in `OUTPUT_DIR` (default `transcripts/`): `<transcript_id>.json` is the raw API response, and `<transcript_id>.txt` is the readable speaker-turn version with a short header.
+
+With `WAIT_FOR_TRANSCRIPT=false` the run stops after `New transcript_id: ...` and prints `WAIT_FOR_TRANSCRIPT=false - not polling.` plus a `transcript-fetcher` command you can use later.
 
 ## Environment variables
 

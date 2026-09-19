@@ -101,7 +101,14 @@ export function scan(store, now = Date.now()) {
   return findings;
 }
 
-/** Periodic scan that logs findings. Returns a stop function. */
+/**
+ * Periodic scan that logs findings. Returns a stop function.
+ *
+ * This is a long-running timer that runs until the process exits (Ctrl+C); it
+ * is not a wait loop. The cap on how long any one bot is waited on lives in
+ * STATE_TIMEOUTS_MS: past its budget a bot is reported as stuck, past 4x the
+ * budget as abandoned, and it is never treated as "still coming".
+ */
 export function startMonitor(store, { intervalMs = 30_000, onFinding } = {}) {
   const tick = () => {
     const findings = scan(store);

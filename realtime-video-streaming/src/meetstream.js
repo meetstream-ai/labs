@@ -108,7 +108,9 @@ export class MeetStreamClient {
       // 202 = accepted but still processing. Handed back for the caller to poll.
       if (res.ok || res.status === 202) return { status: res.status, data };
 
-      const message = data?.message || text || `HTTP ${res.status}`;
+      // Surface the API's own error text: MeetStream uses `message`, some
+      // routes use `error` or `detail`.
+      const message = data?.message || data?.error || data?.detail || text || `HTTP ${res.status}`;
 
       if (res.status === 429 || res.status >= 500) {
         lastError = new MeetStreamError(message, res.status, path);
@@ -143,6 +145,13 @@ export class MeetStreamClient {
       headers: { "Idempotency-Key": randomUUID() },
     });
     if (replayed) this.logger?.info("create_bot replayed an earlier identical request (507).");
+    if (!data?.bot_id) {
+      throw new MeetStreamError(
+        `create_bot responded without a bot_id: ${JSON.stringify(data).slice(0, 300)}`,
+        0,
+        "/bots/create_bot"
+      );
+    }
     return data;
   }
 

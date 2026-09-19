@@ -93,6 +93,64 @@ node index.js --bot 8f2c1a3e-... --emails "buyer@acme.com"                      
 node index.js --transcript 4b71d0ca-... --emails "buyer@acme.com"                         # replay
 ```
 
+## What you should see
+
+Replay mode (`--bot <bot_id>`), with no LLM key set:
+
+```text
+=== MeetStream Labs · CRM HubSpot Sync ===
+
+LLM for action items: none
+Looking up the transcript_id for bot <bot_id>...
+Found transcript_id: <transcript_id>
+
+Fetching transcript <transcript_id> ...
+Got 142 transcript segments.
+
+Matching on: buyer@acme.com, champion@acme.com
+  Matched buyer@acme.com to contact <contact_id> (Jane Buyer)
+  No HubSpot contact found for champion@acme.com. Skipping.
+  Deal <deal_id>: Acme - Platform rollout [qualifiedtobuy]
+  No LLM key set, skipping action items. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.
+Extracted 0 action items.
+Logged note <note_id> on 1 contact(s) and 1 deal(s).
+https://app.hubspot.com/contacts/<portal_id>/objects/0-46/<note_id>
+
+Done.
+```
+
+The last URL is printed only when `HUBSPOT_PORTAL_ID` is set; otherwise the line reads `note <note_id>`. With `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` set, the first line reads `LLM for action items: openai/gpt-4o-mini` (or `anthropic/claude-sonnet-4-5`) and `Extracted N action items.` reports what the model found.
+
+Live mode (`--meeting <url>`) first prints the webhook server and the created bot, then one line per lifecycle event until the transcript is ready, then the same tail as above:
+
+```text
+Webhook server listening on http://localhost:3000
+Public callback_url: https://<your-tunnel>/webhook
+
+Bot created.
+  bot_id        : <bot_id>
+  transcript_id : <transcript_id>
+  status        : Joining
+
+Waiting for the meeting to finish...
+
+[bot.joining] Bot is dialling into the meeting.
+[bot.in_waiting_room] Bot is in the waiting room - someone needs to admit it.
+[bot.inmeeting] Bot joined the meeting.
+[bot.recording] Recording started.
+[bot.leaving] Bot is leaving.
+[bot.stopped] Bot stopped: bot.stopped (status_code 200)
+[manifest.completed] ...
+[audio.processed] ...
+[transcription.processed] Transcript is ready.
+
+Fetching transcript <transcript_id> ...
+  Transcript not ready (HTTP 202) - retry 1/20 in 5000ms
+Got 142 transcript segments.
+```
+
+Exit codes: `0` after `Done.`; `1` on a missing variable (`Missing required environment variable: MEETSTREAM_API_KEY`), on `bot.stopped` with `bot_event` `bot.notallowed`, `bot.denied` or `bot.failed`, on `transcription.failed`, on `bot.done` arriving before `transcription.processed`, or when `get_transcript` is still 202 after `TRANSCRIPT_POLL_ATTEMPTS`.
+
 ## How it works
 
 ```

@@ -22,6 +22,7 @@ import {
   createClient,
   intEnv,
   optionalEnv,
+  requireEnv,
 } from './src/client.js';
 import { generateCertPair, opensslAvailable } from './src/certs.js';
 import { createDomain, getDomain, listDomains, listLogins } from './src/domains.js';
@@ -251,8 +252,18 @@ async function main() {
     return;
   }
 
-  // Everything below talks to the API.
-  const client = createClient();
+  // Everything below talks to the API. Fail fast on the key before any request
+  // goes out, and catch the untouched .env.example placeholder too.
+  const apiKey = requireEnv(
+    'MEETSTREAM_API_KEY',
+    'Create one at https://app.meetstream.ai and put it in your .env file.'
+  );
+  if (/^your_.*_here$/i.test(apiKey)) {
+    throw new ConfigError(
+      'MEETSTREAM_API_KEY still has the placeholder value from .env.example. Paste your real key.'
+    );
+  }
+  const client = createClient({ apiKey });
 
   switch (command) {
     case 'register-domain':
@@ -281,6 +292,7 @@ main().catch((error) => {
     console.error(`\n${error.message}`);
     if (error.status === 401) console.error('Your MEETSTREAM_API_KEY is missing or malformed.');
     if (error.status === 403) console.error('That API key is not valid for this workspace.');
+    if (error.status === 404) console.error('No such domain or login on this API key. Run "node index.js status".');
   } else {
     console.error(`\n${error.message}`);
     if (process.env.DEBUG) console.error(error.stack);

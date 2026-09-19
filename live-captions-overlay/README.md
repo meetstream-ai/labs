@@ -180,13 +180,24 @@ Worth knowing:
 
 **Both handlers ACK immediately** and do their work after responding. A slow webhook handler stalls the delivery pipeline and you start dropping captions.
 
+**Every API call is checked, and nothing polls.** `src/client.js` makes exactly one request per call with a 30 s timeout: a 2xx or 507 is returned, any other status throws `HTTP <status> - <API message> - <hint>`, and no response at all throws `Network error calling <METHOD> <path>: ...`. There is no retry loop and no polling loop anywhere in this template; the process is a receiver that runs until Ctrl-C. The one wait that is not event-driven, the gap between `create_bot` and the first lifecycle webhook, is capped at 660 s (the default `waiting_room_timeout` plus a minute), after which the panel prints `no lifecycle event 660s after create_bot` with what to check.
+
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `MEETSTREAM_API_KEY is not set` | No `.env`, or an empty key. | `cp .env.example .env` and paste your key. |
-| HTTP 401 / 403 | No key was sent, or the key was rejected. | The header is `Authorization: Token <key>`; regenerate the key if 403 persists. |
-| `HTTP 400` on `create_bot` | `live_transcription_required` was paired with a post-call provider. | Use the `_streaming` variant. |
+| `MEETSTREAM_API_KEY is not set` | No `.env`, or an empty key. Checked before the server starts. | `cp .env.example .env` and paste your key. |
+| `MeetStream API error: HTTP 401 - ...` / `HTTP 403 - ...` | 401: no key was sent. 403: the key was rejected. | The header is `Authorization: Token <key>`; regenerate the key if 403 persists. |
+| `MeetStream API error: HTTP 400 - ...` on `create_bot` | `live_transcription_required` was paired with a post-call provider (the local check catches the known names first), or a bad `meeting_link` / `RETENTION_HOURS`. | Use the `_streaming` variant; check the link and the retention value. |
+| `MeetStream API error: HTTP 404 - ...` on `remove_bot` at Ctrl-C | The bot had already left and been cleaned up. | Nothing to do. |
+| `MeetStream API error: HTTP 409 - ...` | An equivalent `create_bot` with the same `Idempotency-Key` is already in flight. | Re-run; each start uses a fresh key. |
+| `MeetStream API error: HTTP 429 - ...` / `HTTP 5xx - ...` | Rate limited or a transient server problem. This template does not retry. | Wait a moment and re-run. |
+| `HTTP 507 - idempotent replay, returning the original bot. Not an error.` | The same `Idempotency-Key` was seen before. | Nothing to do. |
+| `Network error calling POST /bots/create_bot: no response within 30s` | No connectivity, or a wrong `MEETSTREAM_API_BASE_URL`. | Check the network and the base URL. |
+| `create_bot did not return a bot_id` | Unexpected 2xx body. | Check the printed body; re-run. |
+| `no lifecycle event 660s after create_bot` in the panel | MeetStream cannot reach `PUBLIC_URL`, or the bot already ended before the tunnel was up. | `curl https://<your-url>/health`, then `GET /bots/{bot_id}/detail`; Ctrl-C removes the bot. |
+| `"<provider>" is a post-call provider` / `Unknown provider` / `"meeting_captions" uses the meeting platform's own captions` | `PROVIDER` cannot drive live captions. Rejected before any request. | Set one of `deepgram_streaming`, `assemblyai_streaming`, `jigsawstack_streaming`, `meetstream_streaming`. |
+| `Provide a meeting link` / `PUBLIC_URL is not set` / `PORT must be a positive integer` | Required input missing or malformed. | Pass the link as the first argument or `MEETING_LINK`; set `PUBLIC_URL` and a numeric `PORT`. |
 | `PUBLIC_URL must be an https:// URL` | MeetStream requires HTTPS. `localhost` and plain `http://` cannot receive webhooks. | Start `ngrok http 3000` and use its https URL. |
 | `Port 3000 is already in use` | Another process owns the port. | Stop it or set `PORT`. |
 | No captions, but the bot is in the meeting | MeetStream cannot reach `PUBLIC_URL`. | Check the tunnel is up and `curl https://<your-url>/health` returns `{"status":"ok"}`. |

@@ -98,11 +98,19 @@ export async function createSignedInBot(client, opts) {
     body.automatic_leave = { waiting_room_timeout: waitingRoomTimeout };
   }
 
-  const { data, replayed } = await client.request('/bots/create_bot', {
+  const { status, data, replayed } = await client.request('/bots/create_bot', {
     method: 'POST',
     body,
     idempotencyKey: randomUUID(),
   });
+
+  // A 2xx is not enough: the bot is only usable if the API handed back its id.
+  if (!data || typeof data !== 'object' || !data.bot_id) {
+    throw new Error(
+      `create_bot answered ${status} but returned no bot_id: ${JSON.stringify(data)}. ` +
+        'Nothing to track; check the request above and the API message.'
+    );
+  }
 
   return { bot: data, replayed, request: body };
 }

@@ -40,6 +40,13 @@ const overlay = new CaptionOverlay({ maxLines: CAPTION_LINES });
 let activeBotId = null;
 let shuttingDown = false;
 
+// The one wait in this process that is not driven by an event: the gap between
+// create_bot and the first lifecycle webhook. It is capped at the default
+// waiting_room_timeout (600 s) plus a minute, after which the overlay says what
+// to check instead of sitting silent. Cleared by the first webhook.
+const FIRST_EVENT_TIMEOUT_MS = (600 + 60) * 1000;
+let firstEventTimer = null;
+
 function handleCaption(rawChunk) {
   const chunk = normalizeChunk(rawChunk);
   if (!chunk.text) return;
@@ -47,6 +54,11 @@ function handleCaption(rawChunk) {
 }
 
 function handleLifecycle(payload) {
+  if (firstEventTimer) {
+    clearTimeout(firstEventTimer);
+    firstEventTimer = null;
+  }
+
   // `event` is always present. `bot_event` carries the specific name and, on
   // terminals, the reason (event "bot.stopped", bot_event "bot.kicked", ...).
   const { event, bot_id: botId, bot_status: botStatus, message, status_code: statusCode } = payload;
@@ -266,6 +278,16 @@ async function main() {
   );
 
   overlay.setStatus(`bot ${activeBotId} dispatched`);
+
+  firstEventTimer = setTimeout(() => {
+    firstEventTimer = null;
+    overlay.note(
+      `no lifecycle event ${FIRST_EVENT_TIMEOUT_MS / 1000}s after create_bot. MeetStream cannot ` +
+        `reach ${PUBLIC_URL}/webhook, or the bot already ended. Check the tunnel ` +
+        `(curl ${PUBLIC_URL}/health) and GET /bots/${activeBotId}/detail, or Ctrl-C to stop.`,
+    );
+  }, FIRST_EVENT_TIMEOUT_MS);
+  firstEventTimer.unref();
 }
 
 process.on("SIGINT", () => void shutdown(0));
