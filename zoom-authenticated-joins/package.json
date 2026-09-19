@@ -1,8 +1,8 @@
 {
-  "name": "@meetstream-labs/zoom-oauth-connections",
+  "name": "@meetstream-labs/zoom-authenticated-joins",
   "version": "1.0.0",
   "private": true,
-  "description": "Walk the hosted Zoom OAuth flow end to end: authorize URL, local callback listener, code exchange, then list, get, and delete stored connections.",
+  "description": "Host the Zoom OAuth grant and the ZAK / OBF mint URL that MeetStream bots call at join time, then create a bot with zoom.zak_url or zoom.obf_url.",
   "type": "module",
   "main": "index.js",
   "engines": {
@@ -10,14 +10,14 @@
   },
   "scripts": {
     "start": "node index.js",
-    "connect": "node index.js connect",
-    "list": "node index.js list"
+    "create-bot": "node index.js create-bot"
   },
   "keywords": [
     "meetstream",
     "meeting-bot",
     "zoom",
     "oauth",
+    "zak",
     "obf"
   ],
   "license": "MIT",

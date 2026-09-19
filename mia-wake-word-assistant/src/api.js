@@ -18,16 +18,19 @@ const STATUS_HELP = {
   503: 'MeetStream is temporarily unavailable. Retry shortly.'
 };
 
-// Bot statuses that mean the session is over and there is nothing left to wait for.
+// Bot statuses that mean the session is over and there is nothing left to wait for,
+// lowercased. The API's casing varies (a failure can read FAILED, ERROR or Failed),
+// so isTerminalStatus() compares case-insensitively.
 const TERMINAL_BOT_STATUSES = new Set([
-  'Stopped',
-  'Kicked',
-  'Denied',
-  'NotAllowed',
-  'Error',
-  'MediaProcessing',
-  'Done',
-  'MediaExpired'
+  'stopped',
+  'kicked',
+  'denied',
+  'notallowed',
+  'error',
+  'failed',
+  'mediaprocessing',
+  'done',
+  'mediaexpired'
 ]);
 
 export class MeetStreamError extends Error {
@@ -182,7 +185,7 @@ export async function removeBot(apiKey, botId) {
 }
 
 export function isTerminalStatus(status) {
-  return TERMINAL_BOT_STATUSES.has(status);
+  return typeof status === 'string' && TERMINAL_BOT_STATUSES.has(status.toLowerCase());
 }
 
 /**

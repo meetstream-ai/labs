@@ -1,7 +1,7 @@
 /**
  * Turns a MeetStream webhook payload into a lobby decision.
  *
- * A real delivery looks like this (captured from the docs' signing example):
+ * A real delivery looks like this:
  *
  *   {
  *     "bot_id": "a29d00c3-...",
@@ -14,46 +14,51 @@
  *     "timestamp": "2026-08-09T07:16:44.675Z"
  *   }
  *
- * Payloads carry the event name under `event`, with `bot_event` as an alias.
- * We read `event` first and fall back to `bot_event`.
+ * `event` is always present and is the generic name. `bot_event` is the
+ * specific name: it equals `event` on every event except terminals.
  *
- * IMPORTANT: branch on `bot_status`, not on the event name or the status code.
- * Depending on how a terminal outcome is reported you may see either
- * `bot.stopped` carrying a `bot_status` that says why, or the more specific
- * `bot.notallowed` / `bot.denied` / `bot.kicked` / `bot.failed` events. The
- * `bot_status` value is the same in both shapes:
+ * IMPORTANT: every ending arrives exactly once as `event: "bot.stopped"`, and
+ * the REASON is in `bot_event`. Branch on that, not on `bot_status` or the
+ * status code:
  *
- *   Stopped     clean exit (meeting ended, API stop, host ended the call)
- *   NotAllowed  never admitted before waiting_room_timeout elapsed
- *   Denied      a host explicitly rejected the join request
- *   Error       unexpected failure in the bot lifecycle
+ *   bot_event        status_code  bot_status               meaning
+ *   bot.stopped      200          Stopped                  clean exit (meeting ended, API stop)
+ *   bot.kicked       200          Stopped                  a participant removed the bot
+ *   bot.notallowed   500          NotAllowed               never admitted before waiting_room_timeout
+ *   bot.denied       500          Denied                   a host explicitly rejected the join request
+ *   bot.failed       usually 500  FAILED / ERROR / Failed  unexpected failure in the bot lifecycle
+ *
+ * `bot_status` cannot tell a kick from a clean exit and its failure casing
+ * varies, so it is only a case-insensitive fallback when `bot_event` is absent.
+ * `bot.done` still follows every ending; this template acts on bot.stopped
+ * because the lobby decision (retry or not) is already known at that point.
  */
 
 export const LOBBY_OUTCOME = {
   STOPPED: 'Stopped',
+  KICKED: 'Kicked',
   NOT_ALLOWED: 'NotAllowed',
   DENIED: 'Denied',
   ERROR: 'Error',
 };
 
-const TERMINAL_EVENTS = new Set([
-  'bot.stopped',
-  'bot.notallowed',
-  'bot.denied',
-  'bot.kicked',
-  'bot.failed',
-]);
+/** bot_event reason -> outcome. */
+const REASON_TO_OUTCOME = {
+  'bot.stopped': LOBBY_OUTCOME.STOPPED,
+  'bot.kicked': LOBBY_OUTCOME.KICKED,
+  'bot.notallowed': LOBBY_OUTCOME.NOT_ALLOWED,
+  'bot.denied': LOBBY_OUTCOME.DENIED,
+  'bot.failed': LOBBY_OUTCOME.ERROR,
+};
 
-const TERMINAL_STATUSES = new Set([
-  LOBBY_OUTCOME.STOPPED,
-  LOBBY_OUTCOME.NOT_ALLOWED,
-  LOBBY_OUTCOME.DENIED,
-  LOBBY_OUTCOME.ERROR,
-]);
-
-/** Event name, tolerant of either envelope key. */
+/** Generic event name (`event` is always present). */
 export function eventName(payload) {
   return payload?.event ?? payload?.bot_event ?? null;
+}
+
+/** Specific event name: on a terminal this is the stop reason. */
+export function specificEventName(payload) {
+  return payload?.bot_event ?? payload?.event ?? null;
 }
 
 export function botStatus(payload) {
@@ -61,8 +66,22 @@ export function botStatus(payload) {
 }
 
 /**
+ * The reason a bot stopped: `bot_event`, or when that is missing, `bot_status`
+ * compared case-insensitively.
+ */
+export function stopReason(payload) {
+  if (payload?.bot_event) return payload.bot_event;
+  const status = String(payload?.bot_status ?? '').toLowerCase();
+  if (status === 'notallowed') return 'bot.notallowed';
+  if (status === 'denied') return 'bot.denied';
+  if (status === 'error' || status === 'failed') return 'bot.failed';
+  return 'bot.stopped';
+}
+
+/**
  * @returns {{
  *   event: string|null,
+ *   specific: string|null,
  *   status: string|null,
  *   botId: string|null,
  *   message: string|null,
@@ -76,28 +95,22 @@ export function botStatus(payload) {
  */
 export function classify(payload) {
   const event = eventName(payload);
+  const specific = specificEventName(payload);
   const status = botStatus(payload);
   const botId = payload?.bot_id ?? null;
   const message = payload?.message ?? null;
+  const statusLower = String(status ?? '').toLowerCase();
 
-  const terminal = TERMINAL_STATUSES.has(status) || TERMINAL_EVENTS.has(event);
-  const waiting = event === 'bot.in_waiting_room' || status === 'InWaitingRoom';
-  const admitted = event === 'bot.inmeeting' || status === 'InMeeting';
+  const terminal = event === 'bot.stopped';
+  const waiting = specific === 'bot.in_waiting_room' || statusLower === 'inwaitingroom';
+  const admitted = specific === 'bot.inmeeting' || statusLower === 'inmeeting';
 
   let outcome = null;
   let retryable = false;
   let reason = '';
 
   if (terminal) {
-    outcome = TERMINAL_STATUSES.has(status)
-      ? status
-      : event === 'bot.notallowed'
-        ? LOBBY_OUTCOME.NOT_ALLOWED
-        : event === 'bot.denied'
-          ? LOBBY_OUTCOME.DENIED
-          : event === 'bot.failed'
-            ? LOBBY_OUTCOME.ERROR
-            : LOBBY_OUTCOME.STOPPED;
+    outcome = REASON_TO_OUTCOME[stopReason(payload)] ?? LOBBY_OUTCOME.ERROR;
 
     switch (outcome) {
       case LOBBY_OUTCOME.NOT_ALLOWED:
@@ -112,6 +125,11 @@ export function classify(payload) {
         retryable = false;
         reason = 'A host explicitly denied the bot\'s join request.';
         break;
+      case LOBBY_OUTCOME.KICKED:
+        // It got in, then a participant removed it. Sending it back would be rude.
+        retryable = false;
+        reason = 'A participant removed the bot from the meeting.';
+        break;
       case LOBBY_OUTCOME.ERROR:
         retryable = false;
         reason = 'The bot failed with an unexpected error. Check the bot detail endpoint.';
@@ -122,5 +140,5 @@ export function classify(payload) {
     }
   }
 
-  return { event, status, botId, message, terminal, outcome, admitted, waiting, retryable, reason };
+  return { event, specific, status, botId, message, terminal, outcome, admitted, waiting, retryable, reason };
 }

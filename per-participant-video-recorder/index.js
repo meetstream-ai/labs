@@ -120,6 +120,24 @@ async function main() {
 }
 
 /**
+ * Why the bot stopped: `bot_event` on a `bot.stopped` delivery
+ * (bot.stopped | bot.kicked | bot.notallowed | bot.denied | bot.failed).
+ * Falls back to `bot_status`, compared case-insensitively, only when
+ * `bot_event` is missing.
+ *
+ * @param {object} payload
+ * @returns {string}
+ */
+function stopReason(payload) {
+  if (payload?.bot_event) return payload.bot_event;
+  const status = String(payload?.bot_status ?? '').toLowerCase();
+  if (status === 'notallowed') return 'bot.notallowed';
+  if (status === 'denied') return 'bot.denied';
+  if (status === 'error' || status === 'failed') return 'bot.failed';
+  return 'bot.stopped';
+}
+
+/**
  * Routes incoming webhook events per MeetStream's real event set.
  *
  * @param {object} params
@@ -138,14 +156,17 @@ async function handleWebhookEvent({ eventType, payload }) {
 
     // Terminal lifecycle event - covers the bot leaving on its own,
     // being kicked/removed by a host, timing out in a waiting room, or
-    // erroring out. bot_status distinguishes which.
+    // erroring out. bot_event carries the reason (bot_status can't tell a
+    // kick from a clean exit, and its failure casing varies).
     case 'bot.stopped': {
       state.botStopped = true;
-      const botStatus = payload.bot_status ?? 'Unknown';
-      if (botStatus === 'Stopped') {
-        logger.info('Bot left the meeting (left on its own, or was removed).');
+      const reason = stopReason(payload);
+      if (reason === 'bot.stopped') {
+        logger.info('Bot left the meeting.');
+      } else if (reason === 'bot.kicked') {
+        logger.info('Bot was removed from the meeting by a participant.');
       } else {
-        logger.error(`Bot stopped abnormally (${botStatus}): ${payload.message ?? ''}`);
+        logger.error(`Bot stopped abnormally (${reason}): ${payload.message ?? ''}`);
       }
       await finalizeMeeting({ alreadyLeft: true });
       break;

@@ -35,7 +35,7 @@ Two rules follow, and both are implemented in `src/streams.js` and `index.js`:
 
 The cap lives in `STREAMS_POLL_MAX_ATTEMPTS` (default 40 attempts × 15s = 10 minutes). When it trips, the error message tells you the streaming-provider case is the likely cause instead of failing silently.
 
-The same distinction shows up in the webhook lifecycle: streaming-only bots **end at `audio.processed`** and never emit `bot.done`.
+The same distinction shows up in the webhook lifecycle: streaming-only bots never emit `transcription.processed`. They still end with `bot.done`, which is the final event on every path, so do not treat `audio.processed` as the end.
 
 ## Prerequisites
 

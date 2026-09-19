@@ -35,10 +35,9 @@ export function createBotEventTracker() {
 
   return {
     handle(event) {
-      // Live API sends `event`; `bot_event` is a legacy/doc alias kept only as a fallback.
+      // `event` is always present. Every ending arrives once with event
+      // `bot.stopped`; the reason (bot.kicked, bot.notallowed, ...) is in bot_event.
       const name = event.event || event.bot_event;
-      // `bot.stopped` is the ONE terminal event - `bot_status` says why
-      // (Stopped | NotAllowed | Denied | Error). There are no separate kicked/denied events.
       if (!event.bot_id || name !== 'bot.stopped') return;
       terminalBots.add(event.bot_id);
       waiters.get(event.bot_id)?.();
@@ -60,6 +59,18 @@ export function createBotEventTracker() {
   };
 }
 
+// Why a bot ended. `bot_event` is authoritative; when it is missing, fall back to
+// bot_status compared case-insensitively. A kick and a clean exit both report
+// bot_status "Stopped", so bot_status alone cannot tell them apart.
+export function terminalReason(payload = {}) {
+  if (payload.bot_event) return payload.bot_event;
+  const status = String(payload.bot_status || '').toLowerCase();
+  if (status === 'notallowed') return 'bot.notallowed';
+  if (status === 'denied') return 'bot.denied';
+  if (status === 'error' || status === 'failed') return 'bot.failed';
+  return 'bot.stopped';
+}
+
 export function formatWebhookEvent(payload = {}) {
   const { bot_event = '', event = '', bot_status = '', message = '' } = payload;
   const heard = payload.new_text
@@ -67,18 +78,22 @@ export function formatWebhookEvent(payload = {}) {
     || payload.channel?.alternatives?.[0]?.transcript
     || payload.result?.channel?.alternatives?.[0]?.transcript
     || (payload.end_of_turn ? payload.transcript : '');
-  // Live API sends `event`; `bot_event` is a legacy/doc alias kept only as a fallback.
-  const name = event || bot_event;
+  // `event` is the generic name and always present; `bot_event` is the specific
+  // one (equal to `event` except on terminals).
+  const name = bot_event || event;
   if (heard?.trim()) return `Heard: ${heard.trim()}`;
   if (name === 'bot.in_waiting_room') return '⏳ Waiting to be admitted';
   if (name === 'bot.inmeeting') return '✅ Bot joined the meeting';
   if (name === 'bot.recording') return '✅ Bot is listening';
   if (name === 'bot.leaving') return '⏳ Bot is leaving';
-  // `bot.stopped` is terminal - bot_status carries the reason. status_code stays 200.
-  if (name === 'bot.stopped') {
-    if (bot_status === 'NotAllowed') return '❌ Never admitted (waiting-room timeout)';
-    if (bot_status === 'Denied') return '❌ The host denied the bot entry';
-    if (bot_status === 'Error') return `❌ Bot ended with an error${message ? `: ${message}` : ''}`;
+  // Every ending arrives as event `bot.stopped`; bot_event carries the reason.
+  // status_code is 200 for a clean exit or kick, 500 for notallowed/denied/failed.
+  if ((event || bot_event) === 'bot.stopped') {
+    const reason = terminalReason(payload);
+    if (reason === 'bot.kicked') return '⚠️ A participant removed the bot from the meeting';
+    if (reason === 'bot.notallowed') return '❌ Never admitted (waiting-room timeout)';
+    if (reason === 'bot.denied') return '❌ The host denied the bot entry';
+    if (reason === 'bot.failed') return `❌ Bot ended with an error${message ? `: ${message}` : ''}`;
     return '✅ MeetStream reports the bot stopped';
   }
   // `bot.error` is NON-terminal (e.g. streaming provider upstream issue) - the bot keeps running.

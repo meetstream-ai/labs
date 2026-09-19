@@ -144,7 +144,7 @@ Anything a job omits falls back to the `DEFAULT_*` values in `.env`.
 Two attributes are stamped onto every bot automatically:
 
 - `batch_id` so you can find every bot from a run later
-- `streaming_only` (`"true"` / `"false"`) because webhooks never carry the transcription provider, and the provider decides whether the event stream ends at `bot.done` or at `audio.processed`
+- `streaming_only` (`"true"` / `"false"`) because webhooks never carry the transcription provider, and the provider decides whether `transcription.processed` will ever arrive (streaming-only providers never send it). Either way the stream ends at `bot.done`; `audio.processed` is never final
 
 ## The report
 

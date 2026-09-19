@@ -160,7 +160,7 @@ app.post("/webhook", (req, res) => {
     log.warn(`Streaming provider error (bot continues): ${body.message ?? "no detail"}`);
   }
   if (body.event === "bot.stopped") {
-    log.warn(`Bot stopped. Reason: ${body.bot_status ?? "unknown"}`);
+    log.warn(`Bot stopped. Reason: ${body.bot_event ?? "unknown"} (bot_status: ${body.bot_status ?? "n/a"})`);
   }
 });
 
@@ -266,8 +266,9 @@ async function main() {
       transcript: {
         // meetstream_streaming is the built-in streaming provider and needs no
         // extra API key. Streaming-only providers produce no post-call transcript:
-        // the lifecycle ends at audio.processed, bot.done never fires, and
-        // GET /transcript/{id}/get_transcript returns 202 forever.
+        // no transcription.processed is sent and GET /transcript/{id}/get_transcript
+        // returns 202 forever. bot.done still arrives last (audio.processed is
+        // not final), so treat bot.done as "session finished".
         provider: { meetstream_streaming: {} },
       },
       retention: { type: "timed", hours: 24 },

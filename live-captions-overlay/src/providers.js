@@ -7,8 +7,8 @@
  * finished recording and have nothing to send while the meeting is running.
  *
  * The trade-off runs the other way too: a bot configured with a streaming
- * provider produces NO post-call transcript. Its lifecycle ends at
- * `audio.processed` - no `transcription.processed`, no `bot.done` - and
+ * provider produces NO post-call transcript: no `transcription.processed`
+ * (bot.done still fires at the end), and
  * `GET /transcript/{id}/get_transcript` returns HTTP 202 forever.
  */
 

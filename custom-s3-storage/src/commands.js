@@ -5,7 +5,7 @@ import { DEFAULT_BASE_URL, interpretBotStatus, MeetStreamClient } from './client
 import { buildStorageConfig, CONFIG_TYPE, DEFAULT_PREFIX, KEY_NAME, redactConfig } from './config.js';
 import { log } from './log.js';
 import { createWaiter, envBool, envInt, optionalEnv, requireEnv } from './util.js';
-import { createWebhookApp, listen } from './webhook.js';
+import { createWebhookApp, listen, terminalReason } from './webhook.js';
 
 /**
  * The four commands.
@@ -258,8 +258,9 @@ export async function commandRecord(options) {
 }
 
 /**
- * Webhook events worth reacting to. `bot.stopped` is terminal regardless of the
- * reason it reports, and always carries status_code 200.
+ * Webhook events worth reacting to. Every ending arrives as event `bot.stopped`
+ * with the reason in `bot_event` (bot.stopped, bot.kicked, bot.notallowed,
+ * bot.denied, bot.failed); status_code is 200 or 500 depending on the reason.
  *
  * @param {any} state
  * @param {string} event
@@ -275,9 +276,9 @@ function handleEvent(state, event, payload) {
       break;
     case 'bot.stopped': {
       state.botStopped = true;
-      const reason = payload.bot_status ?? 'Stopped';
-      if (reason === 'Stopped') log.info('Bot left the meeting.');
-      else log.warn(`Bot stopped: ${reason} - ${payload.message ?? ''}`);
+      const reason = terminalReason(payload);
+      if (reason === 'bot.stopped') log.info('Bot left the meeting.');
+      else log.warn(`Bot stopped: ${reason} (status_code ${payload.status_code ?? '?'}) - ${payload.message ?? ''}`);
       state.waiter.wake();
       break;
     }
@@ -288,6 +289,7 @@ function handleEvent(state, event, payload) {
       state.waiter.wake();
       break;
     case 'bot.done':
+      // The final event on every path, streaming-only bots included.
       log.info('bot.done received - post-processing is complete.');
       state.mediaProcessed = true;
       state.waiter.wake();

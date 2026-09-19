@@ -156,6 +156,6 @@ realtime-video-streaming/
 
 ## Resources
 
-- [Live video stream guide](https://docs.meetstream.ai/guides/live-video-stream)
+- [Live video stream guide](https://docs.meetstream.ai/guides/transcription-recordings/per-participant-video)
 - [Create Bot endpoint](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
 - [MeetStream docs](https://docs.meetstream.ai)

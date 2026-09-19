@@ -61,12 +61,12 @@ This is the trade-off, and it surprises people:
 
 ```
 bot.joining → bot.in_waiting_room → bot.inmeeting → bot.recording
-            → bot.leaving → bot.stopped → manifest.completed → audio.processed
-                                                                     ▲
-                                                        streaming bots END here
+            → bot.leaving → bot.stopped → manifest.completed / audio.processed
+            → bot.done
+               (no transcription.processed in between for streaming-only bots)
 ```
 
-A bot whose only transcript provider is a streaming one **never fires `transcription.processed` and never fires `bot.done`**. Its `create_bot` response has no usable `transcript_id`, and `GET /transcript/{id}/get_transcript` returns **HTTP 202 forever** - not eventually, forever. An uncapped retry loop against a streaming-only bot spins until you kill it.
+A bot whose only transcript provider is a streaming one **never fires `transcription.processed`**. It still ends with `bot.done`, like every bot, so use `bot.done` as the "session finished" signal. Its `create_bot` response has no usable `transcript_id`, and `GET /transcript/{id}/get_transcript` returns **HTTP 202 forever** - not eventually, forever. An uncapped retry loop against a streaming-only bot spins until you kill it.
 
 So the live chunks arriving at your webhook are the only transcript you get. If your consumer crashes mid-meeting, that data is gone.
 
@@ -135,18 +135,19 @@ Ctrl-C removes the bot from the meeting (`GET /bots/{bot_id}/remove_bot` - note 
 
 The text is in `transcript`. Some streaming providers additionally flag turn boundaries; when `end_of_turn` is present and `false`, the overlay replaces the in-progress line instead of committing a new one. When the flag is absent every chunk is treated as final.
 
-**`POST /webhook`** receives lifecycle events. The envelope key is **`event`**:
+**`POST /webhook`** receives lifecycle events. `event` is always present; most deliveries also carry `bot_event` with the specific name, and every one carries an ISO 8601 `timestamp`:
 
 ```json
-{ "event": "bot.inmeeting", "bot_id": "...", "bot_status": "InMeeting",
-  "message": "...", "status_code": 200, "custom_attributes": {} }
+{ "event": "bot.inmeeting", "bot_event": "bot.inmeeting", "bot_id": "...",
+  "bot_status": "InMeeting", "message": "...", "status_code": 200,
+  "timestamp": "2026-01-15T10:30:45Z", "custom_attributes": {} }
 ```
 
 Worth knowing:
 
-- **`bot.stopped` is always `status_code: 200`**, whatever the reason. The reason is in `bot_status`: `Stopped` (clean), `NotAllowed` (never admitted from the waiting room), `Denied` (host refused), `Error`.
+- **Every ending arrives as `event: "bot.stopped"`, and the reason is in `bot_event`**: `bot.stopped` (clean exit, 200), `bot.kicked` (a participant removed the bot, 200), `bot.notallowed` (never admitted from the waiting room, 500), `bot.denied` (host refused, 500), `bot.failed` (crashed, usually 500). Branch on `bot_event`, not `bot_status`: a kick and a clean exit both report `Stopped`. The template falls back to `bot_status` (case-insensitive) only when `bot_event` is missing.
 - **`bot.error` is non-terminal.** It signals a streaming-provider hiccup; the bot stays in the meeting. Log it, do not tear down.
-- **`audio.processed` is the last event you will see** on a streaming-only bot. The overlay says so explicitly when it arrives.
+- **`bot.done` is the last event on every bot**, streaming-only included. `audio.processed` is not final; the overlay marks the session finished on `bot.done`.
 
 **Both handlers ACK immediately** and do their work after responding. A slow webhook handler stalls the delivery pipeline and you start dropping captions.
 
@@ -179,7 +180,7 @@ Worth knowing:
 | `PUBLIC_URL must be an https:// URL` | MeetStream requires HTTPS. `localhost` and plain `http://` cannot receive webhooks. |
 | Captions arrive, then stop | Check for `bot.error` notes in the panel - a streaming provider dropped its connection. The bot keeps running and usually recovers. |
 | Bot never joins | Watch for `bot.in_waiting_room`. Someone has to admit it. |
-| `bot.stopped` with `NotAllowed` | Nobody admitted the bot before the waiting-room timeout. |
+| `bot stopped (bot.notallowed, 500)` | Nobody admitted the bot before the waiting-room timeout. |
 | Captions are choppy, one or two words at a time | `TRANSCRIPTION_MODE=word`. Use `sentence` for readable captions. |
 | Captions lag several seconds behind | Raise `ENDPOINTING_MS` for fewer, longer utterances, or lower it for faster, more fragmented ones. |
 | `GET /transcript/{id}` returns 202 forever afterwards | Expected. Streaming-only bots have no post-call transcript. Use `re-transcribe-audio`. |

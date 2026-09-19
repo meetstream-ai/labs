@@ -75,22 +75,24 @@ Status codes this template handles explicitly:
 
 ### Webhook lifecycle
 
-The webhook envelope key is `event` (not `bot_event`):
+Every delivery carries `event` (the generic name). Most also carry `bot_event` (the specific name, which on terminals is the reason), and every one carries an ISO 8601 `timestamp`:
 
 ```json
 {
   "event": "audio.processed",
+  "bot_event": "audio.processed",
   "bot_id": "...",
   "bot_status": "Stopped",
   "message": "...",
   "status_code": 200,
+  "timestamp": "2026-01-15T10:30:45Z",
   "custom_attributes": {}
 }
 ```
 
-Order: `bot.joining` → `bot.in_waiting_room` → `bot.inmeeting` → `bot.recording` → `bot.leaving` → `bot.stopped` → `manifest.completed` → **`audio.processed`** → `transcription.processed` → `video.processed` → `bot.done` → `data_deletion`.
+Typical order: `bot.joining` → `bot.in_waiting_room` → `bot.inmeeting` → `bot.recording` → `bot.leaving` → `bot.stopped` → `manifest.completed` / **`audio.processed`** (order varies) → `transcription.processed` → `video.processed` → `bot.done` → `data_deletion`. `bot.done` is the final event on every path; `audio.processed` only means the audio is ready.
 
-`bot.stopped` is terminal and always arrives with `status_code: 200`, even when the bot was denied entry. Read `bot_status` for the reason: `Stopped`, `NotAllowed` (waiting-room timeout), `Denied` (host denied), or `Error`.
+Every ending arrives once as `event: "bot.stopped"`, and `bot_event` gives the reason: `bot.stopped` (clean exit, 200), `bot.kicked` (a participant removed the bot, 200), `bot.notallowed` (waiting-room timeout, 500), `bot.denied` (host denied, 500), `bot.failed` (crashed, usually 500). Branch on `bot_event`, not `bot_status`: a kick and a clean exit both report `Stopped`. The template falls back to `bot_status` (case-insensitive) only when `bot_event` is missing. On `bot.notallowed` or `bot.denied` nothing was recorded, so it stops instead of polling; a kicked bot still has a recording to download.
 
 ### Response shape
 

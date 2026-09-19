@@ -140,7 +140,7 @@ Keep responses short and the model call fast. Past roughly two seconds, the meet
 `live_transcription_required` requires a **streaming** provider. `meetstream_streaming` is built in and needs no extra key. Consequences worth knowing:
 
 - Streaming-only providers produce **no post-call transcript**. `GET /transcript/{id}/get_transcript` returns `202` forever, so cap your retries.
-- The lifecycle ends at `audio.processed`. **`bot.done` never fires.** Do not wait on it.
+- No `transcription.processed` / `transcription.failed` is ever sent. `audio.processed` is **not** final: `bot.done` still arrives last, as on every path, so use it as the "session finished" signal.
 - `bot.error` is non-terminal: the streaming provider hiccuped, the bot keeps running.
 - To get a transcript afterwards anyway, call `POST /bots/{bot_id}/transcribe` on the stored audio once the meeting ends.
 
@@ -217,7 +217,7 @@ interactive-meeting-agent/
 | Spoken reply sounds fast or slow | The file is not 48 kHz mono. Re-encode with the ffmpeg command above. |
 | Bot talks over people | `BARGE_IN=true`, and remember `interrupt` only clears the queue on Google Meet |
 | Bot reacts to half-sentences | Something is acting on interim segments. The brain should only handle `is_final: true`. |
-| Waiting forever for `bot.done` | Streaming-only providers never emit it. The terminal event is `audio.processed`. |
+| Waiting forever for `transcription.processed` | Streaming-only providers never send it. Wait for `bot.done` instead: it is the final event on every path, streaming-only included. |
 | Bot left behind in the meeting | `GET /bots/{bot_id}/remove_bot` (it really is a GET) |
 
 ## Related
@@ -227,6 +227,6 @@ interactive-meeting-agent/
 
 ## Resources
 
-- [Meeting control and command patterns](https://docs.meetstream.ai/guides/web-sockets/meeting-control-and-command-patterns)
+- [Meeting control and command patterns](https://docs.meetstream.ai/guides/websockets/meeting-control-patterns)
 - [Create Bot endpoint](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
 - [MeetStream docs](https://docs.meetstream.ai)

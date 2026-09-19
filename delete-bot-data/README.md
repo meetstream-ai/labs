@@ -50,15 +50,18 @@ Deletion fires a `data_deletion` event to the bot's `callback_url`:
 ```json
 {
   "event": "data_deletion",
+  "bot_event": "data_deletion",
   "bot_id": "bot_abc123",
   "bot_status": "...",
   "message": "...",
   "status_code": 200,
-  "custom_attributes": {}
+  "timestamp": "2026-01-15T10:30:45Z"
 }
 ```
 
-`data_deletion` is the last event in the bot lifecycle. After it, `GET /bots/{id}/detail` and every media endpoint return 404 for that bot.
+Unlike most events, `data_deletion` carries no `custom_attributes`, so do not rely on them to route it.
+
+`data_deletion` fires only after a delete or a retention expiry, so it comes after `bot.done` and is the last event you will see for that bot. After it, `GET /bots/{id}/detail` and every media endpoint return 404 for that bot.
 
 To see it live:
 
@@ -70,7 +73,7 @@ To see it live:
 
 **The callback_url has to be set when the bot is created.** There is no global webhook endpoint and no way to attach a URL to an existing bot, so you cannot point this listener at a bot that was created without one.
 
-The envelope key is `event`, not `bot_event`. Anything that tells you otherwise is out of date.
+Every delivery carries `event`. Most also carry `bot_event` with the specific name (equal to `event` except on terminals, where `event` is `bot.stopped` and `bot_event` is the reason, such as `bot.kicked`), so read `bot_event ?? event`. The listener prints both when they differ.
 
 ## Configuration
 
@@ -89,4 +92,4 @@ The envelope key is `event`, not `bot_event`. Anything that tells you otherwise 
 
 **Events arrive but the listener shows `(missing 'event' key)`** - something other than MeetStream is posting to the endpoint. The real payload always has `event`.
 
-**Data disappeared without anyone calling delete** - check the retention window. `recording_config.retention` expires artifacts automatically, and the API default is 24 hours. See the `bot-retention-config` template.
+**Data disappeared without anyone calling delete** - check the retention window. `recording_config.retention` expires artifacts automatically, and the API default is 30 days (720 hours) when no retention block is sent. See the `bot-retention-config` template.

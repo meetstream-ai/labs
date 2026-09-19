@@ -67,7 +67,7 @@ app.post("/webhook", (req, res) => {
   }
   log.event(body);
   if (body.event === "bot.stopped") {
-    log.warn(`Bot stopped. Reason: ${body.bot_status ?? "unknown"}`);
+    log.warn(`Bot stopped. Reason: ${body.bot_event ?? "unknown"} (bot_status: ${body.bot_status ?? "n/a"})`);
   }
 });
 

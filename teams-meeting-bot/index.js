@@ -138,9 +138,9 @@ async function runListenOnly(config) {
     onEvent: (payload) => {
       const info = classify(payload);
       console.log(
-        `${new Date().toISOString()}  ${info.event ?? '?'}  bot_status=${info.status ?? '-'}  bot=${
-          info.botId ?? '-'
-        }`
+        `${new Date().toISOString()}  ${info.event ?? '?'}` +
+          (info.specific && info.specific !== info.event ? ` (bot_event=${info.specific})` : '') +
+          `  bot_status=${info.status ?? '-'}  bot=${info.botId ?? '-'}`
       );
       if (info.note) console.log(`    ${info.note}`);
     },
@@ -181,7 +181,9 @@ async function run(config) {
       if (info.botId && botId && info.botId !== botId) return;
 
       console.log(
-        `  <- ${info.event ?? 'unknown'}  bot_status=${info.status ?? '-'}` +
+        `  <- ${info.event ?? 'unknown'}` +
+          (info.specific && info.specific !== info.event ? ` (bot_event=${info.specific})` : '') +
+          `  bot_status=${info.status ?? '-'}` +
           (info.message ? `  "${info.message}"` : '')
       );
       if (info.note) console.log(`     ${info.note}`);
@@ -194,13 +196,18 @@ async function run(config) {
       }
 
       if (info.terminal) {
-        const level = info.outcome === 'Stopped' ? 'info' : 'error';
-        await notifier[level](`Bot finished: ${info.outcome}`, {
+        // The reason comes from bot_event: a kick and a clean exit both carry
+        // bot_status "Stopped". bot.done still follows, so keep listening.
+        const level =
+          info.outcome === 'Stopped' ? 'info' : info.outcome === 'Kicked' ? 'warn' : 'error';
+        await notifier[level](`Bot left the meeting: ${info.outcome}`, {
           bot_id: info.botId,
           note: info.note,
         });
       }
 
+      // bot.done is the final event on every path (post-call, streaming-only,
+      // never admitted), so it is the one safe place to stop listening.
       if (info.event === 'bot.done') {
         console.log('\nPipeline complete. Shutting down.');
         if (!shuttingDown) {

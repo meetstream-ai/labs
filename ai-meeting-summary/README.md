@@ -51,9 +51,10 @@ Two things follow from that:
 2. **The bot needs a post-call transcript provider.** When this template
    creates a bot it configures `deepgram` (`nova-3`), a post-call provider.
    Streaming-only providers (`deepgram_streaming`, `assemblyai_streaming`,
-   `meetstream_streaming`, `jigsawstack_streaming`, `meeting_captions`) end
-   their lifecycle at `audio.processed`, never emit `bot.done`, and produce no
-   post-call transcript - so there is nothing to summarise.
+   `meetstream_streaming`, `jigsawstack_streaming`, `meeting_captions`) never
+   emit `transcription.processed` and produce no post-call transcript, so
+   there is nothing to summarise. (They still end with `bot.done`, like every
+   bot.)
 
 If your workspace does not have a summary workflow enabled, the endpoint still
 responds; the template tells you the fields came back empty instead of

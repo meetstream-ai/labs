@@ -1,12 +1,13 @@
-import { EVENT_CATALOG, STOPPED_REASONS, interpretStatusCode, isTerminalFor } from './events.js';
+import { EVENT_CATALOG, STOPPED_REASONS, interpretStatusCode, isTerminal } from './events.js';
 import { log } from './logger.js';
 
 /**
  * One handler per documented event.
  *
  * Every handler receives:
- *   env   - the parsed envelope { event, botId, botStatus, message, statusCode, customAttributes }
- *   ctx   - { state, raw } where `state` is the per-bot record this process keeps
+ *   env   - the parsed envelope { event, botEvent, reason, botId, botStatus, message,
+ *           statusCode, timestamp, customAttributes }
+ *   ctx   - { state, raw, expectStreamingOnly } where `state` is the per-bot record
  *
  * Handlers are intentionally side-effect-light. Replace the log lines with your
  * own work (enqueue a job, update a row, notify a channel). Keep the work here
@@ -19,7 +20,7 @@ function newBotState(botId) {
     firstSeenAt: new Date().toISOString(),
     lastSeenAt: new Date().toISOString(),
     events: [],
-    /** Set once we learn the run was streaming-only (audio.processed with no bot.done path). */
+    /** Streaming-only provider: no post-call transcript will ever arrive. */
     streamingOnly: false,
     joined: false,
     recorded: false,
@@ -48,7 +49,7 @@ export const handlers = {
     log.event('bot.in_waiting_room', env.botId, 'waiting for a host to admit the bot');
     log.detail(
       'tip',
-      'If nobody admits it, automatic_leave.waiting_room_timeout fires and you get bot.stopped with bot_status=NotAllowed',
+      'If nobody admits it, automatic_leave.waiting_room_timeout fires and you get bot.stopped with bot_event=bot.notallowed',
     );
     state.stage = 'waiting_room';
   },
@@ -71,40 +72,40 @@ export const handlers = {
   },
 
   /**
-   * TERMINAL for the meeting phase.
-   * status_code is ALWAYS 200 here, whatever happened. The reason lives in
-   * bot_status: Stopped | NotAllowed | Denied | Error.
+   * Ends the meeting phase. Every ending arrives exactly once as this event;
+   * the reason is in bot_event (env.reason): bot.stopped | bot.kicked |
+   * bot.notallowed | bot.denied | bot.failed. status_code is 200 for a clean
+   * exit or a kick and 500 for notallowed / denied / most failures.
+   * NOT final: processing events (if anything was recorded) and bot.done follow.
    */
   'bot.stopped': (env, { state }) => {
-    const reason = STOPPED_REASONS[env.botStatus] ?? {
+    const reason = STOPPED_REASONS[env.reason] ?? {
       ok: false,
-      label: `Unknown bot_status "${env.botStatus}"`,
-      detail: 'Not one of Stopped | NotAllowed | Denied | Error. Log and investigate.',
+      hasMedia: null,
+      label: `Unknown stop reason "${env.reason}"`,
+      detail: 'Not one of bot.stopped | bot.kicked | bot.notallowed | bot.denied | bot.failed. Log and investigate.',
     };
 
-    log.event('bot.stopped', env.botId, `${reason.label} (bot_status=${env.botStatus})`);
+    log.event('bot.stopped', env.botId, `${reason.label} (bot_event=${env.reason})`);
     log.detail('meaning', reason.detail);
-    log.detail('status_code', `${env.statusCode} (always 200 on bot.stopped, do not read it as success)`);
+    log.detail('bot_status', `${env.botStatus} (informational only, the reason comes from bot_event)`);
+    log.detail('status_code', String(env.statusCode));
     if (env.message) log.detail('message', env.message);
 
     state.stage = 'stopped';
     state.outcome = {
+      reason: env.reason,
       botStatus: env.botStatus,
       ok: reason.ok,
       label: reason.label,
       message: env.message,
-      at: new Date().toISOString(),
+      at: env.timestamp ?? new Date().toISOString(),
     };
 
-    if (!reason.ok) {
-      // No media exists for NotAllowed / Denied. Nothing further will arrive,
-      // so close the book on this bot now instead of waiting for bot.done.
-      if (env.botStatus === 'NotAllowed' || env.botStatus === 'Denied') {
-        state.finished = true;
-        log.warn(`bot ${env.botId} never recorded anything. No processing events will follow.`);
-      } else {
-        log.warn(`bot ${env.botId} stopped with an error. Partial assets may still arrive.`);
-      }
+    if (reason.hasMedia === false) {
+      log.warn(`bot ${env.botId} never recorded anything. bot.done is the only event still to come.`);
+    } else if (!reason.ok) {
+      log.warn(`bot ${env.botId} failed. Partial assets may still arrive before bot.done.`);
     }
   },
 
@@ -124,20 +125,17 @@ export const handlers = {
   },
 
   /**
-   * TERMINAL for streaming-only transcription providers
-   * (deepgram_streaming, assemblyai_streaming, jigsawstack_streaming,
-   *  meetstream_streaming, meeting_captions). Those never emit bot.done.
+   * Audio asset ready. NEVER final: bot.done follows on every path.
+   * Streaming-only providers (deepgram_streaming, assemblyai_streaming,
+   * jigsawstack_streaming, meetstream_streaming, meeting_captions) get no
+   * transcription.processed afterwards, so do not wait for or fetch one.
    */
   'audio.processed': (env, { state, expectStreamingOnly }) => {
     log.event('audio.processed', env.botId, 'audio asset ready');
     state.assets.audio = true;
+    log.detail('fetch', `GET /bots/${env.botId}/get_audio`);
     if (expectStreamingOnly) {
-      state.streamingOnly = true;
-      state.finished = true;
-      log.ok(
-        `bot ${env.botId} pipeline COMPLETE. Streaming-only providers end here and never send bot.done.`,
-      );
-      log.detail('fetch', `GET /bots/${env.botId}/get_audio`);
+      log.detail('next', 'Streaming-only provider: no post-call transcript is coming. Wait for bot.done.');
     } else {
       log.detail('next', 'Post-call providers continue to transcription.processed / video.processed / bot.done');
     }
@@ -154,7 +152,7 @@ export const handlers = {
     log.detail('fields', 'segments carry `speaker` + `transcript` (not `text`)');
   },
 
-  /** Arrives with status_code 500. One of only two events that ever does. */
+  /** Arrives with status_code 500. Post-call providers only. */
   'transcription.failed': (env, { state }) => {
     log.event('transcription.failed', env.botId, `transcription failed: ${env.message || 'no message'}`);
     log.detail('status_code', `${env.statusCode} (500 is expected on this event)`);
@@ -170,19 +168,20 @@ export const handlers = {
   },
 
   /**
-   * TERMINAL for post-call providers. status_code 500 here means the run
-   * finished unsuccessfully.
+   * FINAL event on every path: post-call, streaming-only, and bots that never
+   * got in. This is the single "session finished" signal. Whether the run
+   * succeeded comes from the bot.stopped reason and transcription events, not
+   * from this event's status_code.
    */
-  'bot.done': (env, { state }) => {
-    const failed = env.statusCode === 500;
-    log.event('bot.done', env.botId, failed ? 'pipeline finished UNSUCCESSFULLY' : 'pipeline finished');
-    log.detail('status_code', `${env.statusCode}${failed ? ' (failure)' : ''}`);
+  'bot.done': (env, { state, expectStreamingOnly }) => {
+    log.event('bot.done', env.botId, 'pipeline finished');
+    if (env.statusCode !== 200) log.detail('status_code', `${env.statusCode} (unusual on bot.done)`);
+    if (expectStreamingOnly) {
+      log.detail('transcript', 'streaming-only provider: no post-call transcript exists, do not fetch one');
+    }
     state.stage = 'done';
     state.finished = true;
-    state.doneOk = !failed;
-    if (failed) {
-      state.errors.push({ at: new Date().toISOString(), message: env.message || 'bot.done reported 500' });
-    }
+    state.doneOk = (state.outcome?.ok ?? true) && !state.transcriptFailed;
   },
 
   data_deletion: (env, { state }) => {
@@ -206,27 +205,28 @@ export function dispatch(env, ctx) {
   const meta = EVENT_CATALOG[env.event];
   if (!meta) {
     log.warn(`unknown event "${env.event}" for bot ${env.botId}. ACKing so it is not retried.`);
-    ctx.state.events.push({ event: env.event, at: new Date().toISOString(), known: false });
+    ctx.state.events.push({ event: env.event, botEvent: env.botEvent, at: env.timestamp ?? new Date().toISOString(), known: false });
     return { handled: false };
   }
 
-  const codeCheck = interpretStatusCode(env.event, env.statusCode ?? 200);
+  const codeCheck = interpretStatusCode(env.event, env.statusCode ?? 200, env.reason);
   const handler = handlers[env.event];
   handler(env, ctx);
 
-  if (!codeCheck.ok && env.event !== 'transcription.failed' && env.event !== 'bot.done') {
+  if (!codeCheck.ok && env.event !== 'transcription.failed') {
     log.warn(`status_code check: ${codeCheck.note}`);
   }
 
   ctx.state.events.push({
     event: env.event,
+    botEvent: env.botEvent,
     botStatus: env.botStatus,
     statusCode: env.statusCode,
-    at: new Date().toISOString(),
+    at: env.timestamp ?? new Date().toISOString(),
     known: true,
   });
 
-  if (isTerminalFor(env.event, { streamingOnly: ctx.expectStreamingOnly })) {
+  if (isTerminal(env.event)) {
     ctx.state.finished = true;
   }
 

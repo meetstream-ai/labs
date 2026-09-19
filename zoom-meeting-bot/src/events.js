@@ -16,13 +16,27 @@
  *   ... -> bot.inmeeting -> bot.recording_permission_denied
  *     -> bot.leaving -> bot.stopped
  *
- * Note that a permission denial ends in a *clean* stop. It is not `bot.denied`,
- * which means a host rejected the bot's request to join the meeting at all.
+ * `event` is always present and is the generic name; `bot_event` is the
+ * specific name and equals `event` on everything except terminals. Every
+ * ending arrives exactly once as `event: "bot.stopped"`, with the reason in
+ * `bot_event`:
  *
- * Webhook payloads carry the event name under `event`, with `bot_event` as an
- * alias. Branch on `bot_status` where you can - it is consistent whether a
- * terminal outcome arrives as `bot.stopped` with a status, or as the more
- * specific `bot.notallowed` / `bot.denied` / `bot.failed` event.
+ *   bot_event        status_code  bot_status               meaning
+ *   bot.stopped      200          Stopped                  clean exit
+ *   bot.kicked       200          Stopped                  removed by a participant
+ *   bot.notallowed   500          NotAllowed               never admitted from the waiting room
+ *   bot.denied       500          Denied                   host refused entry or recording
+ *   bot.failed       usually 500  FAILED / ERROR / Failed  crashed
+ *
+ * Branch on `bot_event`, not `bot_status`: a kick and a clean exit both say
+ * "Stopped", and the failure casing varies. `bot_status` is only a
+ * case-insensitive fallback when `bot_event` is missing. The earlier
+ * `bot.recording_permission_denied` event is what tells a refused recording
+ * prompt apart from a refused join.
+ *
+ * `bot.stopped` is not the end of the stream: post-call events follow and
+ * `bot.done` is the final event on every path, streaming-only providers and
+ * never-admitted bots included.
  */
 
 export const ZOOM_PHASE = {
@@ -35,28 +49,43 @@ export const ZOOM_PHASE = {
   FINISHED: 'finished',
 };
 
-const TERMINAL_STATUSES = new Set(['Stopped', 'NotAllowed', 'Denied', 'Error']);
-const TERMINAL_EVENTS = new Set([
-  'bot.stopped',
-  'bot.notallowed',
-  'bot.denied',
-  'bot.kicked',
-  'bot.failed',
-]);
+/** bot_event reason -> outcome label. */
+const STOP_OUTCOMES = {
+  'bot.stopped': 'Stopped',
+  'bot.kicked': 'Kicked',
+  'bot.notallowed': 'NotAllowed',
+  'bot.denied': 'Denied',
+  'bot.failed': 'Error',
+};
 
 export function eventName(payload) {
   return payload?.event ?? payload?.bot_event ?? null;
 }
 
 /**
+ * The reason a bot stopped: `bot_event`, or when that is missing, `bot_status`
+ * compared case-insensitively.
+ */
+export function stopReason(payload) {
+  if (payload?.bot_event) return payload.bot_event;
+  const status = String(payload?.bot_status ?? '').toLowerCase();
+  if (status === 'notallowed') return 'bot.notallowed';
+  if (status === 'denied') return 'bot.denied';
+  if (status === 'error' || status === 'failed') return 'bot.failed';
+  return 'bot.stopped';
+}
+
+/**
  * @returns {{
- *   event: string|null, status: string|null, botId: string|null, message: string|null,
+ *   event: string|null, specific: string|null, status: string|null,
+ *   botId: string|null, message: string|null,
  *   phase: string|null, terminal: boolean, outcome: string|null,
  *   permission: 'allowed'|'denied'|null, note: string
  * }}
  */
 export function classify(payload) {
   const event = eventName(payload);
+  const specific = payload?.bot_event ?? event;
   const status = payload?.bot_status ?? null;
   const botId = payload?.bot_id ?? null;
   const message = payload?.message ?? null;
@@ -65,7 +94,7 @@ export function classify(payload) {
   let permission = null;
   let note = '';
 
-  switch (event) {
+  switch (specific) {
     case 'bot.joining':
       phase = ZOOM_PHASE.JOINING;
       break;
@@ -89,7 +118,7 @@ export function classify(payload) {
       permission = 'denied';
       note =
         'Host denied recording, or did not answer within recording_permission_denied_timeout. ' +
-        'The bot now leaves cleanly - expect bot.leaving then bot.stopped.';
+        'The bot now leaves - expect bot.leaving then bot.stopped (read the reason from bot_event).';
       break;
     case 'bot.recording':
       phase = ZOOM_PHASE.RECORDING;
@@ -105,37 +134,34 @@ export function classify(payload) {
   if (status === 'RecordingPermissionAllowed') permission = 'allowed';
   if (status === 'RecordingPermissionDenied') permission = 'denied';
 
-  const terminal = TERMINAL_STATUSES.has(status) || TERMINAL_EVENTS.has(event);
+  // Every ending is exactly one `bot.stopped` delivery; the reason is in bot_event.
+  const terminal = event === 'bot.stopped';
   let outcome = null;
 
   if (terminal) {
     phase = ZOOM_PHASE.FINISHED;
-    outcome = TERMINAL_STATUSES.has(status)
-      ? status
-      : event === 'bot.notallowed'
-        ? 'NotAllowed'
-        : event === 'bot.denied'
-          ? 'Denied'
-          : event === 'bot.failed'
-            ? 'Error'
-            : 'Stopped';
+    outcome = STOP_OUTCOMES[stopReason(payload)] ?? 'Error';
 
-    if (!note) {
-      note =
-        outcome === 'NotAllowed'
-          ? 'Never admitted from the Zoom waiting room before waiting_room_timeout elapsed.'
-          : outcome === 'Denied'
-            ? 'A host rejected the bot\'s request to join the meeting.'
+    note =
+      outcome === 'NotAllowed'
+        ? 'Never admitted from the Zoom waiting room before waiting_room_timeout elapsed.'
+        : outcome === 'Denied'
+          ? 'A host refused the bot entry or recording. No recording was produced.'
+          : outcome === 'Kicked'
+            ? 'A participant removed the bot from the meeting.'
             : outcome === 'Error'
               ? 'Unexpected failure - inspect GET /bots/{id}/detail.'
               : 'Clean exit.';
-    }
+    note += ' bot.done follows as the final event.';
   }
 
-  return { event, status, botId, message, phase, terminal, outcome, permission, note };
+  return { event, specific, status, botId, message, phase, terminal, outcome, permission, note };
 }
 
-/** Post-call artifact events, for logging completeness. */
+/**
+ * Post-call artifact events, for logging completeness. audio.processed is
+ * never final; bot.done is the last event on every path.
+ */
 export const POST_CALL_EVENTS = new Set([
   'manifest.completed',
   'audio.processed',

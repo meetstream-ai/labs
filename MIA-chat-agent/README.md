@@ -95,11 +95,11 @@ For Pipeline mode, choose an OpenAI text model in the MeetStream Agent editor:
 
 | Model tier | Simple use case |
 | --- | --- |
-| Lower-cost model | Routine questions and short summaries |
+| Smaller model | Routine questions and short summaries |
 | Balanced model | General meeting assistance |
-| Stronger model | Difficult analysis where quality matters more than latency and cost |
+| Stronger model | Difficult analysis where quality matters more than latency |
 
-Transcription is billed through Deepgram and model responses through OpenAI. Longer meetings and responses generally cost more.
+Transcription runs on your Deepgram key and responses on your OpenAI key.
 
 ## Test
 
@@ -115,4 +115,4 @@ npm test
 - No activation response: say the wake phrase and request together, then pause while the transcription turn completes.
 - Bot remains after Ctrl+C: keep the terminal open. The app retries during MeetStream join/requeue transitions and waits up to 90 seconds for `MeetStream confirmed the bot stopped`.
 
-See the official [MeetStream Hosted Agent guide](https://docs.meetstream.ai/guides/mia-meetstream-infrastructure-agents/create-mia).
+See the official [MeetStream Hosted Agent guide](https://docs.meetstream.ai/guides/mia/create-an-agent).

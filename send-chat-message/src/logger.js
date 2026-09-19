@@ -60,7 +60,8 @@ export const log = {
 
   /**
    * Pretty-print a MeetStream webhook payload.
-   * Envelope key is `event` (never `bot_event`).
+   * The event name is under `event`; most deliveries also carry `bot_event`
+   * (on terminals it holds the stop reason).
    */
   event(payload) {
     const { event, bot_status, message, status_code } = payload ?? {};

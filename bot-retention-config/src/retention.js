@@ -7,7 +7,7 @@
  */
 
 /** The API's own default when no retention block is sent. */
-export const DEFAULT_RETENTION_HOURS = 24;
+export const DEFAULT_RETENTION_HOURS = 720; // 30 days
 
 /**
  * Builds `recording_config` for the chosen mode.

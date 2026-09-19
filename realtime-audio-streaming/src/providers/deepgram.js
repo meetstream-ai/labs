@@ -1,7 +1,7 @@
 /**
  * Deepgram provider
  * ─────────────────────────────────────────────────────────────────────────────
- * Free tier: https://console.deepgram.com/signup ($200 credit, no card)
+ * Get a key: https://console.deepgram.com/signup
  * Env required: DEEPGRAM_API_KEY
  *
  * Streams raw PCM straight through to Deepgram's real-time STT endpoint and

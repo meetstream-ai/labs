@@ -28,15 +28,15 @@ So a bot that "never joined" is almost always sitting in the lobby.
 
 ## The three outcomes you have to handle
 
-| Outcome | `bot_status` | What happened | This template does |
+| Outcome | Webhook | What happened | This template does |
 | --- | --- | --- | --- |
-| Admitted | `InMeeting` | Someone let it in | Cancel the nudge timer, carry on |
-| Lobby timeout | `NotAllowed` | Waited the full `waiting_room_timeout`, nobody admitted it | **Retry** with a longer wait, up to `MAX_JOIN_ATTEMPTS` |
-| Host denied | `Denied` | A human explicitly rejected the request | **Never retry.** Alert and stop |
+| Admitted | `bot.inmeeting` | Someone let it in | Cancel the nudge timer, carry on |
+| Lobby timeout | `bot.stopped`, `bot_event: "bot.notallowed"`, `status_code: 500` | Waited the full `waiting_room_timeout`, nobody admitted it | **Retry** with a longer wait, up to `MAX_JOIN_ATTEMPTS` |
+| Host denied | `bot.stopped`, `bot_event: "bot.denied"`, `status_code: 500` | A human explicitly rejected the request | **Never retry.** Alert and stop |
 
 That distinction matters. `NotAllowed` is usually a late host and is worth another try. `Denied` is a person saying no - retrying spams them and will be denied again.
 
-There is also `Error` (`bot.failed`), which this template surfaces with the bot id so you can inspect `GET /bots/{id}/detail`, and `Stopped`, which is a clean exit.
+There is also `bot.failed`, which this template surfaces with the bot id so you can inspect `GET /bots/{id}/detail`; `bot.kicked`, where a participant removed the bot after admitting it (never retried); and `bot.stopped`, which is a clean exit.
 
 ### Reading the webhook
 
@@ -55,7 +55,17 @@ A real delivery looks like this:
 }
 ```
 
-`src/outcomes.js` reads the event name from `event`, falling back to the `bot_event` alias, and then **branches on `bot_status`**. That is deliberate: a terminal result may arrive either as `bot.stopped` carrying a `bot_status` that explains why, or as the more specific `bot.notallowed` / `bot.denied` / `bot.kicked` / `bot.failed` event. `bot_status` is the same value in both shapes, so it is the stable thing to switch on. Do not branch on `status_code` alone.
+`event` is always present and is the generic name; `bot_event` is the specific name and equals `event` on everything except terminals. Every ending arrives exactly once as `event: "bot.stopped"`, and `bot_event` carries the reason:
+
+| `bot_event` | `status_code` | `bot_status` |
+| --- | --- | --- |
+| `bot.stopped` | 200 | `Stopped` |
+| `bot.kicked` | 200 | `Stopped` |
+| `bot.notallowed` | 500 | `NotAllowed` |
+| `bot.denied` | 500 | `Denied` |
+| `bot.failed` | usually 500 | `FAILED` / `ERROR` / `Failed` |
+
+`src/outcomes.js` detects the terminal from `event` and **branches on `bot_event`**. It does not branch on `bot_status`: a kick and a clean exit both say `Stopped`, and the failure casing varies. `bot_status` is only a case-insensitive fallback if `bot_event` is ever missing. `bot.done` still follows every ending (it is the final event on every path); the lobby decision is already known at `bot.stopped`, so this template acts there.
 
 ---
 
@@ -78,7 +88,7 @@ The one lobby knob on `create_bot`:
 | Unit | seconds |
 | Google Meet range | `60` - `600`. Out of range returns **HTTP 400** |
 | Default | `600` (10 minutes) |
-| On expiry | the bot leaves; you get a terminal event with `bot_status: "NotAllowed"` |
+| On expiry | the bot leaves; you get `bot.stopped` with `bot_event: "bot.notallowed"` |
 
 Rules of thumb:
 
@@ -169,7 +179,7 @@ Deliveries to a per-bot `callback_url` - what this template uses - are **not sig
 
 **Bot joins but is named "Unknown"** - Meet's name resolver takes about 10 seconds to populate. Participant IDs are stable from the first moment.
 
-**`bot.kicked`** - a host removed the bot mid-meeting. `bot_status` is `Stopped`; this template treats it as a clean exit, not a retry candidate.
+**`bot.kicked`** - a participant removed the bot mid-meeting. It arrives as `bot.stopped` with `bot_event: "bot.kicked"` and `bot_status: "Stopped"`, so only `bot_event` tells it apart from a clean exit. This template reports it as a kick and does not retry.
 
 ---
 

@@ -239,7 +239,7 @@ meetstream-labs/
 | Platform | Notes |
 |---|---|
 | Google Meet | No extra setup required - just a meeting URL |
-| Zoom | Requires Zoom app setup (see [MeetStream Zoom guide](https://docs.meetstream.ai/guides/zoom/zoom-bot-guide)) |
+| Zoom | Requires Zoom app setup (see [MeetStream Zoom guide](https://docs.meetstream.ai/guides/platforms/zoom)) |
 | Microsoft Teams | Coming soon |
 
 ---
@@ -271,7 +271,7 @@ MeetStream bot → your server → /stream → bridge.js → [any provider] → 
 | Provider | `.env` value | Needs |
 |---|---|---|
 | Console (debug, no network) | `console` | nothing - works immediately |
-| Deepgram | `deepgram` | `DEEPGRAM_API_KEY` ([free signup](https://console.deepgram.com/signup), $200 credit) |
+| Deepgram | `deepgram` | `DEEPGRAM_API_KEY` ([sign up](https://console.deepgram.com/signup)) |
 | AssemblyAI | `assemblyai` | `ASSEMBLYAI_API_KEY` ([free signup](https://www.assemblyai.com/dashboard/signup)) |
 | OpenAI GPT-Realtime-Whisper | `openai-whisper` | `OPENAI_API_KEY` ([platform.openai.com](https://platform.openai.com/api-keys)) |
 
@@ -350,10 +350,10 @@ Waiting for meeting audio… speak in the meeting now.
 
 
 - [MeetStream API docs](https://docs.meetstream.ai)
-- [Create Bot endpoint](https://docs.meetstream.ai/api-reference/endpoint/post-create-bot)
-- [Callback events](https://docs.meetstream.ai/api-reference/callback-events)
-- [Live transcripts](https://docs.meetstream.ai/api-reference/live-transcripts)
-- [Socket connection](https://docs.meetstream.ai/api-reference/socket-connection)
+- [Create Bot endpoint](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
+- [Callback events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
+- [Live transcripts](https://docs.meetstream.ai/guides/transcription-recordings/live-transcription)
+- [Socket connection](https://docs.meetstream.ai/guides/websockets/meeting-control-patterns)
 - [ngrok Node SDK](https://ngrok.com/docs/using-ngrok-with/node-js/)
 
 ## Resilience - what's handled and what isn't

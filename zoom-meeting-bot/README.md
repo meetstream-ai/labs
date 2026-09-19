@@ -19,9 +19,10 @@ You need a publicly reachable webhook URL: `ngrok http 3000`, then put the https
 Zoom is the only platform that needs setup before a bot can join. Google Meet and Teams work with zero configuration; Zoom bots join through the Zoom Meeting SDK, which means your own Marketplace app.
 
 1. Create a **General App** in the [Zoom App Marketplace](https://marketplace.zoom.us) (**Develop → Build App → General App**). User-managed or admin-managed both work.
-2. Set the **OAuth Redirect URL** to `https://api.meetstream.ai/api/v1/admin/zoom/oauth/callback`, and add `https://meetstream.ai` to the **OAuth Allow List**.
-3. Under **Features → Embed**, enable **Meeting SDK**. Leave Device OAuth off.
-4. Copy the **Client ID** and **Client Secret** into the MeetStream Dashboard → **Integrations → Zoom**, and complete the OAuth authorization.
+2. Under **Features → Embed**, enable **Meeting SDK**. Leave Device OAuth off.
+3. Copy the **Client ID** and **Client Secret** into the MeetStream Dashboard → **Integrations → Zoom**.
+
+These credentials identify the Meeting SDK app the bot runs as. They do not create an end-user OAuth grant; that is only needed for authenticated joins (below), and it runs on your own server.
 
 Full walkthrough with screenshots: [Zoom Marketplace App Setup](https://docs.meetstream.ai/guides/app-integrations/zoom-marketplace-app-setup).
 
@@ -37,22 +38,27 @@ Once that is done, sending a bot is the same single `create_bot` call as any oth
 
 If your bot joins your own test meetings fine but fails on a customer's meeting, this is nearly always why. Submission requirements, required scopes, and the common rejection reasons are in [Zoom App Production Submission](https://docs.meetstream.ai/guides/app-integrations/zoom-app-production-submission).
 
-### Joining as your end users (OBF)
+### Authenticated joins (ZAK and OBF)
 
-If you are building a product where *your customers* connect their own Zoom accounts, use MeetStream's hosted On-Behalf-Of flow instead of asking each of them to build a Marketplace app. You register one Zoom OAuth app; each end user authorises it once; MeetStream stores one connection per end user keyed by their Zoom user ID.
+By default the bot joins as a guest. To join as a signed-in Zoom user, or on behalf of a user who is already in the meeting, pass a token URL that **you** host:
 
 ```json
 {
   "meeting_link": "https://zoom.us/j/123456789?pwd=...",
   "bot_name": "Notetaker",
-  "zoom": {
-    "use_zoom_obf": true,
-    "zoom_oauth_connection_user_id": "<zoom_user_id>"
-  }
+  "zoom": { "zak_url": "https://api.yourapp.com/zoom/zak?user_id=alice&auth=YOUR_SECRET" }
 }
 ```
 
-Set `ZOOM_OAUTH_CONNECTION_USER_ID` in `.env` and this template sends that block. The connection management endpoints never return token material, only identity and connection state. Full flow and required scopes: [Zoom OBF Implementation](https://docs.meetstream.ai/guides/app-integrations/zoom-obf-implementation).
+| | `zak_url` | `obf_url` |
+| --- | --- | --- |
+| Bot joins as | That signed-in Zoom user | An assistant tied to a user in the call |
+| Parent must already be in the meeting | No | **Yes**, and Zoom removes the bot if they leave |
+| `meeting_number` on your URL | Not needed | **Leave it off**; MeetStream appends it at join |
+
+At join time the bot calls your URL (GET, falling back to POST) and uses the token you return. You run Zoom OAuth and keep the refresh tokens; MeetStream never stores them. Send one URL, never both (400). The old `use_zoom_obf` / `zoom_oauth_connection_user_id` fields are rejected.
+
+Set `ZOOM_ZAK_URL` or `ZOOM_OBF_URL` in `.env` and this template sends the right block. For a working token server, see the [`zoom-authenticated-joins`](../zoom-authenticated-joins) template. Full contract: [Zoom Authenticated Bots](https://docs.meetstream.ai/guides/app-integrations/zoom-authenticated-bots).
 
 ---
 
@@ -67,7 +73,9 @@ bot.joining
   -> bot.recording_permission_allowed     host granted
   -> bot.recording              capture starts
   ...
-  -> bot.stopped
+  -> bot.stopped                every ending; bot_event says why
+  -> post-call events
+  -> bot.done                   final event on every path
 ```
 
 If the host denies, or simply never answers:
@@ -76,10 +84,13 @@ If the host denies, or simply never answers:
   -> bot.inmeeting
   -> bot.recording_permission_denied
   -> bot.leaving
-  -> bot.stopped                 a CLEAN stop, not bot.denied
+  -> bot.stopped                 reason in bot_event
+  -> bot.done
 ```
 
-That last distinction trips people up. `bot.denied` / `bot_status: "Denied"` means a host rejected the bot's request to **join the meeting**. `bot.recording_permission_denied` means the bot got in but was not allowed to **record**, and then left tidily. No recording is produced either way, but they are different failures with different fixes.
+Every ending arrives exactly once as `event: "bot.stopped"`, with the reason in `bot_event` (`bot.stopped`, `bot.kicked`, `bot.notallowed`, `bot.denied`, `bot.failed`). `status_code` is 200 for a clean exit or a kick and 500 for `bot.notallowed`, `bot.denied` and most failures. Branch on `bot_event`, not `bot_status`: a kick and a clean exit both report `Stopped`.
+
+That distinction trips people up. `bot_event: "bot.denied"` means a host refused the bot entry or recording; the earlier `bot.recording_permission_denied` event is what tells you the bot got in but was not allowed to **record**, as opposed to being refused at the door. No recording is produced either way, but they are different failures with different fixes.
 
 ### `recording_permission_denied_timeout`
 
@@ -155,7 +166,7 @@ Deliveries to a per-bot `callback_url` are **not signed**. Signature verificatio
 
 **Bot can only join my own meetings** - your Marketplace app is still in development mode. Submit it for production approval.
 
-**Bot never gets in at all** - check in order: the link is valid and unexpired; the `?pwd=` component is present for password-protected meetings; the app is out of development mode for other people's meetings; the bot did not simply sit in the waiting room until `waiting_room_timeout` fired (`bot_status: "NotAllowed"`).
+**Bot never gets in at all** - check in order: the link is valid and unexpired; the `?pwd=` component is present for password-protected meetings; the app is out of development mode for other people's meetings; the bot did not simply sit in the waiting room until `waiting_room_timeout` fired (`bot.stopped` with `bot_event: "bot.notallowed"`).
 
 **OBF joins suddenly fail for one user** - their connection was revoked. A Zoom password change, uninstalling the app, or 90+ days idle all do it. They need to reconnect.
 
@@ -170,6 +181,6 @@ Deliveries to a per-bot `callback_url` are **not signed**. Signature verificatio
 - [Zoom Meeting Bots](https://docs.meetstream.ai/guides/platforms/zoom)
 - [Zoom Marketplace App Setup](https://docs.meetstream.ai/guides/app-integrations/zoom-marketplace-app-setup)
 - [Zoom App Production Submission](https://docs.meetstream.ai/guides/app-integrations/zoom-app-production-submission)
-- [Zoom OBF Implementation](https://docs.meetstream.ai/guides/app-integrations/zoom-obf-implementation)
+- [Zoom OBF Implementation](https://docs.meetstream.ai/guides/app-integrations/zoom-authenticated-bots)
 - [Automatic Leave Configurations](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)
 - [Webhooks and Events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)

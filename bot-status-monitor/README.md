@@ -44,20 +44,22 @@ When stdout is a TTY the whole view redraws in place. When it is piped or redire
 | `InMeeting` | `bot.inmeeting` | no | Admitted and present as a participant |
 | `Recording` | `bot.recording` | no | Capture is running |
 | `Leaving` | `bot.leaving` | no | Shutting down and exiting |
-| `Stopped` | `bot.stopped` | yes | Ended normally |
-| `NotAllowed` | `bot.stopped` | yes | Waiting-room timeout, never admitted |
-| `Denied` | `bot.stopped` | yes | A host denied the bot |
-| `Error` | `bot.stopped` | yes | The session failed |
+| `Stopped` | `bot.stopped` (`bot_event` `bot.stopped` or `bot.kicked`) | yes | Ended normally, or a participant removed the bot |
+| `NotAllowed` | `bot.stopped` (`bot_event` `bot.notallowed`) | yes | Waiting-room timeout, never admitted |
+| `Denied` | `bot.stopped` (`bot_event` `bot.denied`) | yes | A host denied the bot |
+| `Error` (also `FAILED`, `ERROR`, `Failed`) | `bot.stopped` (`bot_event` `bot.failed`) | yes | The session failed |
 | `Done` | `bot.done` | yes | Session finished, post-processing complete |
+
+The monitor matches `bot_status` case-insensitively, because the failure value arrives in varying case.
 
 Run `node index.js --explain` for the long-form version plus the post-session webhook events (`manifest.completed`, `audio.processed`, `transcription.processed`, `video.processed`, `bot.done`, `data_deletion`).
 
 ## Four things that catch people out
 
-1. The webhook envelope key is `event`, not `bot_event`.
-2. `bot.stopped` arrives with `status_code: 200` even when `bot_status` is `Denied`, `NotAllowed` or `Error`. Branch on `bot_status`, never on the status code.
+1. Every webhook carries `event`, and most also carry `bot_event`. They differ only on terminals: every ending arrives as `event: "bot.stopped"` with the reason in `bot_event` (`bot.stopped`, `bot.kicked`, `bot.notallowed`, `bot.denied`, `bot.failed`). `bot_status` cannot tell a kick from a clean exit (both are `Stopped`), so use a webhook's `bot_event` when the exact reason matters.
+2. `bot.stopped` arrives with `status_code: 200` for a clean exit or a kick, and `500` for `NotAllowed`, `Denied` and most failures. Branch on `bot_event`, not the status code.
 3. `bot.error` is **not** terminal. It reports a streaming-provider fault while the bot keeps running.
-4. Streaming-only transcription providers end at `audio.processed`. They never emit `bot.done`, so a monitor that waits for `Done` will wait forever. That is what `MAX_POLLS` is for.
+4. `bot.done` is the final webhook on every path, streaming-only and never-admitted bots included. `audio.processed` is never final. This monitor stops as soon as the bot is out of the meeting; `MAX_POLLS` caps a bot that is genuinely still in a call.
 
 ## Configuration
 
@@ -79,4 +81,4 @@ Run `node index.js --explain` for the long-form version plus the post-session we
 
 **Status shows `Unknown`** - the status payload came back in an unexpected shape. Run with `--raw` and check what the endpoint returned.
 
-**It never stops** - the bot is genuinely still in the meeting, or you used a streaming-only provider that never reaches `Done`. Use `GET /bots/{id}/remove_bot` to make it leave (see the `list-and-manage-bots` template).
+**It never stops** - the bot is genuinely still in the meeting. Use `GET /bots/{id}/remove_bot` to make it leave (see the `list-and-manage-bots` template).

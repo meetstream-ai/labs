@@ -194,6 +194,6 @@ Edit `onTurnComplete()` in `server.js` or `ws-server.js` to wire in your own log
 
 ## Resources
 
-- [Live Transcription docs](https://docs.meetstream.ai/guides/transcription-recordings/create-bot-with-live-transcription)
+- [Live Transcription docs](https://docs.meetstream.ai/guides/transcription-recordings/live-transcription)
 - [Webhooks & Events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
 - [API Reference](https://docs.meetstream.ai/api-reference)

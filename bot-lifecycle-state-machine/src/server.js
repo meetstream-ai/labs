@@ -6,7 +6,9 @@ import { log } from './logger.js';
 /**
  * Webhook receiver that drives the state machine.
  *
- * The envelope key is `event`, not `bot_event`.
+ * `event` is always present and is the generic name. `bot_event` carries the
+ * specific name (on `bot.stopped` it is the reason) and is absent on a few
+ * events, so read `bot_event ?? event` when you need the specific one.
  */
 export function createServer({ store, webhookPath = '/webhook', defaultStreamingOnly = false } = {}) {
   const app = express();
@@ -31,8 +33,9 @@ export function createServer({ store, webhookPath = '/webhook', defaultStreaming
 
   app.post(webhookPath, (req, res) => {
     const body = req.body ?? {};
-    const event = body.event;
-    const botId = body.bot_id;
+    const event = body.event ?? body.bot_event;
+    // participant_events.* nest the bot id under data.bot.id.
+    const botId = body.bot_id ?? body.data?.bot?.id;
 
     if (!event || !botId) {
       log.error('rejected delivery: envelope needs both `event` and `bot_id`');
@@ -40,16 +43,20 @@ export function createServer({ store, webhookPath = '/webhook', defaultStreaming
     }
 
     // At-least-once delivery. Do the work once; ACK duplicates with 200 so the
-    // sender stops retrying.
-    const key = `${botId}:${event}:${body.status_code ?? ''}:${body.bot_status ?? ''}`;
-    if (event !== 'bot.error' && seen.has(key)) {
+    // sender stops retrying. Every delivery carries a `timestamp` that a
+    // redelivery repeats, so it separates a duplicate from a repeated bot.error.
+    const name = body.bot_event ?? event;
+    const key = body.timestamp
+      ? `${botId}:${name}:${body.timestamp}`
+      : `${botId}:${name}:${body.status_code ?? ''}:${body.bot_status ?? ''}`;
+    if ((body.timestamp || name !== 'bot.error') && seen.has(key)) {
       log.warn(`duplicate delivery ${key}, ignored`);
       return res.status(200).json({ ok: true, duplicate: true });
     }
     seen.add(key);
 
-    // The provider mode decides where the lifecycle ends, and no webhook
-    // carries it. Stamp it into custom_attributes at create_bot time.
+    // The provider mode decides whether a post-call transcript will arrive, and
+    // no webhook carries it. Stamp it into custom_attributes at create_bot time.
     const stamped = body.custom_attributes?.streaming_only;
     const record = store.upsert(botId, {
       streamingOnly: stamped === 'true' ? true : stamped === 'false' ? false : defaultStreamingOnly,
@@ -59,8 +66,10 @@ export function createServer({ store, webhookPath = '/webhook', defaultStreaming
 
     const transition = applyEvent(record, {
       event,
+      botEvent: body.bot_event ?? null,
       botId,
       botStatus: body.bot_status ?? null,
+      timestamp: body.timestamp ?? null,
       statusCode: typeof body.status_code === 'number' ? body.status_code : null,
       message: body.message ?? '',
     });
@@ -78,7 +87,7 @@ export function createServer({ store, webhookPath = '/webhook', defaultStreaming
       log.banner(`Bot ${botId} reached a terminal state: ${outcome.state}`);
       log.detail('outcome', outcome.outcome);
       log.detail('why', outcome.label);
-      if (outcome.stopReason) log.detail('bot_status at stop', outcome.stopReason);
+      if (outcome.stopReason) log.detail('stop reason', `${outcome.stopReason} (from bot_event)`);
       log.detail(
         'assets',
         `audio=${outcome.assets.audio} video=${outcome.assets.video} transcript=${outcome.assets.transcript}`,

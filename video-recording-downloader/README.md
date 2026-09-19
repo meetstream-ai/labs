@@ -89,7 +89,7 @@ This template downloads the single composite recording. For one file per partici
 
 **401 / 403** - 401 means no key was sent, 403 means the key is wrong.
 
-**`get_video` returns 404 forever** - the bot may have joined but never recorded (denied entry, or nothing to record). Check `GET /bots/{bot_id}/detail` and the `bot_status` on the `bot.stopped` webhook: `NotAllowed` means it timed out in the waiting room, `Denied` means the host rejected it.
+**`get_video` returns 404 forever** - the bot may have joined but never recorded (denied entry, or nothing to record). Check `GET /bots/{bot_id}/detail` and the `bot_event` on the `bot.stopped` webhook: `bot.notallowed` means it timed out in the waiting room, `bot.denied` means the host rejected it. The template stops early on either, since there is nothing to download.
 
 **Downloaded file is far smaller than expected** - the meeting itself was short, or the bot was removed early. The progress meter prints the byte count it actually wrote.
 

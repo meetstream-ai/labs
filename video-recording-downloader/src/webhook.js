@@ -7,24 +7,34 @@ import { log } from './log.js';
  * create_bot. The envelope looks like:
  *
  *   {
- *     "event": "audio.processed",     <- the key is `event`, not `bot_event`
+ *     "event": "bot.stopped",          <- always present: the generic name
+ *     "bot_event": "bot.kicked",       <- the specific name (the reason, on terminals)
  *     "bot_id": "...",
  *     "bot_status": "Stopped",
  *     "message": "...",
  *     "status_code": 200,
+ *     "timestamp": "2026-01-15T10:30:45Z",
  *     "custom_attributes": {}
  *   }
  *
- * Full lifecycle:
- *   bot.joining -> bot.in_waiting_room -> bot.inmeeting -> bot.recording
- *   -> bot.leaving -> bot.stopped (terminal) -> manifest.completed
- *   -> audio.processed -> transcription.processed | transcription.failed
- *   -> video.processed -> bot.done -> data_deletion
+ * `bot_event` equals `event` except on terminals, and a few events omit it
+ * (manifest.*, bot.transcriptionready, bot.uploading, participant_events.*),
+ * so read `bot_event ?? event` for the specific name.
  *
- * Note: `bot.stopped` always carries status_code 200, even when the reason was
- * NotAllowed / Denied / Error - read `bot_status` for the reason.
+ * Typical lifecycle:
+ *   bot.joining -> bot.in_waiting_room -> bot.inmeeting -> bot.recording
+ *   -> bot.leaving -> bot.stopped (terminal, reason in bot_event)
+ *   -> manifest.completed / audio.processed (order varies)
+ *   -> [post-call transcription only: transcription.processed | transcription.failed
+ *       -> bot.transcriptionready] -> video.processed -> bot.done (final, every path)
+ *   -> data_deletion (only after a delete or retention expiry)
+ *
+ * Every ending arrives once as event `bot.stopped`. bot_event gives the reason:
+ *   bot.stopped (200, clean) | bot.kicked (200) | bot.notallowed (500)
+ *   | bot.denied (500) | bot.failed (usually 500)
  */
 export const KNOWN_EVENTS = new Set([
+  'bot.scheduled',
   'bot.joining',
   'bot.in_waiting_room',
   'bot.inmeeting',
@@ -32,14 +42,36 @@ export const KNOWN_EVENTS = new Set([
   'bot.leaving',
   'bot.stopped',
   'bot.error',
+  'bot.uploading',
   'manifest.completed',
+  'manifest.skipped',
   'audio.processed',
+  'audio.skipped',
   'transcription.processed',
   'transcription.failed',
+  'transcription.skipped',
+  'bot.transcriptionready',
   'video.processed',
   'bot.done',
   'data_deletion',
 ]);
+
+/**
+ * Why a bot ended, from a `bot.stopped` payload. `bot_event` is authoritative.
+ * When it is missing, fall back to `bot_status` compared case-insensitively.
+ * Never branch on bot_status alone: a kick and a clean exit both say "Stopped".
+ *
+ * @param {any} payload
+ * @returns {'bot.stopped'|'bot.kicked'|'bot.notallowed'|'bot.denied'|'bot.failed'|string}
+ */
+export function terminalReason(payload) {
+  if (payload?.bot_event) return payload.bot_event;
+  const status = String(payload?.bot_status ?? '').toLowerCase();
+  if (status === 'notallowed') return 'bot.notallowed';
+  if (status === 'denied') return 'bot.denied';
+  if (status === 'error' || status === 'failed') return 'bot.failed';
+  return 'bot.stopped';
+}
 
 /**
  * Build an Express app that receives MeetStream webhooks on POST /webhook.
@@ -63,8 +95,10 @@ export function createWebhookApp({ onEvent, pathname = '/webhook' }) {
     // want slow local processing to look like a failed delivery.
     res.status(200).json({ received: true });
 
-    const key = `${payload.bot_id ?? ''}:${event}:${payload.timestamp ?? ''}`;
-    if (key !== '::') {
+    // Every delivery carries a timestamp, so {bot_id, bot_event ?? event,
+    // timestamp} identifies a redelivery.
+    if (payload.timestamp) {
+      const key = `${payload.bot_id ?? payload.data?.bot?.id ?? ''}:${payload.bot_event ?? event}:${payload.timestamp}`;
       if (seen.has(key)) {
         log.debug(`Duplicate webhook ignored: ${key}`);
         return;
@@ -72,7 +106,7 @@ export function createWebhookApp({ onEvent, pathname = '/webhook' }) {
       seen.add(key);
     }
 
-    if (!KNOWN_EVENTS.has(event)) {
+    if (!KNOWN_EVENTS.has(event) && !String(event).startsWith('participant_events.')) {
       log.debug(`Unrecognized webhook event "${event}" - ignoring.`);
     }
 

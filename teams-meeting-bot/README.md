@@ -41,8 +41,8 @@ Teams meetings can hold a joining participant in a lobby, and MeetStream reports
 What is documented and dependable:
 
 - **`waiting_room_timeout`** controls how long the bot waits. On Teams the range is `60`-`1800` seconds, default `600`. Out of range returns HTTP 400.
-- If the timeout elapses without admission, the run ends with **`bot_status: "NotAllowed"`**.
-- If someone explicitly rejects the request, you get **`bot_status: "Denied"`**.
+- If the timeout elapses without admission, you get `bot.stopped` with **`bot_event: "bot.notallowed"`** (`status_code: 500`, `bot_status: "NotAllowed"`), then `bot.done`.
+- If someone explicitly rejects the request, you get `bot.stopped` with **`bot_event: "bot.denied"`** (`status_code: 500`, `bot_status: "Denied"`), then `bot.done`.
 - The Teams timeout defaults are deliberately higher than elsewhere because Teams lobbies and meeting starts can run slower: `waiting_room_timeout` 600, `no_one_joined_timeout` 600, `everyone_left_timeout` 300.
 
 Beyond that, the precise admission rules - who counts as an organiser, which tenant policies bypass the lobby, how guest and federated users are treated - are Microsoft's behaviour and vary by tenant configuration. If a bot is not being admitted in your environment, check the meeting's lobby settings in Teams and Microsoft's own documentation, and see [Debugging Bots](https://docs.meetstream.ai/guides/help/debugging-bots) for how to read what MeetStream observed.
@@ -58,7 +58,7 @@ Beyond that, the precise admission rules - who counts as an organiser, which ten
 | `waiting_room_timeout` range | 60-1800 (default 600) | 60-1200 (default 600) | 60-600 (default 600) |
 | Other timeout defaults | `no_one_joined_timeout` 600, `everyone_left_timeout` 300 | - | `no_one_joined_timeout` 600, `everyone_left_timeout` 300 |
 | `recording_permission_denied_timeout` | Ignored | 60-300, default 60 | Ignored |
-| Signed-in / authenticated bot identity | Not applicable - the `google_meet` block is Meet-only | OBF hosted OAuth joins as one of your end users | `google_meet.login_required` signed-in bots |
+| Signed-in / authenticated bot identity | Not applicable - the `google_meet` block is Meet-only | `zoom.zak_url` (as a signed-in user) or `zoom.obf_url` (on behalf of a user in the call), minted by your own server: see [`zoom-authenticated-joins`](../zoom-authenticated-joins) | `google_meet.login_required` signed-in bots |
 | Per-participant audio | Partial isolation - speaker-attributed capture via the browser bot, same stream-capture model as Google Meet | **Full isolation** - dedicated raw PCM stream per participant | Partial isolation, up to 3 concurrent speaker streams |
 | Per-participant video | Webcam up to 854×480 @ 800 kbps; screen share up to 1280×720 @ 2 Mbps; 1 concurrent screen share | Webcam 640×360 fixed @ 300 kbps; screen share at native resolution @ 1.5 Mbps; 1 concurrent | Webcam up to 854×480 @ 800 kbps; screen share up to 1280×720 @ 2 Mbps; **multiple** concurrent screen shares |
 | Video segmenting | A webcam dimension change starts a new segment (as does a screen-share resolution change) | - | - |
@@ -99,13 +99,13 @@ bot.joining
   -> bot.inmeeting
   -> bot.recording            typically within ~1s - this template prints the gap
   -> bot.leaving
-  -> bot.stopped              terminal; bot_status says why
+  -> bot.stopped              every ending; bot_event says why
   -> manifest.completed / audio.processed / transcription.processed / video.processed
-  -> bot.done
+  -> bot.done                 final event on every path
   -> data_deletion            when retention expires or you delete the data
 ```
 
-Payloads carry the event name under `event`, with `bot_event` as an alias:
+`event` is always present and is the generic name. `bot_event` is the specific name, equal to `event` on everything except terminals:
 
 ```json
 {
@@ -120,9 +120,19 @@ Payloads carry the event name under `event`, with `bot_event` as an alias:
 }
 ```
 
-`src/lifecycle.js` reads `event` and falls back to `bot_event`, then **branches on `bot_status`**. A terminal result may arrive either as `bot.stopped` carrying a status that explains why, or as the more specific `bot.notallowed` / `bot.denied` / `bot.kicked` / `bot.failed` event - `bot_status` is the same value in both shapes, so it is the stable thing to switch on.
+Every ending arrives exactly once as `event: "bot.stopped"`, and `bot_event` carries the reason:
 
-Streaming-only transcription providers end the pipeline at `audio.processed` and never emit `bot.done`; do not block on it in that case.
+| `bot_event` | `status_code` | `bot_status` |
+| --- | --- | --- |
+| `bot.stopped` | 200 | `Stopped` |
+| `bot.kicked` | 200 | `Stopped` |
+| `bot.notallowed` | 500 | `NotAllowed` |
+| `bot.denied` | 500 | `Denied` |
+| `bot.failed` | usually 500 | `FAILED` / `ERROR` / `Failed` |
+
+`src/lifecycle.js` detects the terminal from `event` and **branches on `bot_event`**, not `bot_status`: a kick and a clean exit both say `Stopped`, and the failure casing varies. `bot_status` is only a case-insensitive fallback if `bot_event` is missing.
+
+`bot.done` is the final event on every path, including streaming-only providers (which never send `transcription.processed`) and bots that were never admitted. `audio.processed` is never final. That is why this template waits for `bot.done` before shutting down.
 
 ---
 
@@ -145,7 +155,7 @@ Deliveries to a per-bot `callback_url` are **not signed**; signature verificatio
 
 ## Troubleshooting
 
-**Bot sits in the lobby and is never admitted** - the run ends with `NotAllowed`. Someone with admission rights has to let it in, or the meeting's lobby policy has to allow it. Raise `WAITING_ROOM_TIMEOUT` (up to 1800) if the bot simply arrives before anyone else.
+**Bot sits in the lobby and is never admitted** - the run ends with `bot.stopped` / `bot_event: "bot.notallowed"`, then `bot.done`. Someone with admission rights has to let it in, or the meeting's lobby policy has to allow it. Raise `WAITING_ROOM_TIMEOUT` (up to 1800) if the bot simply arrives before anyone else.
 
 **HTTP 400 from create_bot** - an out-of-range `automatic_leave` value (`waiting_room_timeout` 60-1800 on Teams, `in_call_recording_timeout` at least 600), or a malformed link.
 

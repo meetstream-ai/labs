@@ -279,9 +279,11 @@ function retryAfterMs(res) {
 
 /**
  * Read a bot status payload and decide whether the bot has reached a terminal
- * state. MeetStream reports the reason in `bot_status`
- * (Stopped | NotAllowed | Denied | Error); we accept either `bot_status` or
- * `status` because both spellings show up depending on the endpoint.
+ * state. The status endpoint reports a bot_status string (Stopped | NotAllowed
+ * | Denied | Error / Failed, casing varies), so it is compared lowercased; we
+ * accept either `bot_status` or `status` because both spellings show up
+ * depending on the endpoint. It cannot tell a kick from a clean exit (both are
+ * "Stopped"); the `bot_event` on the bot.stopped webhook can.
  *
  * @param {any} statusPayload
  * @returns {{ status: string, terminal: boolean }}

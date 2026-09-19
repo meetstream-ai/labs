@@ -123,7 +123,7 @@ The check that matters is step 3: a `POST` of a real-shaped envelope through the
 
 That distinction matters, because a tunnel can return `200` from an interstitial page while your handler never runs. The self-test catches that. A plain `curl` to `/health` does not.
 
-The synthetic envelope uses `"event"` as the key, because that is what MeetStream sends. Anything that says `bot_event` is wrong.
+The synthetic envelope has the same shape as a real delivery: `event` (always present), `bot_event` (the specific name, equal to `event` except on terminals), and an ISO 8601 `timestamp`. On a terminal, `event` is `bot.stopped` and `bot_event` carries the reason (`bot.stopped`, `bot.kicked`, `bot.notallowed`, `bot.denied`, `bot.failed`), so the receiver prints both, for example `bot.stopped (bot.kicked)`.
 
 ## How it works
 

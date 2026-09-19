@@ -13,14 +13,23 @@
 
 export const DEFAULT_BASE_URL = 'https://api.meetstream.ai/api/v1';
 
-/** Bot statuses that mean the bot will never do anything else. */
+/**
+ * Bot statuses that mean the bot will never do anything else, lowercased.
+ * Compare case-insensitively: failure casing varies (Error, ERROR, Failed, FAILED).
+ */
 export const TERMINAL_STATUSES = new Set([
-  'Stopped',
-  'NotAllowed',
-  'Denied',
-  'Error',
-  'Done',
+  'stopped',
+  'notallowed',
+  'denied',
+  'error',
+  'failed',
+  'done',
 ]);
+
+/** True when a GET /bots/{id}/status value is terminal, in any casing. */
+export function isTerminalStatus(status) {
+  return typeof status === 'string' && TERMINAL_STATUSES.has(status.toLowerCase());
+}
 
 const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
 
@@ -258,7 +267,7 @@ export class MeetStreamClient {
         last = current;
         if (onTick) onTick(current, attempt);
       }
-      if (current && TERMINAL_STATUSES.has(current)) {
+      if (isTerminalStatus(current)) {
         return { status: current, timedOut: false };
       }
       if (attempt < maxAttempts) await sleep(intervalMs);

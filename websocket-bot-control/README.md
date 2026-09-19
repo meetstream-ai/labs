@@ -214,6 +214,6 @@ websocket-bot-control/
 
 ## Resources
 
-- [Meeting control and command patterns](https://docs.meetstream.ai/guides/web-sockets/meeting-control-and-command-patterns)
+- [Meeting control and command patterns](https://docs.meetstream.ai/guides/websockets/meeting-control-patterns)
 - [Create Bot endpoint](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
 - [MeetStream docs](https://docs.meetstream.ai)

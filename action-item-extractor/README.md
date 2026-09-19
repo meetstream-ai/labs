@@ -88,8 +88,8 @@ The MeetStream details that matter:
 
 - Auth is `Authorization: Token <key>`. The literal word `Token`, not `Bearer`.
 - The create field is `meeting_link`, not `meeting_url`.
-- The webhook envelope key is `event`. We act on `transcription.processed`.
-- `bot.stopped` is always `status_code: 200`. Read `bot_status` for the reason: `Stopped`, `NotAllowed`, `Denied`, `Error`.
+- Every webhook carries `event`; most also carry `bot_event` with the specific name. We act on `transcription.processed`, and treat `bot.done` (the final event on every path) arriving without it as "no post-call transcript".
+- Every ending arrives as `event: "bot.stopped"`, with the reason in `bot_event`: `bot.stopped` (200), `bot.kicked` (200), `bot.notallowed` (500), `bot.denied` (500), `bot.failed` (usually 500). Branch on `bot_event`; fall back to `bot_status` case-insensitively only when it is missing, since a kick and a clean exit both report `Stopped`.
 - Webhooks never include `transcript_id`. It comes from `create_bot`, `GET /bots/{id}/detail`, or `GET /bots/{id}/transcriptions`.
 - The transcript is fetched by **transcript_id**, not bot_id, and segments carry text in a field named `transcript`, not `text`.
 - `HTTP 202` means "still processing, poll again". Polling is capped.

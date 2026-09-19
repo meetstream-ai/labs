@@ -12,7 +12,7 @@ import {
   groupStreamsByParticipant,
 } from './src/streams.js';
 import { createWaiter, envBool, envInt, optionalEnv, requireEnv, timestampSlug } from './src/util.js';
-import { createWebhookApp, listen } from './src/webhook.js';
+import { createWebhookApp, listen, terminalReason } from './src/webhook.js';
 
 /**
  * per-participant-audio-recorder
@@ -142,9 +142,10 @@ function handleEvent(event, payload) {
       break;
     case 'bot.stopped': {
       state.botStopped = true;
-      const reason = payload.bot_status ?? 'Stopped';
-      if (reason === 'Stopped') log.info('Bot left the meeting.');
-      else log.warn(`Bot stopped: ${reason} - ${payload.message ?? ''}`);
+      // The reason is in bot_event (bot.kicked, bot.notallowed, ...), not bot_status.
+      const reason = terminalReason(payload);
+      if (reason === 'bot.stopped') log.info('Bot left the meeting.');
+      else log.warn(`Bot stopped: ${reason} (status_code ${payload.status_code ?? '?'}) - ${payload.message ?? ''}`);
       state.waiter.wake();
       break;
     }

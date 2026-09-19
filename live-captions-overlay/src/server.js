@@ -8,9 +8,10 @@
  *                   { speakerName, timestamp, transcript, words[] }
  *
  *   POST /webhook   bot lifecycle events, from callback_url
- *                   { event, bot_id, bot_status, message, status_code,
- *                     custom_attributes }
- *                   The envelope key is `event`.
+ *                   { event, bot_event, bot_id, bot_status, message,
+ *                     status_code, timestamp, custom_attributes }
+ *                   `event` is always present; read `bot_event ?? event`
+ *                   for the specific name (terminal reason on bot.stopped).
  *
  * Both must ACK immediately. Do the work after responding - a slow handler
  * stalls the delivery pipeline.

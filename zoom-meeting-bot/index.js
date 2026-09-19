@@ -32,6 +32,7 @@ import {
   WAITING_ROOM_MAX_ZOOM,
   WAITING_ROOM_MIN,
   buildAutomaticLeave,
+  buildZoomAuth,
   createZoomBot,
   hasPasswordComponent,
   isZoomLink,
@@ -61,7 +62,8 @@ function readConfig() {
     everyoneLeftTimeout: intEnv('EVERYONE_LEFT_TIMEOUT', { min: 60, max: 1800 }),
     inCallRecordingTimeout: intEnv('IN_CALL_RECORDING_TIMEOUT', { min: 600, max: 18_000 }),
 
-    obfUserId: optionalEnv('ZOOM_OAUTH_CONNECTION_USER_ID'),
+    zakUrl: optionalEnv('ZOOM_ZAK_URL'),
+    obfUrl: optionalEnv('ZOOM_OBF_URL'),
     transcriptProvider: optionalEnv('TRANSCRIPT_PROVIDER'),
     transcriptLanguage: optionalEnv('TRANSCRIPT_LANGUAGE', 'en'),
     retentionHours: intEnv('RETENTION_HOURS', { min: 1, max: 8760 }),
@@ -114,7 +116,7 @@ function buildRequest(config, callbackUrl) {
       inCallRecordingTimeout: config.inCallRecordingTimeout,
     }),
     recordingConfig: buildRecordingConfig(config),
-    obf: config.obfUserId ? { userId: config.obfUserId } : undefined,
+    zoomAuth: { zakUrl: config.zakUrl, obfUrl: config.obfUrl },
   };
 }
 
@@ -144,9 +146,7 @@ async function cmdCheck(config) {
     ...(Object.keys(opts.recordingConfig).length
       ? { recording_config: opts.recordingConfig }
       : {}),
-    ...(opts.obf
-      ? { zoom: { use_zoom_obf: true, zoom_oauth_connection_user_id: opts.obf.userId } }
-      : {}),
+    ...(buildZoomAuth(opts.zoomAuth) ? { zoom: buildZoomAuth(opts.zoomAuth) } : {}),
   };
 
   console.log('Config is valid. This is the body that would be POSTed to /bots/create_bot:\n');
@@ -161,9 +161,9 @@ async function runListenOnly(config) {
     onEvent: (payload) => {
       const info = classify(payload);
       console.log(
-        `${new Date().toISOString()}  ${info.event ?? '?'}  bot_status=${info.status ?? '-'}  bot=${
-          info.botId ?? '-'
-        }`
+        `${new Date().toISOString()}  ${info.event ?? '?'}` +
+          (info.terminal ? `  bot_event=${info.specific ?? '-'}` : '') +
+          `  bot_status=${info.status ?? '-'}  bot=${info.botId ?? '-'}`
       );
       if (info.note) console.log(`    ${info.note}`);
     },
@@ -205,7 +205,9 @@ async function run(config) {
       if (info.botId && botId && info.botId !== botId) return;
 
       console.log(
-        `  <- ${info.event ?? 'unknown'}  bot_status=${info.status ?? '-'}` +
+        `  <- ${info.event ?? 'unknown'}` +
+          (info.terminal ? `  bot_event=${info.specific ?? '-'}` : '') +
+          `  bot_status=${info.status ?? '-'}` +
           (info.message ? `  "${info.message}"` : '')
       );
       if (info.note) console.log(`     ${info.note}`);
@@ -221,7 +223,8 @@ async function run(config) {
           bot_id: info.botId,
           timeout_used: `${config.recordingPermissionDeniedTimeout}s`,
           what_happens_next:
-            'The bot leaves cleanly (bot.leaving then bot.stopped). No recording is produced.',
+            'The bot leaves: bot.leaving, then bot.stopped with the reason in bot_event ' +
+            '(bot.denied), then bot.done. No recording is produced.',
           fixes:
             'Ask the host to grant the prompt, make the host a co-host of the bot account, or ' +
             'raise recording_permission_denied_timeout (max 300s) so a slow host still has time.',
@@ -239,7 +242,9 @@ async function run(config) {
           note: info.note,
         });
 
-        if (info.event === 'bot.stopped' || info.event === 'bot.kicked') {
+        // Every ending arrives as event bot.stopped; the reason is in bot_event
+        // (info.specific). Only a clean exit or a kick leaves media to process.
+        if (info.outcome === 'Stopped' || info.outcome === 'Kicked') {
           console.log(
             '\nPost-call processing continues after the bot leaves. Keep listening for ' +
               'audio.processed / transcription.processed / bot.done.'

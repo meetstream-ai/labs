@@ -34,14 +34,20 @@ export function createServer({ webhookPath = '/webhook' } = {}) {
 
   app.post(webhookPath, (req, res) => {
     const body = req.body ?? {};
-    // The envelope key is `event`. Not `bot_event`.
+    // `event` is always present (the generic name). Most deliveries also carry
+    // `bot_event`, the specific name; on terminals (event "bot.stopped") it is
+    // the reason: bot.stopped, bot.kicked, bot.notallowed, bot.denied, bot.failed.
     const event = body.event ?? '(missing `event` key)';
-    const botId = body.bot_id ?? '(no bot_id)';
+    const botEvent = body.bot_event ?? null;
+    // participant_events.* nest the bot id under data.bot.id.
+    const botId = body.bot_id ?? body.data?.bot?.id ?? '(no bot_id)';
 
     const record = {
       receivedAt: new Date().toISOString(),
       event,
+      botEvent,
       botId,
+      timestamp: body.timestamp ?? null,
       botStatus: body.bot_status ?? null,
       statusCode: body.status_code ?? null,
       message: body.message ?? '',
@@ -50,7 +56,8 @@ export function createServer({ webhookPath = '/webhook' } = {}) {
     };
     deliveries.push(record);
 
-    log.event(String(event), String(botId), record.message || `${record.bytes} bytes`);
+    const label = botEvent && botEvent !== event ? `${event} (${botEvent})` : event;
+    log.event(String(label), String(botId), record.message || `${record.bytes} bytes`);
 
     // Resolve the reachability self-test if this is its ping.
     const nonce = body.custom_attributes?.verify_nonce;

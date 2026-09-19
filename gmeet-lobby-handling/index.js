@@ -71,7 +71,9 @@ async function runListenOnly(config) {
     onEvent: (payload) => {
       const info = classify(payload);
       console.log(
-        `${new Date().toISOString()}  ${info.event ?? '?'}  bot_status=${info.status ?? '-'}  ` +
+        `${new Date().toISOString()}  ${info.event ?? '?'}` +
+          (info.specific && info.specific !== info.event ? ` (bot_event=${info.specific})` : '') +
+          `  bot_status=${info.status ?? '-'}  ` +
           `bot=${info.botId ?? '-'}${info.terminal ? `  TERMINAL (${info.outcome})` : ''}`
       );
       if (info.terminal) console.log(`    ${info.reason}`);

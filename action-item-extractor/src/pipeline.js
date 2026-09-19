@@ -14,8 +14,9 @@
  *
  * The MeetStream lifecycle it follows is the real one:
  *   bot.joining → bot.in_waiting_room → bot.inmeeting → bot.recording → bot.leaving
- *   → bot.stopped → manifest.completed → audio.processed → transcription.processed
- *   → video.processed → bot.done → data_deletion
+ *   → bot.stopped (reason in bot_event) → manifest.completed / audio.processed
+ *   → transcription.processed → bot.transcriptionready → video.processed → bot.done
+ *   → data_deletion (only after a delete or retention expiry)
  *
  * Note: webhooks never carry `transcript_id`. We take it from the create_bot
  * response (and fall back to /bots/{id}/detail or /bots/{id}/transcriptions).
@@ -234,54 +235,65 @@ async function liveMode({ args, onMeetingComplete }) {
 }
 
 async function handleWebhookEvent(payload, state, onMeetingComplete) {
-  // The envelope key is `event`. Anything claiming it is `bot_event` is out of date.
-  const { event, bot_id: botId, bot_status: botStatus, message } = payload || {};
+  // `event` is always present. `bot_event` carries the specific name and, on
+  // terminals, the reason: every ending arrives as event "bot.stopped" with
+  // bot_event "bot.stopped" | "bot.kicked" | "bot.notallowed" | "bot.denied" | "bot.failed".
+  const { event, bot_id: botId, bot_status: botStatus, message, status_code: statusCode } = payload || {};
   if (!event) return;
+  const name = payload.bot_event ?? event;
 
   switch (event) {
     case "bot.joining":
-      console.log(`[${event}] Bot is dialling into the meeting.`);
+      console.log(`[${name}] Bot is dialling into the meeting.`);
       break;
     case "bot.in_waiting_room":
-      console.log(`[${event}] Bot is in the waiting room - someone needs to admit it.`);
+      console.log(`[${name}] Bot is in the waiting room - someone needs to admit it.`);
       break;
     case "bot.inmeeting":
-      console.log(`[${event}] Bot joined the meeting.`);
+      console.log(`[${name}] Bot joined the meeting.`);
       break;
     case "bot.recording":
-      console.log(`[${event}] Recording started.`);
+      console.log(`[${name}] Recording started.`);
       break;
     case "bot.leaving":
-      console.log(`[${event}] Bot is leaving.`);
+      console.log(`[${name}] Bot is leaving.`);
       break;
-    case "bot.stopped":
-      // Always status_code 200 - `bot_status` tells you why it stopped.
-      console.log(`[${event}] Bot stopped. bot_status=${botStatus}${message ? ` (${message})` : ""}`);
-      if (botStatus && botStatus !== "Stopped") {
+    case "bot.stopped": {
+      // status_code is 200 for a clean exit or a kick, 500 for notallowed/denied
+      // and (usually) failed. Branch on the reason, not on status_code or bot_status.
+      const reason = terminalReason(payload);
+      console.log(
+        `[${reason}] Bot stopped (status_code=${statusCode ?? "?"}, bot_status=${botStatus ?? "?"})` +
+          `${message ? ` (${message})` : ""}`
+      );
+      if (reason === "bot.kicked") {
+        console.warn("  A participant removed the bot. Whatever was recorded is still processed.");
+      } else if (reason !== "bot.stopped") {
         console.error(
-          `  The bot did not record normally (${botStatus}). ` +
-            `NotAllowed = lobby timeout, Denied = host refused, Error = internal failure.`
+          `  The bot did not record normally (${reason}). ` +
+            `bot.notallowed = lobby timeout, bot.denied = host refused, bot.failed = the bot crashed.`
         );
         process.exit(1);
       }
       break;
+    }
     case "manifest.completed":
     case "audio.processed":
     case "video.processed":
-      console.log(`[${event}] ...`);
+      console.log(`[${name}] ...`);
       break;
     case "transcription.failed":
-      console.error(`[${event}] Transcription failed: ${message ?? "no message"}`);
+      console.error(`[${name}] Transcription failed: ${message ?? "no message"}`);
       process.exit(1);
       break;
     case "bot.error":
       // Non-terminal streaming-provider error. The bot keeps running.
-      console.warn(`[${event}] Non-fatal error: ${message ?? "no message"}`);
+      console.warn(`[${name}] Non-fatal error: ${message ?? "no message"}`);
       break;
     case "transcription.processed": {
       if (state.done) return;
       state.done = true;
-      console.log(`[${event}] Transcript is ready.`);
+      console.log(`[${name}] Transcript is ready.`);
       const transcriptId = state.transcriptId || (await resolveTranscriptId(botId || state.botId));
       if (!transcriptId) {
         console.error("  Could not determine transcript_id - cannot fetch the transcript.");
@@ -290,9 +302,36 @@ async function handleWebhookEvent(payload, state, onMeetingComplete) {
       await finish({ botId: botId || state.botId, transcriptId, onMeetingComplete });
       break;
     }
+    case "bot.done":
+      // bot.done is the final event on every path. If transcription.processed
+      // has not arrived by now (allowing a short grace for delivery order),
+      // no post-call transcript is coming.
+      setTimeout(() => {
+        if (state.done) return;
+        console.error(
+          `[${name}] Session finished without transcription.processed - there is no ` +
+            "post-call transcript to fetch (streaming-only provider, or nothing was recorded)."
+        );
+        process.exit(1);
+      }, 10_000).unref?.();
+      break;
     default:
-      console.log(`[${event}] (unhandled)`);
+      console.log(`[${name}] (unhandled)`);
   }
+}
+
+/**
+ * Why a bot ended. `bot_event` is authoritative; when it is missing, fall back
+ * to bot_status compared case-insensitively. Never branch on bot_status alone:
+ * a kick and a clean exit both report "Stopped".
+ */
+export function terminalReason(payload) {
+  if (payload?.bot_event) return payload.bot_event;
+  const status = String(payload?.bot_status ?? "").toLowerCase();
+  if (status === "notallowed") return "bot.notallowed";
+  if (status === "denied") return "bot.denied";
+  if (status === "error" || status === "failed") return "bot.failed";
+  return "bot.stopped";
 }
 
 /* ------------------------------------------------------------------ */

@@ -28,7 +28,7 @@ This template triggers the run, works out which `transcript_id` is the new one, 
 
 **You want better quality.** The first pass used a fast, cheap provider. For the calls that turn out to matter, re-run with a higher-quality model, or with diarization enabled so you get speaker attribution you did not ask for the first time.
 
-**A streaming-only bot needs a post-call transcript.** This is the big one. A bot created with `deepgram_streaming` (or any `*_streaming` provider) delivers transcripts live over your webhook and **never produces a post-call transcript** - `GET /transcript/{id}/get_transcript` returns HTTP 202 forever, and the lifecycle ends at `audio.processed` with no `transcription.processed` and no `bot.done`. If your live consumer dropped chunks, crashed mid-meeting, or you simply want a durable record afterwards, `POST /bots/{id}/transcribe` with a post-call provider is how you get one. The audio was recorded either way.
+**A streaming-only bot needs a post-call transcript.** This is the big one. A bot created with `deepgram_streaming` (or any `*_streaming` provider) delivers transcripts live over your webhook and **never produces a post-call transcript** - `GET /transcript/{id}/get_transcript` returns HTTP 202 forever, and its lifecycle never includes `transcription.processed` (it still ends with `bot.done`, like every bot). If your live consumer dropped chunks, crashed mid-meeting, or you simply want a durable record afterwards, `POST /bots/{id}/transcribe` with a post-call provider is how you get one. The audio was recorded either way.
 
 ## Prerequisites
 

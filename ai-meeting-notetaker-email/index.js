@@ -23,7 +23,7 @@ import { assertEmailConfig, resolveEmailProvider, sendEmail } from "./src/email.
 run({
   name: "AI Meeting Notetaker → Email",
 
-  // Validate email config before we spend money creating a bot.
+  // Validate email config before we create a bot.
   preflight() {
     const provider = assertEmailConfig();
     const hasStaticRecipients = Boolean(process.env.EMAIL_TO);

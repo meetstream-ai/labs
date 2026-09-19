@@ -254,17 +254,25 @@ async function handleWebhookEvent(payload, state, onMeetingComplete) {
     case "bot.leaving":
       console.log(`[${event}] Bot is leaving.`);
       break;
-    case "bot.stopped":
-      // Always status_code 200 - `bot_status` tells you why it stopped.
-      console.log(`[${event}] Bot stopped. bot_status=${botStatus}${message ? ` (${message})` : ""}`);
-      if (botStatus && botStatus !== "Stopped") {
+    case "bot.stopped": {
+      // Every ending arrives as event "bot.stopped"; bot_event carries the reason
+      // (bot.stopped | bot.kicked | bot.notallowed | bot.denied | bot.failed).
+      // Fall back to bot_status, case-insensitively, if bot_event is missing.
+      const st = String(botStatus ?? "").toLowerCase();
+      const reason = payload.bot_event ||
+        (st === "notallowed" ? "bot.notallowed" : st === "denied" ? "bot.denied"
+          : st === "error" || st === "failed" ? "bot.failed" : "bot.stopped");
+      console.log(`[${event}] Bot stopped: ${reason} (status_code ${payload.status_code})${message ? ` (${message})` : ""}`);
+      if (reason === "bot.notallowed" || reason === "bot.denied" || reason === "bot.failed") {
         console.error(
-          `  The bot did not record normally (${botStatus}). ` +
-            `NotAllowed = lobby timeout, Denied = host refused, Error = internal failure.`
+          `  The bot did not record normally (${reason}). ` +
+            `bot.notallowed = lobby timeout, bot.denied = host refused, bot.failed = internal failure.`
         );
         process.exit(1);
       }
+      // bot.stopped and bot.kicked both leave a recording to process.
       break;
+    }
     case "manifest.completed":
     case "audio.processed":
     case "video.processed":

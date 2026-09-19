@@ -68,18 +68,22 @@ function adviceFor(record) {
     case 'joining':
       return 'Check the meeting_link is valid and the meeting has actually started.';
     case 'waiting_room':
-      return 'Nobody is admitting the bot. automatic_leave.waiting_room_timeout should end this with bot.stopped / NotAllowed.';
+      return 'Nobody is admitting the bot. automatic_leave.waiting_room_timeout should end this with bot.stopped (bot_event bot.notallowed).';
     case 'recording':
     case 'in_meeting':
       return 'Long meeting, or automatic_leave.in_call_recording_timeout is set high (its minimum is 600 seconds).';
     case 'stopped':
+    case 'kicked':
     case 'stopped_error':
       return 'The meeting ended but processing never started. Check GET /bots/{id}/detail.';
+    case 'not_allowed':
+    case 'denied':
+      return 'Nothing was recorded, so bot.done should have followed almost immediately. Check GET /bots/{id}/detail.';
     case 'processing':
     case 'media_ready':
     case 'transcribed':
       return record.streamingOnly
-        ? 'This bot is marked streaming-only, so it should have finished at audio.processed. Verify the streamingOnly flag is right.'
+        ? 'Streaming-only bot: no transcription.processed is coming, only bot.done. Verify with GET /bots/{id}/detail.'
         : 'Post-processing is running long. Verify with GET /bots/{id}/detail before re-triggering anything.';
     default:
       return '';

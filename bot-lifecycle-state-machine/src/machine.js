@@ -6,11 +6,14 @@
  *   - Webhook delivery is at-least-once and NOT order-guaranteed. A naive
  *     handler that assigns `state = eventName` will happily walk backwards
  *     when a delayed `bot.joining` lands after `bot.recording`.
- *   - Where the lifecycle ENDS depends on the transcription provider. Post-call
- *     providers finish at `bot.done`. Streaming-only providers finish at
- *     `audio.processed` and never emit `bot.done` at all.
- *   - `bot.stopped` is terminal for the meeting but carries FOUR different
- *     outcomes in `bot_status`, two of which mean no media will ever exist.
+ *   - `bot.done` is the final event on EVERY path: post-call providers,
+ *     streaming-only providers, and bots that were never admitted. Streaming-only
+ *     bots simply skip transcription.processed on the way there.
+ *     `audio.processed` is never final.
+ *   - Every ending arrives as `event: "bot.stopped"`, with the reason in
+ *     `bot_event`: bot.stopped | bot.kicked | bot.notallowed | bot.denied |
+ *     bot.failed. Two of those mean no media will ever exist. Do not read the
+ *     reason from `bot_status`: a kick and a clean exit both say "Stopped".
  *   - `bot.error` is not terminal and must not move the machine.
  *
  * Every state carries a `rank`. The machine only ever moves forward in rank,
@@ -26,44 +29,48 @@ export const STATES = {
   recording: { rank: 4, terminal: false, label: 'Recording' },
   leaving: { rank: 5, terminal: false, label: 'Leaving the meeting' },
 
-  // bot.stopped outcomes
+  // bot.stopped outcomes (reason from bot_event). None is terminal: bot.done
+  // still follows on every path.
   stopped: { rank: 6, terminal: false, label: 'Left cleanly, awaiting processing' },
+  kicked: {
+    rank: 6,
+    terminal: false,
+    label: 'Removed by a participant, processing what was recorded',
+  },
   stopped_error: {
     rank: 6,
     terminal: false,
-    label: 'Stopped after an in-meeting error, partial assets may still arrive',
+    label: 'Bot failed in-meeting (bot.failed), partial assets may still arrive',
   },
   not_allowed: {
     rank: 6,
-    terminal: true,
-    outcome: 'failure',
-    label: 'Never admitted (lobby timeout). No media exists.',
+    terminal: false,
+    label: 'Never admitted (lobby timeout). No media exists, awaiting bot.done',
   },
   denied: {
     rank: 6,
-    terminal: true,
-    outcome: 'failure',
-    label: 'Host denied entry. No media exists.',
+    terminal: false,
+    label: 'Host denied entry. No media exists, awaiting bot.done',
   },
 
   // post-processing
   processing: { rank: 7, terminal: false, label: 'Manifest sealed, producing assets' },
-  media_ready: { rank: 8, terminal: false, label: 'Audio ready, still finishing' },
+  media_ready: { rank: 8, terminal: false, label: 'Audio ready, still finishing (bot.done follows)' },
   transcribed: { rank: 9, terminal: false, label: 'Transcript ready, still finishing' },
 
-  // terminals
+  // terminals: all reached via bot.done, which is final on every path
   done: { rank: 10, terminal: true, outcome: 'success', label: 'Pipeline complete' },
   done_failed: {
     rank: 10,
     terminal: true,
     outcome: 'failure',
-    label: 'Pipeline finished unsuccessfully (bot.done with status_code 500)',
+    label: 'Pipeline finished after a failure (bot.failed or transcription.failed)',
   },
-  completed_streaming: {
+  never_admitted: {
     rank: 10,
     terminal: true,
-    outcome: 'success',
-    label: 'Complete: streaming-only bots end at audio.processed and never emit bot.done',
+    outcome: 'failure',
+    label: 'Finished without ever getting in (bot.notallowed / bot.denied). No media exists.',
   },
   deleted: { rank: 11, terminal: true, outcome: 'deleted', label: 'Bot data deleted' },
 };
@@ -81,7 +88,11 @@ export const STATE_TIMEOUTS_MS = {
   recording: 6 * 60 * 60 * 1000,
   leaving: 10 * 60 * 1000,
   stopped: 45 * 60 * 1000, // manifest.completed should follow reasonably fast
+  kicked: 45 * 60 * 1000,
   stopped_error: 45 * 60 * 1000,
+  // Nothing to process, so bot.done should follow almost immediately.
+  not_allowed: 15 * 60 * 1000,
+  denied: 15 * 60 * 1000,
   processing: 2 * 60 * 60 * 1000,
   media_ready: 2 * 60 * 60 * 1000,
   transcribed: 2 * 60 * 60 * 1000,
@@ -93,10 +104,24 @@ export const TERMINAL_STATES = Object.entries(STATES)
   .map(([name]) => name);
 
 /**
+ * The reason a bot stopped. Branch on `bot_event`; only if it is missing, fall
+ * back to `bot_status` compared case-insensitively (failure casing varies:
+ * FAILED / ERROR / Failed). On the fallback a kick reads as a clean exit.
+ */
+export function stopReasonOf({ botEvent, botStatus }) {
+  if (botEvent) return botEvent;
+  const status = String(botStatus ?? '').toLowerCase();
+  if (status === 'notallowed') return 'bot.notallowed';
+  if (status === 'denied') return 'bot.denied';
+  if (status === 'error' || status === 'failed') return 'bot.failed';
+  return 'bot.stopped';
+}
+
+/**
  * Resolve an event into a target state.
  * Returns null when the event carries information but should not move state.
  */
-export function targetStateFor(event, { botStatus, statusCode, streamingOnly }) {
+export function targetStateFor(event, { stopReason, transcriptFailed }) {
   switch (event) {
     case 'bot.joining':
       return 'joining';
@@ -110,17 +135,18 @@ export function targetStateFor(event, { botStatus, statusCode, streamingOnly }) 
       return 'leaving';
 
     case 'bot.stopped':
-      // status_code is 200 here no matter what happened. The outcome is in
-      // bot_status, and there are exactly four values.
-      switch (botStatus) {
-        case 'Stopped':
+      // The reason is in bot_event. status_code is 200 for a clean exit or a
+      // kick and 500 for notallowed / denied / most failures.
+      switch (stopReason) {
+        case 'bot.stopped':
           return 'stopped';
-        case 'NotAllowed':
+        case 'bot.kicked':
+          return 'kicked';
+        case 'bot.notallowed':
           return 'not_allowed';
-        case 'Denied':
+        case 'bot.denied':
           return 'denied';
-        case 'Error':
-          return 'stopped_error';
+        case 'bot.failed':
         default:
           return 'stopped_error';
       }
@@ -134,22 +160,26 @@ export function targetStateFor(event, { botStatus, statusCode, streamingOnly }) 
       return 'processing';
 
     case 'audio.processed':
-      // The fork in the road. Streaming-only providers stop here.
-      return streamingOnly ? 'completed_streaming' : 'media_ready';
+      // Never final, on any provider. Streaming-only bots go straight from
+      // here to bot.done with no transcription.processed in between.
+      return 'media_ready';
 
     case 'transcription.processed':
       return 'transcribed';
 
     // Arrives with status_code 500. Records a failure but does not end the run:
-    // video.processed and bot.done can still follow.
+    // video.processed and bot.done still follow.
     case 'transcription.failed':
       return null;
 
     case 'video.processed':
       return null;
 
+    // Final event on every path. The outcome comes from what happened before.
     case 'bot.done':
-      return statusCode === 500 ? 'done_failed' : 'done';
+      if (stopReason === 'bot.notallowed' || stopReason === 'bot.denied') return 'never_admitted';
+      if (stopReason === 'bot.failed' || transcriptFailed) return 'done_failed';
+      return 'done';
 
     case 'data_deletion':
       return 'deleted';
@@ -163,15 +193,15 @@ export function targetStateFor(event, { botStatus, statusCode, streamingOnly }) 
  * Apply one webhook event to a bot record. Mutates and returns `record`.
  *
  * @param {object} record  from store.js
- * @param {object} envelope  { event, botId, botStatus, statusCode, message }
+ * @param {object} envelope  { event, botEvent, botId, botStatus, statusCode, message, timestamp }
  * @returns {{ moved: boolean, from: string, to: string, note: string }}
  */
 export function applyEvent(record, envelope) {
   const now = new Date().toISOString();
-  const { event, botStatus, statusCode, message } = envelope;
+  const { event, botEvent = null, botStatus, statusCode, message, timestamp = null } = envelope;
 
   record.lastEventAt = now;
-  record.history.push({ at: now, event, botStatus, statusCode });
+  record.history.push({ at: now, event, botEvent, botStatus, statusCode, timestamp });
 
   // Side facts that are worth recording regardless of state movement.
   if (event === 'bot.error') {
@@ -185,15 +215,18 @@ export function applyEvent(record, envelope) {
   if (event === 'audio.processed') record.assets.audio = 'ready';
   if (event === 'video.processed') record.assets.video = 'ready';
   if (event === 'bot.stopped') {
-    record.stopReason = botStatus;
+    record.stopReason = stopReasonOf({ botEvent, botStatus });
     record.stopMessage = message;
-  }
-  if (event === 'bot.done' && statusCode === 500) {
-    record.failures.push({ at: now, kind: 'pipeline', message, statusCode });
+    if (record.stopReason === 'bot.failed') {
+      record.failures.push({ at: now, kind: 'bot', message, statusCode });
+    }
   }
 
   const from = record.state;
-  const to = targetStateFor(event, { botStatus, statusCode, streamingOnly: record.streamingOnly });
+  const to = targetStateFor(event, {
+    stopReason: record.stopReason,
+    transcriptFailed: record.assets.transcript === 'failed',
+  });
 
   if (to === null) {
     return { moved: false, from, to: from, note: `${event} recorded, no state change` };

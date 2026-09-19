@@ -47,8 +47,9 @@ export class BotStore {
         finishedAt: null,
         outcome: null,
         // Webhooks never say which transcription provider was used, and that
-        // determines where the lifecycle ends. Stamp it into custom_attributes
-        // at create_bot time and read it back. Defaults to post-call.
+        // determines whether a post-call transcript will ever arrive (bot.done
+        // ends the lifecycle either way). Stamp it into custom_attributes at
+        // create_bot time and read it back. Defaults to post-call.
         streamingOnly: false,
         stopReason: null,
         stopMessage: null,

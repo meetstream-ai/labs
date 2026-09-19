@@ -10,9 +10,10 @@
  *
  *   1. live_transcription_required REQUIRES a *_streaming provider.
  *      Pairing it with a post-call provider is an HTTP 400.
- *   2. A streaming-only bot produces NO post-call transcript. Its lifecycle
- *      ends at `audio.processed` - no transcription.processed, no bot.done -
- *      and GET /transcript/{id}/get_transcript returns 202 forever.
+ *   2. A streaming-only bot produces NO post-call transcript. It never fires
+ *      transcription.processed, and GET /transcript/{id}/get_transcript
+ *      returns 202 forever. Its lifecycle still ends with `bot.done`, like
+ *      every other bot.
  *
  * Usage:
  *   PUBLIC_URL=https://<your-tunnel> node index.js <meeting_link>
@@ -46,8 +47,10 @@ function handleCaption(rawChunk) {
 }
 
 function handleLifecycle(payload) {
-  // The envelope key is `event`.
+  // `event` is always present. `bot_event` carries the specific name and, on
+  // terminals, the reason (event "bot.stopped", bot_event "bot.kicked", ...).
   const { event, bot_id: botId, bot_status: botStatus, message, status_code: statusCode } = payload;
+  const name = payload.bot_event ?? event;
 
   switch (event) {
     case "bot.joining":
@@ -69,36 +72,57 @@ function handleLifecycle(payload) {
     case "bot.leaving":
       overlay.setStatus("bot is leaving");
       break;
-    case "bot.stopped":
-      // Always status_code 200. bot_status says why it stopped.
-      overlay.setStatus(`bot stopped (${botStatus ?? "?"})`);
-      overlay.note(explainStop(botStatus, message));
+    case "bot.stopped": {
+      // Every ending arrives as event "bot.stopped". The reason is in
+      // bot_event; status_code is 200 for a clean exit or kick, 500 otherwise.
+      const reason = terminalReason(payload);
+      overlay.setStatus(`bot stopped (${reason}${statusCode ? `, ${statusCode}` : ""})`);
+      overlay.note(explainStop(reason, message));
       break;
+    }
     case "audio.processed":
       overlay.note(
-        "audio.processed - for a streaming-only bot this is the LAST event. " +
-          "No transcription.processed and no bot.done will arrive.",
+        "audio.processed - the recording is saved. A streaming-only bot gets no " +
+          "transcription.processed; bot.done follows when the session is finished.",
       );
+      break;
+    case "bot.done":
       overlay.setStatus("finished (streaming-only bot: no post-call transcript)");
       break;
     default:
       overlay.note(
-        `event: ${event ?? "?"}${botStatus ? ` (${botStatus})` : ""}` +
+        `event: ${name ?? "?"}${botStatus ? ` (${botStatus})` : ""}` +
           `${statusCode ? ` [${statusCode}]` : ""}${botId ? ` bot=${botId}` : ""}`,
       );
   }
 }
 
-function explainStop(botStatus, message) {
-  switch (botStatus) {
-    case "Stopped":
+/**
+ * The reason a bot ended. `bot_event` is authoritative; when it is missing,
+ * fall back to bot_status compared case-insensitively. Do not branch on
+ * bot_status alone: a kick and a clean exit both report "Stopped".
+ */
+function terminalReason(payload) {
+  if (payload.bot_event) return payload.bot_event;
+  const status = String(payload.bot_status ?? "").toLowerCase();
+  if (status === "notallowed") return "bot.notallowed";
+  if (status === "denied") return "bot.denied";
+  if (status === "error" || status === "failed") return "bot.failed";
+  return "bot.stopped";
+}
+
+function explainStop(reason, message) {
+  switch (reason) {
+    case "bot.stopped":
       return "Clean exit. The meeting ended or the bot was stopped.";
-    case "NotAllowed":
+    case "bot.kicked":
+      return "A participant removed the bot from the meeting.";
+    case "bot.notallowed":
       return "The bot was never admitted from the waiting room.";
-    case "Denied":
+    case "bot.denied":
       return "The host denied the join request.";
-    case "Error":
-      return `The bot errored: ${message ?? "no detail"}`;
+    case "bot.failed":
+      return `The bot failed: ${message ?? "no detail"}`;
     default:
       return message ?? "Bot stopped.";
   }

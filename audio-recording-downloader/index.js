@@ -7,7 +7,7 @@ import { MeetStreamClient, interpretBotStatus } from './src/client.js';
 import { log } from './src/log.js';
 import { fetchRecording } from './src/media.js';
 import { createWaiter, envInt, optionalEnv, requireEnv, timestampSlug } from './src/util.js';
-import { createWebhookApp, listen } from './src/webhook.js';
+import { createWebhookApp, listen, terminalReason } from './src/webhook.js';
 
 /**
  * audio-recording-downloader
@@ -29,6 +29,7 @@ const state = {
   server: null,
   audioReady: false,
   botStopped: false,
+  noRecording: null,
   removeRequested: false,
   waiter: createWaiter(),
 };
@@ -110,10 +111,13 @@ function handleEvent(event, payload) {
       break;
     case 'bot.stopped': {
       state.botStopped = true;
-      const reason = payload.bot_status ?? 'Stopped';
-      // bot.stopped is always status_code 200; bot_status carries the reason.
-      if (reason === 'Stopped') log.info('Bot left the meeting.');
-      else log.warn(`Bot stopped: ${reason} - ${payload.message ?? ''}`);
+      // Every ending is event bot.stopped; the reason is in bot_event
+      // (bot.kicked, bot.notallowed, ...). status_code is 500 when the bot never got in.
+      const reason = terminalReason(payload);
+      if (reason === 'bot.stopped') log.info('Bot left the meeting.');
+      else log.warn(`Bot stopped: ${reason} (status_code ${payload.status_code ?? '?'}) - ${payload.message ?? ''}`);
+      // Never admitted means nothing was recorded. A kick still leaves a recording.
+      if (reason === 'bot.notallowed' || reason === 'bot.denied') state.noRecording = reason;
       state.waiter.wake();
       break;
     }
@@ -143,11 +147,16 @@ function handleEvent(event, payload) {
  */
 async function waitForRecording({ client, botId, destDir, maxAttempts, intervalMs }) {
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    if (state.noRecording) {
+      throw new Error(`The bot never got into the meeting (${state.noRecording}), so there is no recording to download.`);
+    }
     if (!state.botStopped && !state.audioReady) {
       try {
         const { status, terminal } = interpretBotStatus(await client.getBotStatus(botId));
         log.info(`[${attempt}/${maxAttempts}] Bot status: ${status}`);
         if (terminal) state.botStopped = true;
+        const lowered = String(status).toLowerCase();
+        if (lowered === 'notallowed' || lowered === 'denied') state.noRecording = `status ${status}`;
       } catch (err) {
         log.debug(`Status check failed: ${err.message}`);
       }

@@ -83,8 +83,9 @@ The MeetStream details that matter:
 
 - Auth is `Authorization: Token <key>`. The literal word `Token`, not `Bearer`.
 - The create field is `meeting_link`, not `meeting_url`, and `video_required` is a boolean.
-- The webhook envelope key is `event`. The lifecycle is `bot.joining` to `bot.in_waiting_room` to `bot.inmeeting` to `bot.recording` to `bot.leaving` to `bot.stopped` to `manifest.completed` to `audio.processed` to `transcription.processed` to `video.processed` to `bot.done`.
-- `bot.stopped` always carries `status_code: 200`. The `bot_status` field tells you why it stopped: `Stopped` is normal, `NotAllowed` is a lobby timeout, `Denied` means the host refused, `Error` is an internal failure.
+- Every webhook carries `event`; most also carry `bot_event` with the specific name, so read `bot_event ?? event`. The typical lifecycle is `bot.joining` to `bot.in_waiting_room` to `bot.inmeeting` to `bot.recording` to `bot.leaving` to `bot.stopped` to `manifest.completed` / `audio.processed` to `transcription.processed` to `bot.transcriptionready` to `video.processed` to `bot.done`. `bot.done` is the final event on every path.
+- Every ending arrives as `event: "bot.stopped"`, and `bot_event` gives the reason: `bot.stopped` (clean exit, 200), `bot.kicked` (a participant removed the bot, 200), `bot.notallowed` (lobby timeout, 500), `bot.denied` (host refused, 500), `bot.failed` (crashed, usually 500). Branch on `bot_event`, not `bot_status`: a kick and a clean exit both report `Stopped`. The pipeline falls back to `bot_status` (case-insensitive) only when `bot_event` is missing. A kick still continues to the transcript; the other non-clean reasons exit.
+- If `bot.done` arrives without a `transcription.processed` before it, there is no post-call transcript and the pipeline exits instead of waiting forever.
 - Webhooks never include `transcript_id`. It comes from the `create_bot` response, or from `GET /bots/{id}/detail`, or from `GET /bots/{id}/transcriptions`.
 - The transcript is fetched by **transcript_id**, not bot_id.
 - Transcript segments carry their text in a field called `transcript`, not `text`.
@@ -102,7 +103,7 @@ Same cause. `meeting_captions` in particular always returns `null`.
 **No webhook events arrive.**
 `PUBLIC_BASE_URL` must be a public HTTPS URL, and your tunnel must point at the same `PORT` the script is listening on. Check `GET /health` through the tunnel first.
 
-**`bot.stopped` with `bot_status: NotAllowed`.**
+**`bot.stopped` with `bot_event: bot.notallowed`.**
 Nobody admitted the bot from the waiting room before the timeout. Admit it faster, or raise `automatic_leave.waiting_room_timeout`.
 
 **HTTP 403 from MeetStream.**

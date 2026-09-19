@@ -6,14 +6,19 @@ import { randomUUID } from "node:crypto";
 
 import { api, sleep } from "./client.js";
 
-/** Statuses after which nothing more will happen in the meeting. */
+/**
+ * Statuses after which nothing more will happen in the meeting, lowercased.
+ * The API's casing varies (a failure can read FAILED, ERROR or Failed), so
+ * compare with status.toLowerCase().
+ */
 const TERMINAL_STATUSES = new Set([
-  "Stopped",
-  "NotAllowed", // never admitted from the waiting room
-  "Denied", // the host refused the join request
-  "Error",
-  "Done",
-  "MediaExpired",
+  "stopped",
+  "notallowed", // never admitted from the waiting room
+  "denied", // the host refused the join request
+  "error",
+  "failed",
+  "done",
+  "mediaexpired",
 ]);
 
 /**
@@ -57,7 +62,7 @@ export async function waitForBotToFinish(botId, options = {}) {
       if (onStatus) onStatus(status, attempt);
       last = status;
     }
-    if (TERMINAL_STATUSES.has(status)) return status;
+    if (TERMINAL_STATUSES.has(String(status).toLowerCase())) return status;
     await sleep(intervalMs);
   }
 
@@ -69,14 +74,15 @@ export async function waitForBotToFinish(botId, options = {}) {
 
 /** Human-readable explanation for a terminal status that produced no audio. */
 export function explainTerminalStatus(status) {
-  switch (status) {
-    case "NotAllowed":
+  switch (String(status).toLowerCase()) {
+    case "notallowed":
       return "The bot was never admitted from the waiting room, so nothing was recorded.";
-    case "Denied":
+    case "denied":
       return "The host denied the join request, so nothing was recorded.";
-    case "Error":
+    case "error":
+    case "failed":
       return "The bot errored out. Check GET /bots/{bot_id}/detail for the status timeline.";
-    case "MediaExpired":
+    case "mediaexpired":
       return "The recording passed its retention window and has been deleted.";
     default:
       return null;

@@ -66,9 +66,9 @@ async function runSimulation() {
   console.log('');
   for (const [botId, state] of bots) {
     const path = state.streamingOnly ? 'streaming-only' : 'post-call';
-    const outcome = state.outcome ? `${state.outcome.botStatus}` : 'no bot.stopped seen';
+    const outcome = state.outcome ? `${state.outcome.reason}` : 'no bot.stopped seen';
     console.log(
-      `  ${botId.padEnd(20)} ${String(path).padEnd(15)} events=${String(state.events.length).padEnd(3)} outcome=${outcome} finished=${state.finished}`,
+      `  ${botId.padEnd(20)} ${String(path).padEnd(15)} events=${String(state.events.length).padEnd(3)} outcome=${outcome.padEnd(15)} finished=${state.finished}`,
     );
   }
   console.log('');

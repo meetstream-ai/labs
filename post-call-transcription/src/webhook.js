@@ -70,11 +70,27 @@ function handleEvent(payload) {
   }
 }
 
-function handleBotStopped({ bot_id, bot_status, message }) {
-  const emoji = { Stopped: " ", NotAllowed: " ", Denied: " ", Error: " " }[bot_status] ?? " ";
-  console.log(`${emoji}  [${bot_id}] Bot stopped - status: ${bot_status}`);
+/**
+ * Every ending arrives once as event "bot.stopped"; the reason is in bot_event
+ * (bot.stopped | bot.kicked | bot.notallowed | bot.denied | bot.failed).
+ * bot_status is only a case-insensitive fallback: a kick and a clean exit both
+ * say "Stopped", and failure casing varies (FAILED / ERROR / Failed).
+ */
+function stopReason(payload) {
+  if (payload.bot_event) return payload.bot_event;
+  const status = String(payload.bot_status ?? "").toLowerCase();
+  if (status === "notallowed") return "bot.notallowed";
+  if (status === "denied") return "bot.denied";
+  if (status === "error" || status === "failed") return "bot.failed";
+  return "bot.stopped";
+}
+
+function handleBotStopped(payload) {
+  const { bot_id, bot_status, message } = payload;
+  const reason = stopReason(payload);
+  console.log(`   [${bot_id}] Bot stopped - reason: ${reason} (status: ${bot_status})`);
   if (message) console.log(`   Reason: ${message}`);
-  if (bot_status === "Stopped") {
+  if (reason === "bot.stopped" || reason === "bot.kicked") {
     console.log("   Waiting for transcription.processed event…\n");
   } else {
     console.log("   Bot did not complete normally - no transcript to fetch.\n");

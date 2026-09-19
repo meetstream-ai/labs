@@ -9,11 +9,18 @@
 
 import express from "express";
 
-/** The envelope key is `event`. Any doc that says `bot_event` is wrong. */
+/**
+ * `event` is always present (the generic name). Most deliveries also carry
+ * `bot_event`, the specific name: on terminals `event` is "bot.stopped" and
+ * `bot_event` is the reason (bot.stopped, bot.kicked, bot.notallowed,
+ * bot.denied, bot.failed).
+ */
 function summarise(payload) {
-  const { event, bot_id, bot_status, message, status_code } = payload ?? {};
+  const { event, bot_event, bot_id, bot_status, message, status_code } = payload ?? {};
+  const name = event ?? "(missing `event` key)";
   return {
-    event: event ?? "(missing `event` key)",
+    event: name,
+    label: bot_event && bot_event !== event ? `${name} (${bot_event})` : name,
     botId: bot_id ?? "?",
     botStatus: bot_status ?? null,
     message: message ?? null,
@@ -29,7 +36,7 @@ export function startWebhookServer(port, { onDataDeletion } = {}) {
     // Acknowledge first. Slow handlers look like failed deliveries.
     res.status(200).json({ received: true });
 
-    const { event, botId, botStatus, message, statusCode } = summarise(req.body);
+    const { event, label, botId, botStatus, message, statusCode } = summarise(req.body);
     const stamp = new Date().toISOString();
 
     if (event === "data_deletion") {
@@ -49,7 +56,7 @@ export function startWebhookServer(port, { onDataDeletion } = {}) {
     }
 
     const suffix = botStatus ? ` (bot_status: ${botStatus})` : "";
-    console.log(`[${stamp}] ${event}${suffix}  bot_id=${botId}`);
+    console.log(`[${stamp}] ${label}${suffix}  bot_id=${botId}`);
     if (message) console.log(`            ${message}`);
   });
 

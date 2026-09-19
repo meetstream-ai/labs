@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# Stored Zoom refresh tokens. Never commit these.
+data/
+
 # Dependencies
 node_modules/
 

@@ -7,9 +7,12 @@
  *                                  the host was probably just late.
  *   Denied (host rejected)      -> never retry. A human explicitly said no, and
  *                                  retrying just spams them. Notify instead.
- *   Error                       -> do not retry blindly. Notify with the bot id so
+ *   Error (bot.failed)          -> do not retry blindly. Notify with the bot id so
  *                                  you can inspect GET /bots/{id}/detail.
+ *   Kicked (bot.kicked)         -> never retry. A participant removed it on purpose.
  *   Stopped                     -> nothing to do, that is a clean exit.
+ *
+ * The outcome comes from the `bot_event` of the single `bot.stopped` delivery.
  *
  * It also runs a "still in the lobby" nudge: if the bot is still waiting after
  * lobbyAlertSeconds, alert a human who can admit it, well before the timeout fires.
@@ -138,7 +141,9 @@ export class JoinManager {
     }
 
     console.log(
-      `  <- ${info.event ?? 'unknown event'}  bot_status=${info.status ?? '-'}` +
+      `  <- ${info.event ?? 'unknown event'}` +
+        (info.specific && info.specific !== info.event ? ` (bot_event=${info.specific})` : '') +
+        `  bot_status=${info.status ?? '-'}` +
         (info.message ? `  "${info.message}"` : '')
     );
 
@@ -169,6 +174,15 @@ export class JoinManager {
           action:
             'Not retrying - someone said no on purpose. Ask the organiser to expect the bot, or ' +
             'use a signed-in bot whose account is on the calendar invite.',
+        });
+        this.finish({ outcome: info.outcome, attempts: this.attempt });
+        return;
+
+      case LOBBY_OUTCOME.KICKED:
+        await this.notifier.warn('Bot was removed from the meeting by a participant', {
+          bot_id: info.botId,
+          reason: info.reason,
+          action: 'Not retrying - a participant removed it on purpose.',
         });
         this.finish({ outcome: info.outcome, attempts: this.attempt });
         return;

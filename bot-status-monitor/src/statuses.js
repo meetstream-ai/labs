@@ -1,7 +1,14 @@
 /**
- * Every bot_status MeetStream reports, what it means, and which webhook event
- * carries it. Nothing here is guesswork: these are the documented lifecycle
- * values returned by GET /bots/{id}/status and echoed in webhook payloads.
+ * Every bot_status MeetStream reports, what it means, and which webhook
+ * delivery carries it. These are the lifecycle values returned by
+ * GET /bots/{id}/status and echoed in webhook payloads.
+ *
+ * Every ending arrives as ONE webhook with `event: "bot.stopped"`; the reason
+ * is in the webhook's `bot_event` (bot.stopped | bot.kicked | bot.notallowed |
+ * bot.denied | bot.failed). bot_status is coarser: a kick and a clean exit both
+ * report "Stopped", and the failure value comes in varying case (FAILED, ERROR,
+ * Failed). So compare bot_status case-insensitively, and use a webhook's
+ * bot_event when you need the exact reason.
  */
 
 export const STATUSES = [
@@ -17,7 +24,7 @@ export const STATUSES = [
     event: "bot.in_waiting_room",
     terminal: false,
     meaning: "The bot is parked in the lobby waiting for a host to admit it.",
-    note: "Controlled by automatic_leave.waiting_room_timeout. On timeout the bot ends as NotAllowed.",
+    note: "Controlled by automatic_leave.waiting_room_timeout. On timeout the bot ends as NotAllowed (bot_event bot.notallowed).",
   },
   {
     status: "InMeeting",
@@ -42,38 +49,39 @@ export const STATUSES = [
   },
   {
     status: "Stopped",
-    event: "bot.stopped",
+    event: "bot.stopped (bot_event bot.stopped or bot.kicked)",
     terminal: true,
-    meaning: "The session ended normally. The bot is out of the meeting.",
-    note: "bot.stopped always arrives with status_code 200, whatever the reason.",
+    meaning: "The bot is out of the meeting: a clean exit, or a participant removed it.",
+    note: "A kick also reports Stopped. Only the webhook's bot_event (bot.kicked) tells them apart. status_code 200.",
   },
   {
     status: "NotAllowed",
-    event: "bot.stopped",
+    event: "bot.stopped (bot_event bot.notallowed)",
     terminal: true,
     meaning: "The bot timed out in the waiting room and was never admitted.",
-    note: "Still a 200 webhook. Check bot_status, not the status code, to detect it.",
+    note: "The webhook arrives with status_code 500. No media exists; bot.done still follows.",
   },
   {
     status: "Denied",
-    event: "bot.stopped",
+    event: "bot.stopped (bot_event bot.denied)",
     terminal: true,
-    meaning: "A host explicitly denied the bot entry.",
-    note: "On Zoom this interacts with recording_permission_denied_timeout (60 to 300s).",
+    meaning: "A host explicitly denied the bot entry or recording.",
+    note: "status_code 500. On Zoom this interacts with recording_permission_denied_timeout (60 to 300s).",
   },
   {
     status: "Error",
-    event: "bot.stopped",
+    aliases: ["FAILED", "ERROR", "Failed"],
+    event: "bot.stopped (bot_event bot.failed)",
     terminal: true,
-    meaning: "The session failed. No usable recording.",
-    note: "GET /bots/{id}/detail carries the reason.",
+    meaning: "The session failed. Recording may be partial or absent.",
+    note: "Casing varies (FAILED, ERROR, Failed), so match it case-insensitively. Usually status_code 500. GET /bots/{id}/detail carries the reason.",
   },
   {
     status: "Done",
     event: "bot.done",
     terminal: true,
     meaning: "The session finished and all post-processing completed.",
-    note: "Streaming-only transcription providers never reach this. They end at audio.processed.",
+    note: "bot.done is the final webhook on every path, streaming-only and never-admitted bots included.",
   },
 ];
 
@@ -97,20 +105,34 @@ export const LIFECYCLE_ORDER = [
  */
 export const POST_SESSION_EVENTS = [
   ["manifest.completed", "The session manifest is written."],
-  ["audio.processed", "Audio is ready. Streaming-only providers END here."],
-  ["transcription.processed", "The post-call transcript is ready to fetch."],
-  ["transcription.failed", "Transcription failed. This one carries status_code 500."],
+  ["audio.processed", "Audio is ready. Not final: bot.done still follows."],
+  ["transcription.processed", "The post-call transcript is ready (post-call providers only)."],
+  ["transcription.failed", "Transcription failed, status_code 500 (post-call providers only)."],
   ["video.processed", "Video is ready (only when video_required was true)."],
-  ["bot.done", "Everything finished. bot_status becomes Done."],
+  ["bot.done", "Final event on every path, streaming-only included. bot_status becomes Done."],
   ["data_deletion", "The bot's media and transcripts were erased."],
 ];
 
+/**
+ * Map a raw bot_status to its canonical STATUSES entry name, case-insensitively,
+ * so FAILED / ERROR / Failed all resolve to "Error". Unknown values pass through.
+ */
+export function canonical(status) {
+  const needle = String(status ?? "").toLowerCase();
+  const hit = STATUSES.find(
+    (s) =>
+      s.status.toLowerCase() === needle ||
+      (s.aliases ?? []).some((a) => a.toLowerCase() === needle)
+  );
+  return hit ? hit.status : status;
+}
+
 export function describe(status) {
-  return STATUSES.find((s) => s.status === status) ?? null;
+  return STATUSES.find((s) => s.status === canonical(status)) ?? null;
 }
 
 export function isTerminal(status) {
-  return TERMINAL_STATUSES.has(status);
+  return TERMINAL_STATUSES.has(canonical(status));
 }
 
 /** Prints the full reference table. Used by `node index.js --explain`. */
@@ -133,11 +155,17 @@ export function printReference() {
 
   console.log("\n\nGOTCHAS");
   console.log("=".repeat(72));
-  console.log("  1. The webhook envelope key is `event`, not `bot_event`.");
-  console.log("  2. bot.stopped is status_code 200 even for Denied, NotAllowed and Error.");
+  console.log("  1. Every webhook carries `event`. Most also carry `bot_event`, which");
+  console.log("     differs only on terminals: every ending is event bot.stopped, and");
+  console.log("     bot_event holds the reason (bot.stopped, bot.kicked, bot.notallowed,");
+  console.log("     bot.denied, bot.failed). Branch on bot_event, not bot_status.");
+  console.log("  2. bot.stopped is status_code 200 for a clean exit or a kick, and 500");
+  console.log("     for NotAllowed, Denied and most failures.");
   console.log("  3. bot.error is NOT terminal. It reports a streaming provider fault");
   console.log("     while the bot keeps running.");
   console.log("  4. transcript_id never appears in a webhook. Read it from the");
   console.log("     create_bot response, GET /bots/{id}/detail, or /transcriptions.");
+  console.log("  5. bot.done is the final webhook on every path. audio.processed is");
+  console.log("     never final, even for streaming-only providers.");
   console.log("");
 }

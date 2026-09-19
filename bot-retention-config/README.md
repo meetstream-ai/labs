@@ -21,7 +21,7 @@ node index.js --mode timed --hours 72
 node index.js --explain                         # retention semantics, no API call
 node index.js --mode timed --hours 72           # keep artifacts for 72 hours
 node index.js --mode timed --hours 2            # keep them for 2 hours
-node index.js --mode default                    # inherit the API default (24h)
+node index.js --mode default                    # inherit the API default (720h, 30 days)
 node index.js --mode timed --hours 6 --transcript
 node index.js --mode timed --hours 6 --dry-run  # print the body, send nothing
 ```
@@ -53,7 +53,7 @@ Start with `--dry-run`. It prints the exact JSON that would be posted, so you ca
 }
 ```
 
-There is no `type: "default"`. `"timed"` is the only documented retention type, and "default" means omitting the block, at which point the bot inherits the API default of **24 hours**.
+There is no `type: "default"`. `"timed"` is the only documented retention type, and "default" means omitting the block, at which point the bot inherits the API default of **720 hours (30 days)**.
 
 Two structural notes people get wrong:
 
@@ -77,9 +77,9 @@ The clock starts when the session finishes, not when the bot was created, and ex
 
 ## Choosing a window
 
-**Shorter than default** for sensitive calls, or when your pipeline downloads the recording within minutes and you would rather not leave a second copy on someone else's disk.
+**Shorter than default** is the common choice: sensitive calls, or any pipeline that downloads or processes the recording within hours. Thirty days is a long time to leave a second copy on someone else's disk.
 
-**Longer than default** for human review queues and weekly QA sampling, anywhere a person may not open the call until days later. A 24-hour default plus a Monday morning review process means the recording is gone before anybody looks at it.
+**Longer than default** for audit or compliance archives that must outlive a month, or review queues that run on a monthly cycle.
 
 `--transcript` attaches a Deepgram `nova-3` post-call provider so you can watch retention apply to the transcript as well as the media, which is the part teams usually forget.
 
@@ -116,6 +116,6 @@ After creating a bot the template reads `GET /bots/{id}/detail`, which echoes ba
 
 **detail shows no retention block after `--mode timed`** - the block was not accepted. Re-run with `--dry-run` and compare the JSON against the shape above.
 
-**A recording vanished earlier than expected** - the bot was created without a retention block and inherited the 24-hour default. Retention is per bot and is fixed at creation.
+**A recording vanished earlier than expected** - the bot was created without a retention block and inherited the default window (720 hours) or your workspace's setting. Retention is per bot and is fixed at creation.
 
 **You need it back** - you cannot get it back. There is no restore path for expired or deleted artifacts.

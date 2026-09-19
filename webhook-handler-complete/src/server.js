@@ -49,7 +49,12 @@ export function createServer({ webhookPath = '/webhook', streamingOnly = false }
       return res.status(400).json({ message: env.reason });
     }
 
-    const key = deliveryKey({ botId: env.botId, event: env.event, message: env.message });
+    const key = deliveryKey({
+      botId: env.botId,
+      event: env.botEvent,
+      timestamp: env.timestamp,
+      message: env.message,
+    });
 
     // ---- Idempotency gate -------------------------------------------------
     if (!deliveries.claim(key)) {
@@ -62,7 +67,8 @@ export function createServer({ webhookPath = '/webhook', streamingOnly = false }
     const state = ensureState(bots, env.botId);
 
     // Webhooks never tell you which transcription provider the bot used, and
-    // that determines where the pipeline ends. The reliable trick is to stamp
+    // that determines whether a post-call transcript will ever exist (bot.done
+    // ends the stream either way). The reliable trick is to stamp
     // it into custom_attributes at create_bot time (values must be strings) and
     // read it back here. Falls back to the server-wide default.
     const expectStreamingOnly =
@@ -105,11 +111,14 @@ export function createServer({ webhookPath = '/webhook', streamingOnly = false }
 
 function printSummary(state, streamingOnly) {
   log.banner(`Bot ${state.botId} finished`);
-  log.detail('events seen', state.events.map((e) => e.event).join(' -> '));
+  log.detail(
+    'events seen',
+    state.events.map((e) => (e.botEvent && e.botEvent !== e.event ? `${e.event}(${e.botEvent})` : e.event)).join(' -> '),
+  );
   log.detail('joined meeting', state.joined ? 'yes' : 'no');
   log.detail('recorded', state.recorded ? 'yes' : 'no');
   if (state.outcome) {
-    log.detail('bot_status', `${state.outcome.botStatus} (${state.outcome.label})`);
+    log.detail('stop reason', `${state.outcome.reason} (${state.outcome.label})`);
   }
   log.detail(
     'assets',
@@ -117,15 +126,7 @@ function printSummary(state, streamingOnly) {
   );
   if (state.transcriptFailed) log.detail('transcription', 'FAILED (status_code 500)');
   if (state.errors.length) log.detail('errors', String(state.errors.length));
-  log.detail(
-    'terminal via',
-    state.deleted
-      ? 'data_deletion'
-      : streamingOnly
-        ? 'audio.processed (streaming-only provider, no bot.done is coming)'
-        : state.outcome && !state.outcome.ok && state.outcome.botStatus !== 'Error'
-          ? `bot.stopped/${state.outcome.botStatus} (no media, nothing further)`
-          : 'bot.done',
-  );
+  log.detail('terminal via', state.deleted ? 'data_deletion' : 'bot.done');
+  if (streamingOnly) log.detail('transcript', 'none (streaming-only provider, no post-call transcript)');
   console.log('');
 }

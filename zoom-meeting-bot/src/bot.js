@@ -14,15 +14,41 @@
  *     Range on Zoom is 60-1200 seconds (wider than Google Meet's 60-600),
  *     default 600.
  *
- *   zoom.use_zoom_obf / zoom.zoom_oauth_connection_user_id
- *     Hosted On-Behalf-Of flow: join as one of your end users who has authorised
- *     your Zoom OAuth app. See the Zoom OBF guide.
+ *   zoom.zak_url / zoom.obf_url
+ *     Authenticated joins. Each is an HTTPS URL on YOUR server that returns a
+ *     fresh Zoom token when the bot calls it at join time: zak_url joins as a
+ *     signed-in Zoom user, obf_url joins on behalf of a user already in the
+ *     meeting. Send at most one. You run Zoom OAuth and keep the refresh tokens;
+ *     MeetStream never stores them. The old use_zoom_obf /
+ *     zoom_oauth_connection_user_id fields are rejected by the API. See the
+ *     zoom-authenticated-joins template for a working token server.
  *
  * Password-protected meetings: pass the full invite link including its `?pwd=`
  * component as `meeting_link`.
  */
 
 import { randomUUID } from 'node:crypto';
+
+/**
+ * The `zoom` block for an authenticated join, or undefined for a guest join.
+ * The API returns 400 when both URLs are sent, so refuse that up front.
+ */
+export function buildZoomAuth({ zakUrl, obfUrl } = {}) {
+  if (zakUrl && obfUrl) {
+    throw new Error('Set only one of ZOOM_ZAK_URL or ZOOM_OBF_URL, not both.');
+  }
+  for (const url of [zakUrl, obfUrl].filter(Boolean)) {
+    if (!url.startsWith('https://')) {
+      throw new Error(`Zoom token URL must be https (bots run in the cloud and cannot reach localhost): ${url}`);
+    }
+  }
+  if (obfUrl && /[?&]meeting_number=/.test(obfUrl)) {
+    throw new Error('Leave meeting_number off ZOOM_OBF_URL. MeetStream appends it at join time.');
+  }
+  if (zakUrl) return { zak_url: zakUrl };
+  if (obfUrl) return { obf_url: obfUrl };
+  return undefined;
+}
 
 export const RECORDING_PERMISSION_TIMEOUT_MIN = 60;
 export const RECORDING_PERMISSION_TIMEOUT_MAX = 300;
@@ -110,7 +136,7 @@ export function buildAutomaticLeave({
  * @param {string} [opts.callbackUrl]
  * @param {boolean} [opts.videoRequired]
  * @param {object} [opts.automaticLeave]     already-built automatic_leave object
- * @param {object} [opts.obf]                { userId } to join via hosted OAuth
+ * @param {object} [opts.zoomAuth]           { zakUrl } or { obfUrl } for an authenticated join
  * @param {object} [opts.recordingConfig]    e.g. transcript provider + retention
  * @param {object} [opts.customAttributes]   string values only
  */
@@ -121,7 +147,7 @@ export async function createZoomBot(client, opts) {
     callbackUrl,
     videoRequired = false,
     automaticLeave,
-    obf,
+    zoomAuth,
     recordingConfig,
     customAttributes,
   } = opts;
@@ -147,12 +173,8 @@ export async function createZoomBot(client, opts) {
   if (customAttributes && Object.keys(customAttributes).length > 0) {
     body.custom_attributes = customAttributes;
   }
-  if (obf?.userId) {
-    body.zoom = {
-      use_zoom_obf: true,
-      zoom_oauth_connection_user_id: obf.userId,
-    };
-  }
+  const zoom = buildZoomAuth(zoomAuth);
+  if (zoom) body.zoom = zoom;
 
   const { data, replayed } = await client.request('/bots/create_bot', {
     method: 'POST',

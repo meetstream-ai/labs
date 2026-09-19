@@ -9,8 +9,9 @@
  *   Range on Google Meet : 60 - 600   (out of range returns HTTP 400)
  *   Default              : 600
  *
- * If the timeout elapses the bot leaves and you get a terminal webhook whose
- * `bot_status` is "NotAllowed". If a host explicitly rejects it you get "Denied".
+ * If the timeout elapses the bot leaves and you get a `bot.stopped` webhook
+ * whose `bot_event` is "bot.notallowed" (status_code 500). If a host explicitly
+ * rejects it, `bot_event` is "bot.denied".
  *
  * Optionally joins signed in, which is the real fix for lobby friction:
  *

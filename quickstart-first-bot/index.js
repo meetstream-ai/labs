@@ -18,14 +18,17 @@ import { call, reportError, sleep } from "./src/api.js";
  *   Done       the session finished and post-processing completed
  *   NotAllowed the bot timed out in the waiting room
  *   Denied     the host denied the bot entry
- *   Error      the session failed
+ *   Error      the session failed (casing varies: FAILED, ERROR, Failed)
+ *
+ * Stored lowercased: always compare with status.toLowerCase().
  */
 const TERMINAL_STATUSES = new Set([
-  "Stopped",
-  "Done",
-  "NotAllowed",
-  "Denied",
-  "Error",
+  "stopped",
+  "done",
+  "notallowed",
+  "denied",
+  "error",
+  "failed",
 ]);
 
 /** The states a healthy session moves through before it terminates. */
@@ -119,7 +122,7 @@ async function waitForTerminal(botId) {
       last = status;
     }
 
-    if (TERMINAL_STATUSES.has(status)) return status;
+    if (TERMINAL_STATUSES.has(String(status).toLowerCase())) return status;
 
     await sleep(POLL_INTERVAL_MS);
   }
@@ -132,16 +135,17 @@ async function waitForTerminal(botId) {
 }
 
 function explain(status) {
-  switch (status) {
-    case "Stopped":
+  switch (String(status).toLowerCase()) {
+    case "stopped":
       return "The bot left the meeting normally.";
-    case "Done":
+    case "done":
       return "The session finished and post-processing is complete.";
-    case "NotAllowed":
+    case "notallowed":
       return "Nobody admitted the bot from the waiting room before the timeout.";
-    case "Denied":
+    case "denied":
       return "The host explicitly denied the bot.";
-    case "Error":
+    case "error":
+    case "failed":
       return "The session failed. Check GET /bots/{id}/detail for the reason.";
     default:
       return "Unrecognised terminal status.";

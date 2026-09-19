@@ -32,9 +32,9 @@ Full walkthrough and troubleshooting: **[how-to-run.md](./how-to-run.md)**
 - `live_transcription_required.webhook_url` **requires** a streaming provider
   (`deepgram_streaming`, `assemblyai_streaming`, `jigsawstack_streaming`, `meetstream_streaming`,
   or `meeting_captions`) - without one the API returns HTTP 400.
-- Streaming-only bots deliver everything live and **end at `audio.processed`** - they never emit
-  `bot.done`, and a post-call `get_transcript` will return HTTP 202 indefinitely. Treat the live
-  stream as the record of truth.
+- Streaming-only bots deliver everything live and produce **no post-call transcript**: no
+  `transcription.processed`, and a post-call `get_transcript` returns HTTP 202 indefinitely.
+  `bot.done` still fires at the end. Treat the live stream as the record of truth.
 
 ## Docs
 

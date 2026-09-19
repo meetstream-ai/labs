@@ -141,4 +141,4 @@ Pipeline mode gives you provider-level control at the cost of three network hops
 ## Resources
 
 - [MeetStream Docs](https://docs.meetstream.ai)
-- [MIA guide](https://docs.meetstream.ai/guides/mia-meetstream-infrastructure-agents/create-mia)
+- [MIA guide](https://docs.meetstream.ai/guides/mia/create-an-agent)

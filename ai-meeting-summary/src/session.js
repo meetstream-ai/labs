@@ -10,7 +10,7 @@
  * template as many times as you like without joining the meeting again.
  */
 
-import { envInt, TERMINAL_STATUSES } from './client.js';
+import { envInt, isTerminalStatus } from './client.js';
 
 /**
  * Build the create_bot payload.
@@ -19,9 +19,10 @@ import { envInt, TERMINAL_STATUSES } from './client.js';
  *   meeting_link, bot_name, video_required, recording_config, automatic_leave.
  *
  * A *post-call* transcript provider is configured on purpose. Post-call
- * providers are what produce transcripts, summaries and a `bot.done`
- * lifecycle event; streaming-only providers (`*_streaming`,
- * `meeting_captions`) stop at `audio.processed` and never produce them.
+ * providers are what produce a post-call transcript (transcription.processed)
+ * and the summary built from it. Streaming-only providers (`*_streaming`,
+ * `meeting_captions`) never fire transcription.processed and have no post-call
+ * transcript. Every bot, streaming or not, still ends with `bot.done`.
  */
 export function buildCreateBotPayload({ meetingLink, botName, extra = {} }) {
   const recordingConfig = {
@@ -74,7 +75,7 @@ export async function resolveBot(client, { botNameDefault = 'MeetStream Labs Bot
       const body = await client.getStatus(existing);
       finalStatus = typeof body?.status === 'string' ? body.status : null;
       console.log(`Current status: ${finalStatus ?? 'unknown'}`);
-      if (finalStatus && !TERMINAL_STATUSES.has(finalStatus)) {
+      if (finalStatus && !isTerminalStatus(finalStatus)) {
         console.log('This bot is still live. Post-call artifacts may be incomplete or return HTTP 202.');
       }
     } catch (err) {
@@ -123,9 +124,11 @@ export async function resolveBot(client, { botNameDefault = 'MeetStream Labs Bot
     );
   } else {
     console.log(`Bot reached terminal status: ${status}`);
-    if (status === 'NotAllowed') console.log('  The bot timed out in the waiting room.');
-    if (status === 'Denied') console.log('  The host denied the bot entry.');
-    if (status === 'Error') console.log('  The bot errored. Check GET /bots/{id}/detail for the timeline.');
+    // Status casing varies, so compare lowercased.
+    const s = String(status).toLowerCase();
+    if (s === 'notallowed') console.log('  The bot timed out in the waiting room.');
+    if (s === 'denied') console.log('  The host denied the bot entry.');
+    if (s === 'error' || s === 'failed') console.log('  The bot failed. Check GET /bots/{id}/detail for the timeline.');
   }
 
   return { botId, created: true, finalStatus: status };

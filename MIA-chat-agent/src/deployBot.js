@@ -168,7 +168,8 @@ export async function removeBot(apiKey, botId, waitForTerminal) {
         : null;
       const timeline = details?.StatusTimeline || {};
       if (timeline.Stopped?.status || timeline.Kicked?.status ||
-          ['Stopped', 'MediaProcessing', 'Done', 'MediaExpired'].includes(details?.Status)) return;
+          ['stopped', 'mediaprocessing', 'done', 'mediaexpired', 'failed', 'error', 'notallowed', 'denied']
+            .includes(String(details?.Status ?? '').toLowerCase())) return;
     }
   }
 

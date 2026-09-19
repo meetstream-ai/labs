@@ -117,7 +117,7 @@ MIA agents run on MeetStream's own hosted bridge. Attach one by passing **only**
 | Template | What it does |
 |---|---|
 | [zoom-meeting-bot](./zoom-meeting-bot) | Zoom's recording-permission flow and its timeout ranges |
-| [zoom-oauth-connections](./zoom-oauth-connections) | Let your end users connect their own Zoom account |
+| [zoom-authenticated-joins](./zoom-authenticated-joins) | Host the ZAK / OBF token URL so bots join Zoom as a signed-in user, not a guest |
 | [teams-meeting-bot](./teams-meeting-bot) | Microsoft Teams lifecycle and admission behaviour |
 | [gmeet-lobby-handling](./gmeet-lobby-handling) | Google Meet waiting room: detect `NotAllowed` and `Denied`, then react |
 | [google-signed-in-bots-setup](./google-signed-in-bots-setup) | SAML SSO, certificates and domain registration, end to end |
@@ -149,12 +149,12 @@ MIA agents run on MeetStream's own hosted bridge. Attach one by passing **only**
 These are the details that most commonly go wrong when integrating. Every template here handles them the same way:
 
 - **Auth is `Authorization: Token <key>`** - the literal word `Token`, not `Bearer`.
-- **The webhook envelope key is `event`**, not `bot_event`.
-- **`bot.stopped` is the single terminal event.** `bot_status` says why: `Stopped`, `NotAllowed` (waiting room timeout), `Denied` (host refused), `Error`. Its `status_code` is `200` regardless of the reason.
-- **Transcripts are fetched by `transcript_id`, not `bot_id`.** Segments carry `speaker` and **`transcript`** (not `text`).
+- **Every webhook carries `event`**, and most also carry `bot_event` with the specific name.
+- **Terminals are two-layer.** Every ending arrives once as `event: "bot.stopped"`, and `bot_event` says why: `bot.stopped`, `bot.kicked`, `bot.notallowed` (waiting room timeout), `bot.denied` (host refused), `bot.failed`. Lobby timeouts, denials and failures carry `status_code: 500`. Branch on `bot_event`: a kick and a clean exit both report `bot_status: "Stopped"`.
+- **Over REST, transcripts are fetched by `transcript_id`, not `bot_id`.** Segments carry `speaker` and **`transcript`** (not `text`).
 - **HTTP 202 means "not ready, poll again"** - and streaming-only providers return 202 forever, so every poll loop is capped.
 - **HTTP 507 is an idempotent replay** and should be treated as success, not an error.
-- **Streaming-only providers end at `audio.processed`** and never emit `bot.done`.
+- **Streaming-only providers produce no post-call transcript** (no `transcription.processed`), but `bot.done` still fires. `bot.done` is the final event on every path.
 - **MIA needs only `agent_config_id`.** `socket_connection_url` and `live_audio_required` are for bring-your-own-bridge templates and point at *your* server.
 
 ## Prerequisites

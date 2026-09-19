@@ -118,12 +118,12 @@ function printReport() {
     return;
   }
   console.log(
-    `  ${'bot_id'.padEnd(28)}${'path'.padEnd(11)}${'state'.padEnd(22)}${'health'.padEnd(11)}${'outcome'.padEnd(11)}${'stop'.padEnd(12)}events`,
+    `  ${'bot_id'.padEnd(28)}${'path'.padEnd(11)}${'state'.padEnd(22)}${'health'.padEnd(11)}${'outcome'.padEnd(11)}${'stop'.padEnd(16)}events`,
   );
   console.log(`  ${'-'.repeat(100)}`);
   for (const r of rows) {
     console.log(
-      `  ${r.botId.padEnd(28)}${r.path.padEnd(11)}${r.state.padEnd(22)}${r.health.padEnd(11)}${String(r.outcome).padEnd(11)}${String(r.stopReason).padEnd(12)}${r.events}`,
+      `  ${r.botId.padEnd(28)}${r.path.padEnd(11)}${r.state.padEnd(22)}${r.health.padEnd(11)}${String(r.outcome).padEnd(11)}${String(r.stopReason).padEnd(16)}${r.events}`,
     );
   }
   console.log('');

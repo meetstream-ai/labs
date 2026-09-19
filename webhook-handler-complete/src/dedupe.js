@@ -6,20 +6,25 @@ import { createHash } from 'node:crypto';
  * MeetStream can deliver the same webhook more than once (network retries,
  * at-least-once delivery). Your handler must be safe to call twice.
  *
- * Dedupe key is `bot_id + event`, because each lifecycle event fires once per
- * bot. The exception is `bot.error`, which is non-terminal and can legitimately
- * fire repeatedly with different messages, so its key also folds in a hash of
- * the message.
+ * Dedupe key is `bot_id + (bot_event ?? event) + timestamp`. Every delivery
+ * carries an ISO 8601 `timestamp`, lifecycle events included, and a redelivery
+ * repeats it, so the key separates a true duplicate from a legitimately
+ * repeated event such as `bot.error`. Using `bot_event ?? event` keeps the five
+ * terminal reasons (which all arrive as event `bot.stopped`) distinct.
+ *
+ * Fallback for a body without `timestamp`: key on `bot_id + name`, folding in a
+ * hash of `message` for `bot.error`, which can repeat with different messages.
  *
  * This is an in-memory store with TTL so the example runs with zero setup.
  * In production put this in Redis (SETNX + EXPIRE) or a unique index in your
  * database, so it survives restarts and works across multiple instances.
  */
 
-/** Events that may legitimately repeat with different payloads. */
+/** Events that may legitimately repeat (used only when a body has no timestamp). */
 const REPEATABLE_EVENTS = new Set(['bot.error']);
 
-export function deliveryKey({ botId, event, message = '' }) {
+export function deliveryKey({ botId, event, timestamp = null, message = '' }) {
+  if (timestamp) return `${botId}:${event}:${timestamp}`;
   if (REPEATABLE_EVENTS.has(event)) {
     const digest = createHash('sha1').update(message).digest('hex').slice(0, 12);
     return `${botId}:${event}:${digest}`;

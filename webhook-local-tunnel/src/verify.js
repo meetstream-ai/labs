@@ -50,12 +50,15 @@ export async function verifyTunnel({ publicUrl, webhookPath, waitForNonce, timeo
   // ---- 3. inbound POST of a real-shaped envelope -------------------------
   const nonce = randomUUID();
   const envelope = {
-    // Key is `event`. Using anything else here would be testing the wrong thing.
+    // Same shape as a real lifecycle delivery: `event` always, `bot_event`
+    // (equal to `event` on non-terminal events) and an ISO 8601 `timestamp`.
     event: 'bot.joining',
+    bot_event: 'bot.joining',
     bot_id: `tunnel-selftest-${nonce.slice(0, 8)}`,
     bot_status: 'Joining',
     message: 'Synthetic self-test delivery from webhook-local-tunnel',
     status_code: 200,
+    timestamp: new Date().toISOString(),
     custom_attributes: { verify_nonce: nonce, source: 'self-test' },
   };
 

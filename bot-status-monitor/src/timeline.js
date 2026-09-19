@@ -6,7 +6,7 @@
  * to append-only log lines, which is what you actually want in a log.
  */
 
-import { LIFECYCLE_ORDER, describe, isTerminal } from "./statuses.js";
+import { LIFECYCLE_ORDER, canonical, describe, isTerminal } from "./statuses.js";
 
 const IS_TTY = Boolean(process.stdout.isTTY);
 
@@ -69,7 +69,7 @@ export class Timeline {
     lines.push("=".repeat(72));
     lines.push("");
 
-    const seen = new Set(this.entries.map((e) => e.status));
+    const seen = new Set(this.entries.map((e) => canonical(e.status)));
     const current = this.entries[this.entries.length - 1];
 
     // Scaffold: the expected happy path, with anything actually observed
@@ -77,7 +77,7 @@ export class Timeline {
     lines.push("Expected path");
     for (const stage of LIFECYCLE_ORDER) {
       const hit = seen.has(stage);
-      const isNow = current?.status === stage;
+      const isNow = canonical(current?.status) === stage;
       const marker = isNow ? ">" : hit ? "x" : ".";
       lines.push(`  ${marker} ${stage}`);
     }
