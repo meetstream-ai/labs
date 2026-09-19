@@ -1,0 +1,20 @@
+{
+  "meeting_url": "https://meet.google.com/abc-defg-hij",
+  "hermes": {
+    "base_url": "https://your-hermes-host.example/v1",
+    "api_key": "replace-with-hermes-api-server-key",
+    "model": "hermes-agent",
+    "mode": "auto"
+  },
+  "meetstream": {
+    "base_url": "https://api.meetstream.ai",
+    "api_key": "replace-with-meetstream-api-key",
+    "mia": {
+      "reuse_by_name": true
+    },
+    "bot_name": "Hermes Meeting Agent",
+    "video_required": false
+  },
+  "output": "chat"
+}
+

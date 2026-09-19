@@ -2,7 +2,7 @@
 
 Open source, runnable Node.js templates for the [MeetStream API](https://meetstream.ai), the meeting bot API that joins Zoom, Google Meet and Microsoft Teams calls to record, transcribe, stream and act on them. Every template is a small, complete app: an AI notetaker, a real-time transcription server, a webhook handler, a calendar auto-join, a voice agent that talks in the meeting, a CRM or Slack sync, and so on.
 
-**64 templates covering every endpoint in the API.** Each folder stands alone: clone it, add your API key, run it.
+**64 templates plus three agent integrations covering every endpoint in the API.** Each folder stands alone: clone it, add your API key, run it.
 
 ```bash
 git clone https://github.com/meetstream-ai/labs.git
@@ -156,6 +156,16 @@ MIA agents run on MeetStream's own hosted bridge. Attach one by passing **only**
 | [sentiment-and-insights](./sentiment-and-insights) | Sentiment, topics and talk-time balance as a coaching report |
 
 ---
+
+## Agent and assistant integrations
+
+Larger reference integrations that connect MeetStream MIA voice agents to other agent frameworks. Each has its own README and quickstart.
+
+| Project | What it does |
+|---|---|
+| [mia-hermes-bridge](./mia-hermes-bridge) | Bridge a self-hosted Hermes Agent into a live meeting through MIA, with ngrok tunnelling and a one-command launcher |
+| [MIA-poster-design](./MIA-poster-design) | A wake-word MIA assistant that turns a spoken event brief into a poster through the Canva bridge |
+| [openclaw-x-meetstream-skill](./openclaw-x-meetstream-skill) | An OpenClaw skill for operating MeetStream bots from the OpenClaw agent |
 
 ## Things every template gets right
 
