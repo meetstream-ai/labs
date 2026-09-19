@@ -1,0 +1,16 @@
+{
+  "name": "mia-hello-world-voice-agent",
+  "version": "1.0.0",
+  "description": "Launch a MeetStream MIA hello-world voice agent into a live meeting.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@ngrok/ngrok": "^1.5.1",
+    "dotenv": "^16.4.7"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
