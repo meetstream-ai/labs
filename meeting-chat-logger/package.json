@@ -1,0 +1,24 @@
+{
+  "name": "@meetstream-labs/meeting-chat-logger",
+  "version": "1.0.0",
+  "description": "Export the in-meeting chat captured by a MeetStream bot to JSON and Markdown with authors and timestamps.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "chat",
+    "export",
+    "markdown"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "@meetstream-labs/mia-agent-crud",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Admin CLI for the full lifecycle of saved MIA agent configs: create, list, get, update, delete.",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "mia": "index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "list": "node index.js list"
+  },
+  "keywords": [
+    "meetstream",
+    "mia",
+    "cli",
+    "crud",
+    "agent-config"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

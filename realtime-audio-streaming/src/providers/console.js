@@ -1,5 +1,5 @@
 /**
- * Console provider — no external app, no network, no API key.
+ * Console provider - no external app, no network, no API key.
  * ─────────────────────────────────────────────────────────────────────────────
  * Just proves the pipeline is delivering audio at all: prints a byte counter
  * for every frame received. Useful as a zero-dependency sanity check before
@@ -8,7 +8,7 @@
  */
 
 export default {
-  name: "Console (debug — no external service)",
+  name: "Console (debug - no external service)",
 
   bytesSeen: 0,
   framesSeen: 0,

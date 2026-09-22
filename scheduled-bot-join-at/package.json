@@ -1,0 +1,25 @@
+{
+  "name": "@meetstream-labs/scheduled-bot-join-at",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Schedule a MeetStream bot with join_at, list scheduled bots, and reschedule or cancel them via /calendar/scheduled_bots.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js list",
+    "list": "node index.js list"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "scheduling",
+    "calendar"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

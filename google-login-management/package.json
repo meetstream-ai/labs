@@ -1,0 +1,27 @@
+{
+  "name": "@meetstream-labs/google-login-management",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Admin CLI for MeetStream Google signed-in bots: CRUD over /google-login-domains and /google-logins, plus login capacity planning.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "domains": "node index.js domains list",
+    "logins": "node index.js logins list"
+  },
+  "keywords": [
+    "meetstream",
+    "google-meet",
+    "signed-in-bots",
+    "admin-cli",
+    "meeting-bot"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

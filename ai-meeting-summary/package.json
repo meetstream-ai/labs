@@ -1,0 +1,23 @@
+{
+  "name": "@meetstream-labs/ai-meeting-summary",
+  "version": "1.0.0",
+  "description": "Fetch and pretty-print MeetStream's native AI meeting summary for any bot.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "ai-summary",
+    "meeting-notes"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}

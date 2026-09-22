@@ -1,0 +1,26 @@
+{
+  "name": "@meetstream-labs/idempotency-and-dedup",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Runnable demo of the Idempotency-Key header (507 replay) and the deduplication_key body field (200 replay, 409 conflict) on create_bot.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "explain": "node index.js --explain"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "idempotency",
+    "deduplication",
+    "retries"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

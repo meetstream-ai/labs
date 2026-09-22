@@ -90,12 +90,23 @@ Sources: [languages](https://docs.meetstream.ai/guides/transcription-recordings/
 ## Artifacts and live controls
 
 Mixed audio is retained alongside requested separate tracks. Enable
-`audio_separate_streams` and/or `video_separate_streams` at creation. Zoom audio
+`audio_separate_streams` and/or `video_separate_streams` at creation. Enable
+`video_separate_streams` only when the user explicitly asks for per-participant
+video: one file per participant multiplies storage and processing.
+`audio_separate_streams` is not covered by that rule. Zoom audio
 is isolated per microphone; Meet/Teams speaker attribution does not guarantee
 equivalent isolation during overlapping speech. Read stream segments and
 participant identifiers rather than assuming one continuous file per person.
 Video includes participant cameras and screen shares with platform-specific
 resolution/concurrency limits.
+
+The mixed video recording is laid out by `recording_config.video_layout`, which
+accepts exactly `speaker_view` and `grid_view`. `grid_view` is the API default
+when `video_required` is true, so send `speaker_view` explicitly whenever video
+is on and use `grid_view` only when the user asks for grid or gallery view. The
+field is ignored on an audio-only bot, since nothing is composited. Google Meet,
+Teams and Zoom accept both values; WhatsApp accepts only `grid_view`, and any
+other platform rejects `video_layout`.
 Sources: [per-person audio](https://docs.meetstream.ai/guides/transcription-recordings/per-participant-audio),
 [per-person video](https://docs.meetstream.ai/guides/transcription-recordings/per-participant-video).
 

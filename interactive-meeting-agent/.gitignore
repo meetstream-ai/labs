@@ -1,0 +1,6 @@
+node_modules/
+.env
+*.log
+*.pcm
+*.wav
+.DS_Store

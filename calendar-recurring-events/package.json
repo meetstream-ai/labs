@@ -1,0 +1,25 @@
+{
+  "name": "@meetstream-labs/calendar-recurring-events",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Handle recurring meetings: series versus single occurrence, batch scheduling, and auto-rescheduling with toggle-recurrence.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "calendar",
+    "recurring",
+    "rrule",
+    "meeting-bot"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

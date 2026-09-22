@@ -139,7 +139,7 @@ export class AudioHandler {
 
   /**
    * Patch WAV headers with final sizes and close all file descriptors.
-   * Safe to call more than once — the audio WS close event and the
+   * Safe to call more than once - the audio WS close event and the
    * SIGINT/SIGTERM handler can both trigger this; already-finalized
    * speakers are skipped so we never write to a closed fd.
    */

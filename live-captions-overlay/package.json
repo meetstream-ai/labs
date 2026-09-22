@@ -1,0 +1,27 @@
+{
+  "name": "@meetstream-labs/live-captions-overlay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Live meeting captions rendered in the terminal: MeetStream live_transcription_required plus a streaming provider, received over an Express webhook.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "live-transcription",
+    "captions",
+    "streaming",
+    "webhook",
+    "deepgram"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

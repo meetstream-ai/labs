@@ -1,0 +1,25 @@
+{
+  "name": "@meetstream-labs/mia-voice-agent-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Create a pipeline-mode MIA (STT + LLM + TTS) and send it into a meeting as a speaking agent.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "mia",
+    "voice-agent",
+    "meeting-bot",
+    "pipeline"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

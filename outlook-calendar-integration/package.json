@@ -1,0 +1,26 @@
+{
+  "name": "@meetstream-labs/outlook-calendar-integration",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Register an Azure app, obtain a Microsoft refresh token locally, connect the Outlook calendar to MeetStream and verify it.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "oauth": "node src/oauth-helper.js"
+  },
+  "keywords": [
+    "meetstream",
+    "outlook",
+    "microsoft-365",
+    "oauth",
+    "meeting-bot"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

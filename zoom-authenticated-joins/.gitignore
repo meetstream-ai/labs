@@ -1,0 +1,20 @@
+# Secrets / local config
+.env
+.env.*
+!.env.example
+
+# Stored Zoom refresh tokens. Never commit these.
+data/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

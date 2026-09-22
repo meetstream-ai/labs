@@ -6,7 +6,7 @@ This bot joins your meeting and saves everything that was said into a text file 
 
 ## What you need
 
-1. [Node.js](https://nodejs.org) — click the **LTS** download button and install it
+1. [Node.js](https://nodejs.org) - click the **LTS** download button and install it
 2. A MeetStream API key → [Get one here](https://app.meetstream.ai)
 3. A free ngrok account → [Sign up here](https://dashboard.ngrok.com/signup) and copy your authtoken from [here](https://dashboard.ngrok.com/get-started/your-authtoken)
 

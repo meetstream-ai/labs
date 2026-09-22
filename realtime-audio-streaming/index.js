@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
- * MeetStream Labs — Real-Time Audio Streaming Example
+ * MeetStream Labs - Real-Time Audio Streaming Example
  * ====================================================
  * Clone → fill .env → node index.js
  *
  * What this does:
  *  1. Spins up an ngrok HTTPS tunnel (no public server needed)
  *  2. Starts a local Express server with these endpoints:
- *       POST /webhook/callback    — bot lifecycle events (MeetStream → us)
- *       POST /webhook/transcript  — live transcript segments (MeetStream → us)
- *       WS   /audio              — raw PCM intake from MeetStream bot
- *       WS   /stream             — live PCM broadcast TO external consumers ◄ NEW
- *       GET  /health             — status check
+ *       POST /webhook/callback    - bot lifecycle events (MeetStream → us)
+ *       POST /webhook/transcript  - live transcript segments (MeetStream → us)
+ *       WS   /audio              - raw PCM intake from MeetStream bot
+ *       WS   /stream             - live PCM broadcast TO external consumers ◄ NEW
+ *       GET  /health             - status check
  *  3. Calls MeetStream API to deploy a bot into your meeting
  *  4. Re-broadcasts every audio frame to any client on WS /stream in real time
  *  5. Saves per-speaker .wav files to ./logs/audio/ as an archive
@@ -40,6 +40,10 @@ for (const key of REQUIRED) {
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
 const MAX_STREAM_CLIENTS = parseInt(process.env.MAX_STREAM_CLIENTS || "10", 10);
+// Cap on how long we wait for bot.inmeeting before giving up. Slightly above
+// the bot's own waiting_room_timeout (600 s) so MeetStream's bot.notallowed
+// normally arrives first; this is the local safety net if it never does.
+const JOIN_TIMEOUT_MINUTES = parseInt(process.env.JOIN_TIMEOUT_MINUTES || "12", 10);
 const logger      = new Logger();
 const broadcaster = new Broadcaster(logger);
 const audioHandler = new AudioHandler(logger, broadcaster);
@@ -52,6 +56,8 @@ expressWs(app, server);
 app.use(express.json());
 
 let botId = null;
+let botJoined = false;   // set on bot.inmeeting
+let botStopped = false;  // set on bot.stopped (any reason) / bot.done
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 
@@ -60,14 +66,18 @@ let botId = null;
  * Bot lifecycle events: joining → InMeeting → Stopped, participant join/leave, etc.
  */
 app.post("/webhook/callback", (req, res) => {
-  res.sendStatus(200);  // ack immediately regardless — MeetStream expects 200 fast
+  res.sendStatus(200);  // ack immediately regardless - MeetStream expects 200 fast
 
   const body = req.body;
   if (!body || typeof body !== "object") {
-    logger.error("Malformed callback payload — ignoring", new Error(JSON.stringify(body)));
+    logger.error("Malformed callback payload - ignoring", new Error(JSON.stringify(body)));
     return;
   }
   logger.event(body);
+
+  const name = body.bot_event ?? body.event;
+  if (name === "bot.inmeeting") botJoined = true;
+  if (body.event === "bot.stopped" || name === "bot.done") botStopped = true;
 });
 
 /**
@@ -79,7 +89,7 @@ app.post("/webhook/transcript", (req, res) => {
 
   const body = req.body;
   if (!body || typeof body !== "object") {
-    logger.error("Malformed transcript payload — ignoring", new Error(JSON.stringify(body)));
+    logger.error("Malformed transcript payload - ignoring", new Error(JSON.stringify(body)));
     return;
   }
 
@@ -90,7 +100,7 @@ app.post("/webhook/transcript", (req, res) => {
 });
 
 /**
- * WS /audio  (INTAKE — MeetStream connects here)
+ * WS /audio  (INTAKE - MeetStream connects here)
  * Receives binary PCM frames from the bot.
  * Each frame is parsed by AudioHandler which:
  *   • saves it to a per-speaker .wav file
@@ -116,7 +126,7 @@ app.ws("/audio", (ws) => {
 });
 
 /**
- * WS /stream  (OUTPUT — external apps connect here)
+ * WS /stream  (OUTPUT - external apps connect here)
  * ─────────────────────────────────────────────────
  * Any external application connects here and receives live audio
  * frames as they arrive from the meeting, with zero added latency.
@@ -128,7 +138,7 @@ app.ws("/audio", (ws) => {
  *   M bytes  pcm_data     (PCM16 LE, 48kHz, mono)
  *
  * On connect: client receives a JSON "ready" message with format info.
- * Multiple clients can connect simultaneously — all get the same stream.
+ * Multiple clients can connect simultaneously - all get the same stream.
  *
  * Example client (Node.js):
  *   const ws = new WebSocket("ws://localhost:3000/stream");
@@ -136,8 +146,8 @@ app.ws("/audio", (ws) => {
  */
 app.ws("/stream", (ws) => {
   if (broadcaster.size >= MAX_STREAM_CLIENTS) {
-    logger.error(`Stream consumer limit (${MAX_STREAM_CLIENTS}) reached — rejecting new connection`);
-    ws.close(1013, "Server too busy — max consumers reached"); // 1013 = "try again later"
+    logger.error(`Stream consumer limit (${MAX_STREAM_CLIENTS}) reached - rejecting new connection`);
+    ws.close(1013, "Server too busy - max consumers reached"); // 1013 = "try again later"
     return;
   }
   broadcaster.add(ws);
@@ -181,7 +191,7 @@ async function main() {
   // of the meeting.
   listener.session?.onClose?.(() => {
     logger.error(
-      "ngrok session closed unexpectedly — webhooks and audio will stop arriving. " +
+      "ngrok session closed unexpectedly - webhooks and audio will stop arriving. " +
       "Restart the process to recover.",
       new Error("ngrok session closed")
     );
@@ -206,8 +216,24 @@ async function main() {
   });
 
   logger.success(`Bot created! ID: ${chalk.bold(botId)}`);
-  logger.info("Waiting for bot to join the meeting…");
+  logger.info(`Waiting for bot to join the meeting… (gives up after ${JOIN_TIMEOUT_MINUTES} min without bot.inmeeting)`);
   logger.info(chalk.dim("Press Ctrl+C to stop the bot and exit.\n"));
+
+  // Bounded wait for the join: if neither bot.inmeeting nor a terminal
+  // bot.stopped arrives in time, say so clearly and clean up instead of
+  // sitting silent forever.
+  const joinTimer = setTimeout(async () => {
+    if (botJoined || botStopped) return;
+    logger.error(
+      `Gave up waiting for the bot to join after ${JOIN_TIMEOUT_MINUTES} minutes ` +
+      "(no bot.inmeeting and no bot.stopped received). Check the meeting link, " +
+      "admit the bot from the waiting room, and confirm webhooks reach the ngrok URL.",
+      new Error("join timeout")
+    );
+    await shutdown("join timeout");
+    process.exit(1);
+  }, JOIN_TIMEOUT_MINUTES * 60 * 1000);
+  joinTimer.unref?.();
 
   // ── Shared shutdown path ─────────────────────────────────────────────────
   // Used by SIGINT/SIGTERM *and* by the crash handlers below, so an
@@ -236,17 +262,17 @@ async function main() {
 
   // ── Crash safety net ─────────────────────────────────────────────────────
   // Without this, an uncaught exception anywhere (a bad webhook payload,
-  // a provider throwing, anything) kills the process immediately — the bot
+  // a provider throwing, anything) kills the process immediately - the bot
   // stays in the meeting indefinitely with nothing recording, and ngrok
   // keeps the tunnel open pointing at a dead server.
   process.on("uncaughtException", async (err) => {
-    logger.error("Uncaught exception — shutting down safely", err);
+    logger.error("Uncaught exception - shutting down safely", err);
     await shutdown("uncaughtException");
     process.exit(1);
   });
 
   process.on("unhandledRejection", async (err) => {
-    logger.error("Unhandled promise rejection — shutting down safely", err instanceof Error ? err : new Error(String(err)));
+    logger.error("Unhandled promise rejection - shutting down safely", err instanceof Error ? err : new Error(String(err)));
     await shutdown("unhandledRejection");
     process.exit(1);
   });

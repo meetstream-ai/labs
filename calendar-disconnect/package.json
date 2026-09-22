@@ -1,0 +1,24 @@
+{
+  "name": "@meetstream-labs/calendar-disconnect",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Disconnect a calendar from MeetStream safely: preview exactly what gets deleted, then confirm.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "calendar",
+    "disconnect",
+    "cleanup"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

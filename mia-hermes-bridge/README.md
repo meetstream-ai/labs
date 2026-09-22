@@ -322,6 +322,7 @@ Expanded shape:
     "bot_name": "Hermes Meeting Agent",
     "bot_message": "Hermes has joined the meeting.",
     "video_required": false,
+    "video_layout": "speaker_view",
     "automatic_leave": {
       "waiting_room_timeout": 600,
       "everyone_left_timeout": 120,
@@ -333,6 +334,8 @@ Expanded shape:
   "output": "chat"
 }
 ```
+
+**Recording defaults.** Video is off by default: the bridge sends `video_required: false` explicitly, because the REST API treats an omitted `video_required` as true. Set `video_required: true` only when you want video, and the bridge then also sends `recording_config.video_layout`, defaulting to `"speaker_view"` because the API default is `grid_view`. Use `"grid_view"` only when you want the mosaic of everyone. Per-participant video (`video_separate_streams`) is never set by this bridge.
 
 For `voice` or `hybrid`, add:
 

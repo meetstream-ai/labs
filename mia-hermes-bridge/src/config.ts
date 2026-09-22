@@ -99,6 +99,9 @@ export async function loadLocalConfig(meetingUrlOverride?: string): Promise<Loca
           ? { agent_config_id: env.MEETSTREAM_MIA_CONFIG_ID, reuse_by_name: true }
           : { reuse_by_name: true },
         bot_name: env.BOT_NAME || "Hermes Meeting Agent",
+        // Audio only. `false` is sent explicitly because the REST API treats an
+        // omitted `video_required` as true. Video is opt-in, and when it is on
+        // the payload must also carry recording_config.video_layout: "speaker_view".
         video_required: false
       },
       ...(wakeWords ? { wake_words: wakeWords } : {}),

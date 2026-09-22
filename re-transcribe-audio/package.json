@@ -1,0 +1,26 @@
+{
+  "name": "@meetstream-labs/re-transcribe-audio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Re-run transcription on an existing MeetStream bot with a different provider, model, or language via POST /bots/{id}/transcribe.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "transcription",
+    "re-transcribe",
+    "deepgram",
+    "assemblyai",
+    "sarvam"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

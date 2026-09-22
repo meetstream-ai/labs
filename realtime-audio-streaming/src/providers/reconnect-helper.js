@@ -7,7 +7,7 @@
  * the connection mid-meeting (network blip, provider restart, etc.)
  *
  * Without this, a dropped Deepgram/AssemblyAI/OpenAI socket means audio
- * keeps flowing from MeetStream but silently goes nowhere — no error,
+ * keeps flowing from MeetStream but silently goes nowhere - no error,
  * no crash, just missing transcripts for the rest of the meeting.
  */
 
@@ -58,7 +58,7 @@ export function withReconnect({ openSocket, onOpen, onReconnecting, onGiveUp, lo
         }
 
         const delay = Math.min(BASE_DELAY_MS * 2 ** (attempt - 1), MAX_DELAY_MS);
-        onReconnecting?.(`Connection lost — reconnecting in ${(delay / 1000).toFixed(1)}s (attempt ${attempt}/${MAX_RECONNECT_ATTEMPTS})`);
+        onReconnecting?.(`Connection lost - reconnecting in ${(delay / 1000).toFixed(1)}s (attempt ${attempt}/${MAX_RECONNECT_ATTEMPTS})`);
         await sleep(delay);
       } catch (err) {
         attempt++;
@@ -67,7 +67,7 @@ export function withReconnect({ openSocket, onOpen, onReconnecting, onGiveUp, lo
           return;
         }
         const delay = Math.min(BASE_DELAY_MS * 2 ** (attempt - 1), MAX_DELAY_MS);
-        onReconnecting?.(`Connect failed (${err.message}) — retrying in ${(delay / 1000).toFixed(1)}s (attempt ${attempt}/${MAX_RECONNECT_ATTEMPTS})`);
+        onReconnecting?.(`Connect failed (${err.message}) - retrying in ${(delay / 1000).toFixed(1)}s (attempt ${attempt}/${MAX_RECONNECT_ATTEMPTS})`);
         await sleep(delay);
       }
     }

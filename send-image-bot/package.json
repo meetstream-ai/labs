@@ -1,0 +1,28 @@
+{
+  "name": "@meetstream-labs/send-image-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Post an image or animated GIF into a meeting chat with send_image, or set the bot's camera feed to an image with sendimg_url.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "help": "node index.js --help"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@ngrok/ngrok": "^1.4.0",
+    "dotenv": "^16.4.5",
+    "ws": "^8.17.0"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "send-image",
+    "gif",
+    "websocket"
+  ],
+  "license": "MIT"
+}

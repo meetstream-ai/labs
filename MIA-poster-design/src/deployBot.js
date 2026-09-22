@@ -103,6 +103,9 @@ export function createBotPayload({ agentConfigId, meetingLink, callbackUrl }) {
     meeting_link: meetingLink,
     bot_name: 'MIA Poster Design Bot',
     bot_message: "Hi, I'm MIA Poster Design Bot. Tell me about your event, then ask me to create poster concepts.",
+    // Audio only. `false` is sent explicitly because the REST API treats an
+    // omitted `video_required` as true. Video is opt-in, and when it is on
+    // the payload must also carry recording_config.video_layout: "speaker_view".
     video_required: false,
     agent_config_id: agentConfigId,
     callback_url: callbackUrl

@@ -1,0 +1,30 @@
+{
+  "name": "@meetstream-labs/custom-s3-storage",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Point MeetStream at your own S3 bucket with the native storage config endpoint, then run a bot and confirm the recordings land there.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "set": "node index.js set",
+    "show": "node index.js show",
+    "record": "node index.js record"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "byob",
+    "s3",
+    "storage"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.658.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

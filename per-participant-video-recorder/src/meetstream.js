@@ -7,6 +7,23 @@ import { sleep, backoffDelay } from './utils.js';
 const BASE_URL = 'https://api.meetstream.ai/api/v1';
 
 /**
+ * Pull the human-readable message out of a MeetStream error body.
+ * @param {any} data
+ * @returns {string}
+ */
+function extractApiMessage(data) {
+  if (data == null) return '';
+  if (typeof data === 'string') return data.slice(0, 300);
+  const msg = data.message ?? data.error ?? data.detail;
+  if (typeof msg === 'string') return msg;
+  try {
+    return JSON.stringify(data).slice(0, 300);
+  } catch {
+    return '';
+  }
+}
+
+/**
  * Dedicated MeetStream API client.
  *
  * Centralizes:
@@ -71,6 +88,12 @@ export class MeetStreamClient {
 
         if (!isRetryable || attempt === this.maxRetries) {
           if (err.response) {
+            // Surface the API's own message (MeetStream returns `message`,
+            // `error` or `detail`) instead of axios's generic text. The
+            // original `err.response` is kept so callers can still branch
+            // on status.
+            const apiMessage = extractApiMessage(err.response.data);
+            err.message = `${label} failed with HTTP ${status}${apiMessage ? `: ${apiMessage}` : ''}`;
             logger.debug(
               `${label} error body: ${JSON.stringify(err.response.data)}`
             );
@@ -99,9 +122,10 @@ export class MeetStreamClient {
    * @param {string} params.meetingLink
    * @param {string} params.botName
    * @param {string} params.callbackUrl - public webhook URL (from ngrok)
+   * @param {string} [params.videoLayout] - "speaker_view" (default) or "grid_view"
    * @returns {Promise<{ bot_id: string, [key: string]: any }>}
    */
-  async createBot({ meetingLink, botName, callbackUrl }) {
+  async createBot({ meetingLink, botName, callbackUrl, videoLayout }) {
     const payload = {
       meeting_link: meetingLink,
       bot_name: botName,
@@ -112,8 +136,24 @@ export class MeetStreamClient {
       audio_required: true,
       // Per Participant Video: one WebM/VP8 file per participant's webcam
       // (and screen shares), independent of the composite recording.
+      //
+      // This is the ONE template where per-participant video is on. It is an
+      // explicit opt-in everywhere else: no other template sets
+      // `video_separate_streams`, because one file per participant multiplies
+      // storage and processing. Per-participant AUDIO is a separate switch and
+      // is unaffected by that rule.
       video_separate_streams: true,
       audio_separate_streams: true,
+      // The composite recording above is mixed video, so its layout is sent
+      // explicitly: the API default is `grid_view`, and speaker view follows
+      // the active speaker. A bot that only used the per-participant streams
+      // would not need `video_layout` at all, because nothing is composited.
+      recording_config: {
+        video_layout:
+          String(videoLayout || 'speaker_view').toLowerCase() === 'grid_view'
+            ? 'grid_view'
+            : 'speaker_view',
+      },
     };
 
     logger.info('Creating bot...');
