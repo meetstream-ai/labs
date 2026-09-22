@@ -15,6 +15,9 @@ import { log } from './logger.js';
 const VALID_BOT = {
   meeting_link: 'https://meet.google.com/abc-defg-hij',
   bot_name: 'Retry Demo Bot',
+  // Audio only. `false` is sent explicitly because the REST API treats an
+  // omitted `video_required` as true. Video is opt-in, and when it is on
+  // the payload must also carry recording_config.video_layout: "speaker_view".
   video_required: false,
   recording_config: {
     transcript: { provider: { deepgram: { model: 'nova-3', language: 'en' } } },

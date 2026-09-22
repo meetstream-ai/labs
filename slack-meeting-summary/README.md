@@ -81,6 +81,8 @@ Create one at <https://api.slack.com/messaging/webhooks>, then set `SLACK_WEBHOO
 
 Set `POST_TRANSCRIPT_IN_THREAD=true` to keep the channel tidy: summary in the channel, transcript in the thread.
 
+**Recording defaults.** This template records audio only: it sends `video_required: false` explicitly, because the REST API treats an omitted `video_required` as true. If you turn video on in code, it sends `recording_config.video_layout: "speaker_view"` (the API default is `grid_view`, so speaker view has to be explicit); use `grid_view` only when you want the composited mosaic of everyone. Per-participant video (`video_separate_streams`) is never enabled implicitly.
+
 ## Run
 
 ```bash

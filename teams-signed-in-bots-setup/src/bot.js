@@ -67,7 +67,8 @@ export function teamsLinkProblem(link) {
  * @param {string} [opts.signInEmail]      pin one account
  * @param {boolean}[opts.strictEmail]      omit to take the API default (true)
  * @param {string} [opts.botName]          only shown if the bot ever joins as a guest
- * @param {boolean}[opts.videoRequired]
+ * @param {boolean} [opts.videoRequired]   off by default; video is opt-in
+ * @param {string} [opts.videoLayout]      "speaker_view" (default) or "grid_view"
  * @param {number} [opts.waitingRoomTimeout] seconds, 60-1800 on Teams
  * @param {string} [opts.callbackUrl]
  */
@@ -79,6 +80,7 @@ export function buildSignedInBotBody(opts) {
     strictEmail,
     botName,
     videoRequired = false,
+    videoLayout,
     waitingRoomTimeout,
     callbackUrl,
   } = opts;
@@ -131,6 +133,19 @@ export function buildSignedInBotBody(opts) {
   if (callbackUrl) body.callback_url = callbackUrl;
   if (waitingRoomTimeout !== undefined) {
     body.automatic_leave = { waiting_room_timeout: waitingRoomTimeout };
+  }
+
+  // Video is off by default, and `false` is sent explicitly because the REST
+  // API treats an omitted `video_required` as true. When video IS on, pick the
+  // layout explicitly: the API default is `grid_view`, and speaker view follows
+  // the active speaker, which is what people want for review and clipping.
+  // Per-participant video (`video_separate_streams`) is never set here.
+  if (body.video_required) {
+    body.recording_config = body.recording_config || {};
+    body.recording_config.video_layout =
+      String(videoLayout || 'speaker_view').toLowerCase() === 'grid_view'
+        ? 'grid_view'
+        : 'speaker_view';
   }
 
   return { body, warnings };

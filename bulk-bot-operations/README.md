@@ -85,7 +85,8 @@ Every value can also be passed as a flag (`--file`, `--concurrency`, `--stagger`
 | `REPORT_PATH` | no | Where the JSON report goes (default `./output/batch-<batch id>.json`) |
 | `CALLBACK_URL` | no | Per-bot webhook URL, must be public HTTPS (see [../webhook-local-tunnel](../webhook-local-tunnel)) |
 | `DEFAULT_PROVIDER` | no | Transcription provider for jobs that set none (default `deepgram`) |
-| `DEFAULT_VIDEO_REQUIRED` | no | `true` / `false` for jobs that set none (default `false`) |
+| `DEFAULT_VIDEO_REQUIRED` | no | `true` / `false` for jobs that set none. Video is off by default (`false`) |
+| `DEFAULT_VIDEO_LAYOUT` | no | Layout for jobs that set none, used only when video is on. `speaker_view` (the default here) or `grid_view` |
 | `DEFAULT_BOT_NAME` | no | Bot display name for jobs that set none |
 | `NO_COLOR` | no | Set to anything to disable coloured output (already plain when stdout is not a TTY) |
 
@@ -156,6 +157,7 @@ A JSON array, `{ "jobs": [...] }`, or one JSON object per line. See `jobs.exampl
   "meeting_link": "https://us02web.zoom.us/j/1234567890",
   "bot_name": "Acme QBR Recorder",
   "video_required": true,
+  "video_layout": "speaker_view",
   "provider": "deepgram",
   "join_at": "2026-12-01T15:00:00Z",
   "callback_url": "https://you.example.com/webhook",
@@ -165,6 +167,8 @@ A JSON array, `{ "jobs": [...] }`, or one JSON object per line. See `jobs.exampl
 ```
 
 Anything a job omits falls back to the `DEFAULT_*` values in `.env`.
+
+**Recording defaults.** Video is off unless a job sets `video_required: true`, and `video_required: false` is sent explicitly because the REST API treats an omitted `video_required` as true. When a job does turn video on, the runner sends `recording_config.video_layout: "speaker_view"` unless the job sets `video_layout: "grid_view"`, because the API default is `grid_view`. Per-participant video (`video_separate_streams`) is never set by this runner.
 
 Two attributes are stamped onto every bot automatically:
 

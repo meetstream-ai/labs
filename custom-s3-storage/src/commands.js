@@ -149,7 +149,13 @@ export async function commandRecord(options) {
   const botName = optionalEnv('BOT_NAME', 'MeetStream BYOB Recorder');
   const publicWebhookUrl = optionalEnv('PUBLIC_WEBHOOK_URL');
   const port = envInt('PORT', 3000);
-  const wantVideo = envBool('VIDEO_REQUIRED', true);
+  // Video is OFF by default. Audio only is faster to process and smaller to
+  // store, and transcripts, summaries and diarization all work without it.
+  const wantVideo = envBool('VIDEO_REQUIRED', false);
+  const videoLayout =
+    (optionalEnv('VIDEO_LAYOUT') ?? 'speaker_view').toLowerCase() === 'grid_view'
+      ? 'grid_view'
+      : 'speaker_view';
   const everyoneLeftTimeout = envInt('EVERYONE_LEFT_TIMEOUT', 60);
   const maxAttempts = envInt('POLL_MAX_ATTEMPTS', 80);
   const intervalMs = envInt('POLL_INTERVAL_MS', 15_000);
@@ -203,11 +209,16 @@ export async function commandRecord(options) {
 
   /** @type {Record<string, any>} */
   const payload = {
+    // `false` is sent explicitly: the REST API treats an omitted
+    // `video_required` as true.
     meeting_link: meetingLink,
     bot_name: botName,
     video_required: wantVideo,
     automatic_leave: { everyone_left_timeout: everyoneLeftTimeout },
   };
+  // Layout only applies when video is recorded. The API default is `grid_view`,
+  // so speaker view has to be sent explicitly.
+  if (wantVideo) payload.recording_config = { video_layout: videoLayout };
   if (callbackUrl) payload.callback_url = callbackUrl;
 
   installSigintHandler(state);

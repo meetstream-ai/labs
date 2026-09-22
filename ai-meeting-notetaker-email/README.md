@@ -70,6 +70,8 @@ Then edit `.env`. The only always-required value is `MEETSTREAM_API_KEY`. Start 
 | `SMTP_PORT` | no | Default `587`. |
 | `SMTP_SECURE` | no | `true` forces implicit TLS. Default: inferred from the port (465 = true). |
 
+**Recording defaults.** This template records audio only: it sends `video_required: false` explicitly, because the REST API treats an omitted `video_required` as true. If you turn video on in code, it sends `recording_config.video_layout: "speaker_view"` (the API default is `grid_view`, so speaker view has to be explicit); use `grid_view` only when you want the composited mosaic of everyone. Per-participant video (`video_separate_streams`) is never enabled implicitly.
+
 ## Run
 
 Live mode, joins a meeting and waits for it to end:

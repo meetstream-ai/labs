@@ -128,6 +128,8 @@ Output is saved to `transcripts/<provider>-<language>-<transcript_id>.{json,txt}
 | `OUTPUT_DIR` | no | `transcripts` | Where output is written. |
 | `MEETSTREAM_API_BASE_URL` | no | `https://api.meetstream.ai/api/v1` | Override for self-hosted or staging. |
 
+**Recording defaults.** This template records audio only. `video_required: false` is sent explicitly, because the REST API treats an omitted `video_required` as true, and audio only is faster to process and smaller to store. If you turn video on, also send `recording_config.video_layout: "speaker_view"` (the API default is `grid_view`, so speaker view has to be explicit); use `grid_view` only when you want the composited mosaic of everyone. Per-participant video (`video_separate_streams`) is never set here.
+
 ## Troubleshooting
 
 | Symptom | Cause | Fix |

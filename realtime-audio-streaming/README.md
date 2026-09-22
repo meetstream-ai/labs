@@ -77,6 +77,8 @@ That's it. Watch the terminal.
 | `ASSEMBLYAI_API_KEY` | if `STT_PROVIDER=assemblyai` | AssemblyAI key |
 | `OPENAI_API_KEY` | if `STT_PROVIDER=openai-whisper` | OpenAI key |
 
+**Recording defaults.** This template records audio only. `video_required: false` is sent explicitly, because the REST API treats an omitted `video_required` as true, and audio only is faster to process and smaller to store. If you turn video on, also send `recording_config.video_layout: "speaker_view"` (the API default is `grid_view`, so speaker view has to be explicit); use `grid_view` only when you want the composited mosaic of everyone. Per-participant video (`video_separate_streams`) is never set here.
+
 ## Terminal output
 
 ```

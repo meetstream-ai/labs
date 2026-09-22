@@ -86,6 +86,8 @@ The file is validated at startup, before any bot is created, so a wrong sample r
 | `NO_COLOR` | no | Set to anything to disable ANSI colour in the log output. |
 | `ANTHROPIC_API_KEY` | no | Not read by the stub. Only needed once you wire a model into `src/brain.js`. |
 
+**Recording defaults.** This template records audio only. `video_required: false` is sent explicitly, because the REST API treats an omitted `video_required` as true, and audio only is faster to process and smaller to store. If you turn video on, also send `recording_config.video_layout: "speaker_view"` (the API default is `grid_view`, so speaker view has to be explicit); use `grid_view` only when you want the composited mosaic of everyone. Per-participant video (`video_separate_streams`) is never set here.
+
 ## What you should see
 
 Startup, with ngrok (timestamps are local time; `<...>` values come from your run):

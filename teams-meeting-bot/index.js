@@ -43,7 +43,9 @@ function readConfig() {
 
     meetingLink: optionalEnv('MEETING_LINK'),
     botName: optionalEnv('BOT_NAME', 'MeetStream Notetaker'),
+    // Video is off by default; VIDEO_LAYOUT is only read when it is on.
     videoRequired: boolEnv('VIDEO_REQUIRED', false),
+    videoLayout: optionalEnv('VIDEO_LAYOUT', 'speaker_view'),
     joinAt: optionalEnv('JOIN_AT'),
 
     waitingRoomTimeout: intEnv('WAITING_ROOM_TIMEOUT', {
@@ -90,6 +92,7 @@ function buildOptions(config, callbackUrl) {
     meetingLink: config.meetingLink,
     botName: config.botName,
     videoRequired: config.videoRequired,
+    videoLayout: config.videoLayout,
     callbackUrl,
     joinAt: config.joinAt,
     automaticLeave: buildAutomaticLeave({

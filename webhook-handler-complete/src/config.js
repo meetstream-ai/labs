@@ -41,7 +41,9 @@ export function loadConfig({ requireApiKey = false } = {}) {
     publicUrl: (process.env.PUBLIC_URL || '').replace(/\/+$/, ''),
     meetingLink: process.env.MEETING_LINK || '',
     botName: process.env.BOT_NAME || 'Webhook Reference Bot',
+    // Video is off by default; VIDEO_LAYOUT is only read when it is on.
     videoRequired: process.env.VIDEO_REQUIRED === 'true',
+    videoLayout: process.env.VIDEO_LAYOUT || 'speaker_view',
     provider,
     streamingOnly: STREAMING_PROVIDERS.has(provider),
   };

@@ -16,6 +16,14 @@ import { call } from "./api.js";
  * bot_image_url, callback_url and automatic_leave.
  */
 export function buildDefaultBotConfig(env = process.env) {
+  // Video is OFF by default, and `false` is sent explicitly because the REST
+  // API treats an omitted `video_required` as true.
+  //
+  // `default_bot_config` has no documented `recording_config`, so there is no
+  // place to send `video_layout` here. If you set VIDEO_REQUIRED=true the API
+  // composites with its own default, `grid_view`. To get speaker view, schedule
+  // that meeting per event with ../calendar-schedule-bot, whose `bot_config`
+  // does accept `recording_config.video_layout`.
   const config = {
     bot_name: env.BOT_NAME || "MeetStream Auto Bot",
     audio_required: true,

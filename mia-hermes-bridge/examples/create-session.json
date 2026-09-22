@@ -13,7 +13,8 @@
       "reuse_by_name": true
     },
     "bot_name": "Hermes Meeting Agent",
-    "video_required": false
+    "video_required": false,
+    "video_layout": "speaker_view"
   },
   "output": "chat"
 }

@@ -15,11 +15,28 @@ import { call } from "./api.js";
  * live_audio_required, live_transcription_required.
  */
 export function buildBotConfig(env = process.env) {
+  // Video is OFF by default. `video_required: false` is sent explicitly,
+  // because the REST API treats an omitted `video_required` as true.
+  const videoRequired = String(env.VIDEO_REQUIRED || "false").toLowerCase() === "true";
+
   const config = {
     bot_name: env.BOT_NAME || "MeetStream Calendar Bot",
     audio_required: true,
-    video_required: String(env.VIDEO_REQUIRED || "false").toLowerCase() === "true",
+    video_required: videoRequired,
   };
+
+  // When video is on, choose the layout explicitly. The API default is
+  // `grid_view`; speaker view follows the active speaker, which is what people
+  // want for review and clipping. Set VIDEO_LAYOUT=grid_view for the mosaic.
+  if (videoRequired) {
+    config.recording_config = {
+      ...(config.recording_config || {}),
+      video_layout:
+        String(env.VIDEO_LAYOUT || "speaker_view").toLowerCase() === "grid_view"
+          ? "grid_view"
+          : "speaker_view",
+    };
+  }
 
   if (env.BOT_MESSAGE) config.bot_message = env.BOT_MESSAGE;
   if (env.CALLBACK_URL) config.callback_url = env.CALLBACK_URL;

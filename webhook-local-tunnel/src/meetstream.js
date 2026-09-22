@@ -49,25 +49,45 @@ export class MeetStream {
    * `callback_url` is set per bot. There is no account-wide webhook setting, so
    * a bot created without callback_url produces no webhooks at all.
    */
-  createBot({ meetingLink, botName, callbackUrl, videoRequired = false, idempotencyKey = randomUUID() }) {
+  createBot({
+    meetingLink,
+    botName,
+    callbackUrl,
+    videoRequired = false,
+    videoLayout,
+    idempotencyKey = randomUUID(),
+  }) {
+    const body = {
+      meeting_link: meetingLink,
+      bot_name: botName,
+      // Video is off by default. `false` is sent explicitly because the REST
+      // API treats an omitted `video_required` as true.
+      video_required: videoRequired,
+      callback_url: callbackUrl,
+      custom_attributes: { template: 'webhook-local-tunnel' },
+      recording_config: {
+        transcript: { provider: { deepgram: { model: 'nova-3', language: 'en' } } },
+      },
+      automatic_leave: {
+        waiting_room_timeout: 300,
+        everyone_left_timeout: 60,
+        // Minimum accepted value is 600. Lower values are rejected with 400.
+        in_call_recording_timeout: 3600,
+      },
+    };
+
+    // Layout only matters when video is recorded. The API default is
+    // `grid_view`, so speaker view has to be explicit.
+    if (body.video_required) {
+      body.recording_config.video_layout =
+        String(videoLayout || 'speaker_view').toLowerCase() === 'grid_view'
+          ? 'grid_view'
+          : 'speaker_view';
+    }
+
     return this.#request('POST', '/bots/create_bot', {
       headers: { 'Idempotency-Key': idempotencyKey },
-      body: {
-        meeting_link: meetingLink,
-        bot_name: botName,
-        video_required: videoRequired,
-        callback_url: callbackUrl,
-        custom_attributes: { template: 'webhook-local-tunnel' },
-        recording_config: {
-          transcript: { provider: { deepgram: { model: 'nova-3', language: 'en' } } },
-        },
-        automatic_leave: {
-          waiting_room_timeout: 300,
-          everyone_left_timeout: 60,
-          // Minimum accepted value is 600. Lower values are rejected with 400.
-          in_call_recording_timeout: 3600,
-        },
-      },
+      body,
     });
   }
 

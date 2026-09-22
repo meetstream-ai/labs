@@ -74,13 +74,30 @@ export async function cancelSchedule(eventId, options = {}) {
   return data;
 }
 
-/** Minimal bot_config for the scheduling commands. */
+/**
+ * Minimal bot_config for the scheduling commands.
+ *
+ * Video is OFF by default. `video_required: false` is sent explicitly because
+ * the REST API treats an omitted `video_required` as true. When video is turned
+ * on we also send `recording_config.video_layout: "speaker_view"`, since the
+ * API default is `grid_view`; set VIDEO_LAYOUT=grid_view for the mosaic.
+ */
 export function buildBotConfig(env = process.env) {
+  const videoRequired = String(env.VIDEO_REQUIRED || "false").toLowerCase() === "true";
+
   const config = {
     bot_name: env.BOT_NAME || "MeetStream Recurring Bot",
     audio_required: true,
-    video_required: String(env.VIDEO_REQUIRED || "false").toLowerCase() === "true",
+    video_required: videoRequired,
   };
+  if (videoRequired) {
+    config.recording_config = {
+      video_layout:
+        String(env.VIDEO_LAYOUT || "speaker_view").toLowerCase() === "grid_view"
+          ? "grid_view"
+          : "speaker_view",
+    };
+  }
   if (env.CALLBACK_URL) config.callback_url = env.CALLBACK_URL;
   return config;
 }

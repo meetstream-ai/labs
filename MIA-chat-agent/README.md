@@ -57,6 +57,8 @@ Find `MEETSTREAM_AGENT_CONFIG_ID` in the saved Agent details in the MeetStream d
 | `PORT` | no | Local webhook port (default `3000`) |
 | `BYPASS_WAKE_WORD` | no | `true` makes the agent answer every final transcript without a wake word (diagnostic only, default `false`) |
 
+**Recording defaults.** This template records audio only. `video_required: false` is sent explicitly, because the REST API treats an omitted `video_required` as true, and audio only is faster to process and smaller to store. If you turn video on, also send `recording_config.video_layout: "speaker_view"` (the API default is `grid_view`, so speaker view has to be explicit); use `grid_view` only when you want the composited mosaic of everyone. Per-participant video (`video_separate_streams`) is never set here.
+
 ## Run
 
 ```console

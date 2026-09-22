@@ -80,7 +80,8 @@ node index.js --help           all options
 | `S3_FORCE_PATH_STYLE` | no | Local only: path-style addressing for the preflight and listing. Default `false`. |
 | `MEETING_LINK` | yes for `record` | Zoom, Google Meet or Teams link the test bot joins. |
 | `BOT_NAME` | no | Display name in the meeting. Default `MeetStream BYOB Recorder`. |
-| `VIDEO_REQUIRED` | no | Record video as well as audio. Default `true`. |
+| `VIDEO_REQUIRED` | no | Record video as well as audio. Video is off by default: `false`. |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (default) or `grid_view`. The API default is `grid_view`, so speaker view is sent explicitly. |
 | `EVERYONE_LEFT_TIMEOUT` | no | `automatic_leave.everyone_left_timeout` seconds. Default `60`. |
 | `PUBLIC_WEBHOOK_URL` | no | Public HTTPS base; `callback_url` becomes `<url>/webhook`. Unset means poll-only. |
 | `PORT` | no | Local webhook server port. Default `3000`. |

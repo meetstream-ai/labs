@@ -74,6 +74,7 @@ MEETING_LINK=https://meet.google.com/abc-defg-hij
 | `BOT_ID` | mode A | Fetch screenshots from a bot that already ran |
 | `MEETING_LINK` | mode B | Create a new bot for this Zoom, Google Meet or Teams link and wait for the meeting to end |
 | `BOT_NAME` | no | Bot display name in mode B (default `MeetStream Screenshot Bot`) |
+| `VIDEO_LAYOUT` | no | Layout for the video capture screenshots are cut from: `speaker_view` (default) or `grid_view`. The API default is `grid_view`, so speaker view is sent explicitly |
 | `OUTPUT_DIR` | no | Where screenshots and the report go (default `./screenshots-out`) |
 | `EVERYONE_LEFT_TIMEOUT` | no | Seconds the bot stays after everyone else left (default `60`) |
 | `MEETING_POLL_MAX_ATTEMPTS` | no | Mode B: cap on `GET /bots/{id}/status` polls (default `240`) |
@@ -83,6 +84,8 @@ MEETING_LINK=https://meet.google.com/abc-defg-hij
 | `REQUEST_TIMEOUT_MS` | no | Per-request timeout (default `30000`) |
 | `MAX_RETRIES` | no | Retries for 429/5xx (default `4`); 4xx is never retried |
 | `LOG_LEVEL` | no | `silent`, `error`, `warn`, `info` (default) or `debug` |
+
+**Recording defaults.** Screenshots are cut from the video capture, so this template keeps `video_required: true`; it is an exception. Everywhere else in MeetStream Labs video is off by default (`video_required: false`, sent explicitly, because the REST API treats an omitted `video_required` as true). The layout is sent explicitly as `speaker_view` unless you set `VIDEO_LAYOUT=grid_view`, because the API default is `grid_view`. Per-participant video (`video_separate_streams`) is never set here.
 
 ## Run
 
@@ -133,7 +136,7 @@ Auth is `Authorization: Token <key>` - literally `Token`, not `Bearer`. Error bo
 | 401 / 403 | 401 = no key sent, 403 = wrong key | Check the key for stray quotes or whitespace |
 | 400 on `create_bot` | Bad `MEETING_LINK` | Use the full meeting URL |
 | 404 on `get_screenshots` after the meeting | Wrong bot id, nothing captured yet, or the data expired via retention (default 30 days) | Check `GET /bots/{bot_id}/detail`; the loop polls 404 until the cap |
-| `get_screenshots` never returns 200 | The bot recorded audio only; screenshots come from video capture | Create the bot with `video_required: true` (the default) |
+| `get_screenshots` never returns 200 | The bot recorded audio only; screenshots come from video capture | This template already creates the bot with `video_required: true`. If you are fetching screenshots for a `BOT_ID` created elsewhere, that bot must also have had video on |
 | Bot ended `NotAllowed` / `Denied` | Never admitted, or the host refused | Nothing was captured; admit the bot from the lobby next time |
 | Elapsed column is all `-` | The response had no time field | Look at `raw_get_screenshots_response.json`; if the URLs contain a timestamp in the filename you can sort on that manually |
 | Speaker column is missing | The speaker timeline was empty, or the two payloads use different time bases | `timeline.md` states which case applied |

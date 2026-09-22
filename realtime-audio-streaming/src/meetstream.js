@@ -149,6 +149,9 @@ export class MeetStreamClient {
       meeting_link: meetingLink,
       bot_name: "MeetStream Labs Bot",
       audio_required: true,
+      // Audio only. `false` is sent explicitly because the REST API treats an
+      // omitted `video_required` as true. Video is opt-in, and when it is on
+      // the payload must also carry recording_config.video_layout: "speaker_view".
       video_required: false,
       bot_message: "👋 MeetStream Labs bot is recording this meeting.",
 

@@ -70,6 +70,8 @@ node index.js
 | `RETRY_BASE_DELAY_MS` | no | `1000` | Base backoff delay. |
 | `MEETSTREAM_BASE_URL` | no | `https://api.meetstream.ai/api/v1` | Override for a non-production environment. |
 
+**Recording defaults.** This template records audio only: it sends `video_required: false` explicitly, because the REST API treats an omitted `video_required` as true. If you enable video, also send `recording_config.video_layout: "speaker_view"` (the API default is `grid_view`); use `grid_view` only when you want the composited mosaic of everyone. Per-participant video (`video_separate_streams`) is never enabled implicitly.
+
 ## The one thing to understand: bytes, not seconds
 
 The timeline response looks like this:

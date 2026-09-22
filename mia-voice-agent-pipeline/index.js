@@ -57,6 +57,9 @@ async function main() {
   const payload = {
     meeting_link: config.meetingLink,
     bot_name: config.botName,
+    // Audio only. `false` is sent explicitly because the REST API treats an
+    // omitted `video_required` as true. Video is opt-in, and when it is on
+    // the payload must also carry recording_config.video_layout: "speaker_view".
     video_required: false,
     agent_config_id: state.agentConfigId
   };

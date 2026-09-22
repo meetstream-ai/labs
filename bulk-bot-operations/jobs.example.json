@@ -12,6 +12,7 @@
       "meeting_link": "https://us02web.zoom.us/j/1234567890",
       "bot_name": "Acme QBR Recorder",
       "video_required": true,
+      "video_layout": "speaker_view",
       "provider": "deepgram",
       "custom_attributes": { "account_id": "acct_1001", "team": "acme" }
     },
@@ -53,6 +54,7 @@
       "meeting_link": "https://teams.microsoft.com/l/meetup-join/placeholder-2",
       "bot_name": "Hooli All Hands",
       "video_required": true,
+      "video_layout": "grid_view",
       "provider": "deepgram",
       "custom_attributes": { "account_id": "acct_1004", "team": "hooli" }
     },

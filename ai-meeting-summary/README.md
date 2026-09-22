@@ -57,6 +57,8 @@ node index.js
 | `RETRY_BASE_DELAY_MS` | no | Backoff base. Default `1000`. |
 | `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 
+**Recording defaults.** This template records audio only: it sends `video_required: false` explicitly, because the REST API treats an omitted `video_required` as true. If you enable video, also send `recording_config.video_layout: "speaker_view"` (the API default is `grid_view`); use `grid_view` only when you want the composited mosaic of everyone. Per-participant video (`video_separate_streams`) is never enabled implicitly.
+
 ## When the summary becomes available
 
 The summary is a post-call artifact. It cannot exist until the meeting is over and the recording has been processed:

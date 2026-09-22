@@ -39,7 +39,8 @@ node index.js
 | `WEBHOOK_SECRET` | no | Enables HMAC verification. Per-bot `callback_url` deliveries are not signed; only set this for a workspace endpoint. |
 | `NOTIFY_WEBHOOK_URL` | no | Alerts are also POSTed here as JSON. |
 | `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Notetaker`. |
-| `VIDEO_REQUIRED` | no | Record video as well as audio. Default `false`. |
+| `VIDEO_REQUIRED` | no | Video is off by default; `true` records video as well as audio. Default `false`. |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (the default) or `grid_view`. The API default is `grid_view`, so speaker view is always sent explicitly. |
 | `JOIN_AT` | no | ISO 8601 time to join later; sets `join_at`. |
 | `WAITING_ROOM_TIMEOUT` | no | Seconds to wait for admission. Teams range 60-1800, API default 600. |
 | `NO_ONE_JOINED_TIMEOUT` | no | Leave if nobody joins. Range 60-1800, API default 600. |

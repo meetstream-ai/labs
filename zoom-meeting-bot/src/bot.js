@@ -170,7 +170,8 @@ export function buildAutomaticLeave({
  * @param {string}  opts.meetingLink
  * @param {string}  opts.botName
  * @param {string} [opts.callbackUrl]
- * @param {boolean} [opts.videoRequired]
+ * @param {boolean} [opts.videoRequired]   off by default; video is opt-in
+ * @param {string} [opts.videoLayout]      "speaker_view" (default) or "grid_view"
  * @param {object} [opts.automaticLeave]     already-built automatic_leave object
  * @param {object} [opts.zoomAuth]           { zakUrl } or { obfUrl } for an authenticated join
  * @param {object} [opts.recordingConfig]    e.g. transcript provider + retention
@@ -182,6 +183,7 @@ export async function createZoomBot(client, opts) {
     botName = 'MeetStream Notetaker',
     callbackUrl,
     videoRequired = false,
+    videoLayout,
     automaticLeave,
     zoomAuth,
     recordingConfig,
@@ -208,6 +210,19 @@ export async function createZoomBot(client, opts) {
   }
   if (customAttributes && Object.keys(customAttributes).length > 0) {
     body.custom_attributes = customAttributes;
+  }
+
+  // Video is off by default, and `false` is sent explicitly because the REST
+  // API treats an omitted `video_required` as true. When video IS on, pick the
+  // layout explicitly: the API default is `grid_view`, and speaker view follows
+  // the active speaker, which is what people want for review and clipping.
+  // Per-participant video (`video_separate_streams`) is never set here.
+  if (body.video_required) {
+    body.recording_config = body.recording_config || {};
+    body.recording_config.video_layout =
+      String(videoLayout || 'speaker_view').toLowerCase() === 'grid_view'
+        ? 'grid_view'
+        : 'speaker_view';
   }
   const zoom = buildZoomAuth(zoomAuth);
   if (zoom) body.zoom = zoom;

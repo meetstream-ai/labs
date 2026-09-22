@@ -124,7 +124,8 @@ After creating a bot the template reads `GET /bots/{id}/detail`, which echoes ba
 | `RETENTION_MODE` | no | `timed` | `timed` or `default`, overridden by `--mode` |
 | `RETENTION_HOURS` | no | `72` | Overridden by `--hours` |
 | `BOT_NAME` | no | `Retention Demo Bot` | Display name in the meeting |
-| `VIDEO_REQUIRED` | no | `false` | `true` records video too |
+| `VIDEO_REQUIRED` | no | `false` | Video is off by default; `true` records video as well as audio |
+| `VIDEO_LAYOUT` | no | `speaker_view` | Only read when `VIDEO_REQUIRED=true`. `speaker_view` or `grid_view`. The API default is `grid_view`, so speaker view is always sent explicitly |
 | `MEETSTREAM_API_BASE_URL` | no | `https://api.meetstream.ai/api/v1` | Override for testing |
 
 ## Troubleshooting

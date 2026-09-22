@@ -138,12 +138,27 @@ async function main() {
 
   const recordingConfig = buildRecordingConfig(args);
 
+  // Video is off by default. `false` is sent explicitly because the REST API
+  // treats an omitted `video_required` as true.
+  const videoRequired = String(process.env.VIDEO_REQUIRED || "false") === "true";
+
   const body = {
     meeting_link: process.env.MEETING_LINK,
     bot_name: process.env.BOT_NAME || "Retention Demo Bot",
-    video_required: String(process.env.VIDEO_REQUIRED || "false") === "true",
+    video_required: videoRequired,
     ...(recordingConfig ? { recording_config: recordingConfig } : {}),
   };
+
+  // When video is on, pick the layout explicitly: the API default is
+  // `grid_view`, and speaker view is what people want for review and clipping.
+  // Set VIDEO_LAYOUT=grid_view only if you want the mosaic of everyone.
+  if (videoRequired) {
+    body.recording_config = body.recording_config || {};
+    body.recording_config.video_layout =
+      String(process.env.VIDEO_LAYOUT || "speaker_view").toLowerCase() === "grid_view"
+        ? "grid_view"
+        : "speaker_view";
+  }
 
   for (const line of describeMode(args.mode, args.hours)) console.log(line);
   console.log("\nPOST /bots/create_bot");

@@ -49,6 +49,8 @@ node index.js           # admit the bot, then type commands at the control> prom
 | `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 | `NO_COLOR` | no | Set to any value to disable ANSI colours in the log output. |
 
+**Recording defaults.** This template records audio only. `video_required: false` is sent explicitly, because the REST API treats an omitted `video_required` as true, and audio only is faster to process and smaller to store. If you turn video on, also send `recording_config.video_layout: "speaker_view"` (the API default is `grid_view`, so speaker view has to be explicit); use `grid_view` only when you want the composited mosaic of everyone. Per-participant video (`video_separate_streams`) is never set here.
+
 ## How it works
 
 ```json

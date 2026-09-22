@@ -70,6 +70,16 @@ async function main() {
     log.warn('PUBLIC_WEBHOOK_URL is not set - running in poll-only mode (no webhooks).');
   }
 
+  // This template exists to download the mixed video recording, so video stays
+  // on here. It is the exception: everywhere else video is off by default.
+  // The layout is sent explicitly because the API default is `grid_view`, and
+  // speaker view follows the active speaker, which is what people want for
+  // review and clipping. Set VIDEO_LAYOUT=grid_view for the mosaic of everyone.
+  const videoLayout =
+    (optionalEnv('VIDEO_LAYOUT') ?? 'speaker_view').toLowerCase() === 'grid_view'
+      ? 'grid_view'
+      : 'speaker_view';
+
   const payload = {
     meeting_link: meetingLink,
     bot_name: botName,
@@ -79,11 +89,12 @@ async function main() {
     },
   };
   if (callbackUrl) payload.callback_url = callbackUrl;
+  payload.recording_config = { video_layout: videoLayout };
   if (retentionHours > 0) {
-    payload.recording_config = { retention: { type: 'timed', hours: retentionHours } };
+    payload.recording_config.retention = { type: 'timed', hours: retentionHours };
   }
 
-  log.info(`Creating bot for ${meetingLink} ...`);
+  log.info(`Creating bot for ${meetingLink} ... (video on, layout ${videoLayout})`);
   const bot = await client.createBot(payload, { idempotencyKey: randomUUID() });
   state.botId = bot.bot_id;
   log.info(`Bot created: bot_id=${bot.bot_id} status=${bot.status ?? 'unknown'}`);

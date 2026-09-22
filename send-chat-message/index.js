@@ -61,6 +61,9 @@ async function main() {
     const bot = await client.createBot({
       meeting_link: opts.meetingLink,
       bot_name: opts.botName,
+      // Audio only. `false` is sent explicitly because the REST API treats an
+      // omitted `video_required` as true. Video is opt-in, and when it is on
+      // the payload must also carry recording_config.video_layout: "speaker_view".
       video_required: false,
       automatic_leave: {
         waiting_room_timeout: 600,

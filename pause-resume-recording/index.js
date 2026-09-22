@@ -70,15 +70,29 @@ async function main() {
     log.info(`Controlling existing bot ${existingBotId}.`);
   } else {
     log.info(`Creating bot for ${meetingLink} ...`);
-    const bot = await client.createBot(
-      {
-        meeting_link: meetingLink,
-        bot_name: botName,
-        video_required: true,
-        automatic_leave: { everyone_left_timeout: everyoneLeftTimeout },
-      },
-      { idempotencyKey: randomUUID() }
-    );
+    // This template demonstrates pause and resume, which works the same for an
+    // audio-only bot, so video is off by default. `false` is sent explicitly
+    // because the REST API treats an omitted `video_required` as true.
+    // Set VIDEO_REQUIRED=true to record video too; the layout then defaults to
+    // speaker view, since the API default is `grid_view`.
+    const videoRequired = (optionalEnv('VIDEO_REQUIRED') ?? 'false').toLowerCase() === 'true';
+
+    const createPayload = {
+      meeting_link: meetingLink,
+      bot_name: botName,
+      video_required: videoRequired,
+      automatic_leave: { everyone_left_timeout: everyoneLeftTimeout },
+    };
+    if (videoRequired) {
+      createPayload.recording_config = {
+        video_layout:
+          (optionalEnv('VIDEO_LAYOUT') ?? 'speaker_view').toLowerCase() === 'grid_view'
+            ? 'grid_view'
+            : 'speaker_view',
+      };
+    }
+
+    const bot = await client.createBot(createPayload, { idempotencyKey: randomUUID() });
     state.botId = bot.bot_id;
     log.info(`Bot created: bot_id=${bot.bot_id} status=${bot.status ?? 'unknown'}`);
   }

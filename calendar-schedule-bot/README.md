@@ -38,7 +38,8 @@ node index.js schedule
 | `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
 | `EVENT_ID` | no | MeetStream event id (the `id` from `GET /calendar/events`). Unset: the CLI argument, else the soonest schedulable event. |
 | `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Calendar Bot`. |
-| `VIDEO_REQUIRED` | no | `true` records video as well as audio. Default `false`. |
+| `VIDEO_REQUIRED` | no | Video is off by default; `true` records video as well as audio. Default `false`. |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (default) or `grid_view`. The API default is `grid_view`, so speaker view is sent explicitly. |
 | `BOT_MESSAGE` | no | Message the bot posts in the meeting chat when it joins. |
 | `CALLBACK_URL` | no | Per-bot webhook for lifecycle events. |
 | `NO_ONE_JOINED_TIMEOUT` | no | `automatic_leave.no_one_joined_timeout`, seconds. Calendar-only field. |
@@ -124,6 +125,8 @@ Response: `{ scheduled, schedule_id, bot_id, schedule_group, event_id, scheduled
 ### The `bot_config` shape
 
 Calendar `bot_config` accepts what `create_bot` accepts, plus `audio_required`, which `create_bot` does not have (`create_bot` always captures audio, so the field is meaningless there).
+
+**Recording defaults.** Video is off by default and `video_required: false` is sent explicitly, because the REST API treats an omitted `video_required` as true. With `VIDEO_REQUIRED=true` the template also sends `recording_config.video_layout: "speaker_view"`, because the API default is `grid_view`; set `VIDEO_LAYOUT=grid_view` only when you want the mosaic of everyone. Per-participant video (`video_separate_streams`) is never set here.
 
 The documented calendar fields are `bot_name`, `bot_message`, `bot_image_url`, `audio_required`, `video_required`, `callback_url`, `meeting_url`, `join_at`, `deduplication_key`, `automatic_leave`, `recording_config`, `custom_attributes`, `live_audio_required` and `live_transcription_required`.
 

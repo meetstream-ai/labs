@@ -178,6 +178,15 @@ export function buildTranscriptProvider(provider = "meetstream", language = "en"
  * Only real create_bot fields are sent. Note `meeting_link` (not meeting_url)
  * and `video_required` (a boolean, not a recording mode string).
  *
+ * Recording defaults: video is OFF unless the caller asks for it. The REST API
+ * treats an omitted `video_required` as true, so `false` is always sent
+ * explicitly. When video is turned on and no layout is given we send
+ * `recording_config.video_layout: "speaker_view"`, because the API default is
+ * `grid_view`. Pass `videoLayout: "grid_view"` only if you actually want the
+ * composited mosaic of everyone. Per-participant video streams
+ * (`video_separate_streams`) are never enabled here; that is an explicit
+ * opt-in handled by the per-participant-video-recorder template.
+ *
  * @returns {Promise<{ bot_id: string, transcript_id: string|null, status: string|undefined }>}
  */
 export async function createBot({
@@ -185,6 +194,7 @@ export async function createBot({
   botName = "MeetStream Labs Bot",
   callbackUrl,
   videoRequired = false,
+  videoLayout,
   transcriptProvider,
   retentionHours,
   joinAt,
@@ -210,6 +220,13 @@ export async function createBot({
     if (retentionHours) {
       body.recording_config.retention = { type: "timed", hours: Number(retentionHours) };
     }
+  }
+
+  // Layout only matters when video is actually recorded. Default to speaker
+  // view; the API would otherwise fall back to grid_view.
+  if (body.video_required) {
+    body.recording_config = body.recording_config || {};
+    body.recording_config.video_layout = videoLayout || "speaker_view";
   }
 
   const { data, replayed } = await apiRequest("/bots/create_bot", {

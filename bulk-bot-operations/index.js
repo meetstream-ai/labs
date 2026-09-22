@@ -70,7 +70,9 @@ const defaults = {
   provider: process.env.DEFAULT_PROVIDER || 'deepgram',
   callbackUrl: process.env.CALLBACK_URL || null,
   botName: process.env.DEFAULT_BOT_NAME || undefined,
+  // Video off by default for the whole batch; a job can opt in per row.
   videoRequired: process.env.DEFAULT_VIDEO_REQUIRED === 'true',
+  videoLayout: process.env.DEFAULT_VIDEO_LAYOUT || null,
   customAttributes: { batch_id: BATCH_ID },
 };
 

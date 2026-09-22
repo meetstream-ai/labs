@@ -69,6 +69,8 @@ MIA_WAKE_WORDS=hey acme, ok acme, okay acme
 | `POLL_INTERVAL_SECONDS` | no | Bot status poll interval (default `10`) |
 | `MEETSTREAM_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
 
+**Recording defaults.** This template records audio only. `video_required: false` is sent explicitly, because the REST API treats an omitted `video_required` as true, and audio only is faster to process and smaller to store. If you turn video on, also send `recording_config.video_layout: "speaker_view"` (the API default is `grid_view`, so speaker view has to be explicit); use `grid_view` only when you want the composited mosaic of everyone. Per-participant video (`video_separate_streams`) is never set here.
+
 ## Run
 
 ```console

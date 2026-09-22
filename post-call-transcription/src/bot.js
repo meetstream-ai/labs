@@ -22,6 +22,9 @@ async function createBot(meetingLink, webhookUrl) {
       body: {
         meeting_link: meetingLink,
         bot_name: process.env.BOT_NAME || "MeetStream Transcription Bot",
+        // Audio only. `false` is sent explicitly because the REST API treats an
+        // omitted `video_required` as true. Video is opt-in, and when it is on
+        // the payload must also carry recording_config.video_layout: "speaker_view".
         video_required: false,
         callback_url: webhookUrl,
         recording_config: {

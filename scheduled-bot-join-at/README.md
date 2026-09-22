@@ -46,7 +46,8 @@ node index.js --help
 | `MEETING_LINK` | for `create` | Full Zoom, Google Meet or Teams link. |
 | `BOT_ID` | no | Default target for `reschedule` and `cancel`; the positional argument overrides it. |
 | `BOT_NAME` | no | Display name in the meeting. Default `Scheduled Bot`. |
-| `VIDEO_REQUIRED` | no | `true` records video too. Default `false`. |
+| `VIDEO_REQUIRED` | no | Video is off by default; `true` records video as well as audio. Default `false`. |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (the default) or `grid_view`. The API default is `grid_view`, so speaker view is always sent explicitly. |
 | `MEETSTREAM_API_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 
 ## How scheduling works

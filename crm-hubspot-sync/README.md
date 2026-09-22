@@ -85,6 +85,8 @@ node index.js --bot 8f2c1a3e-... --emails "buyer@acme.com,champion@acme.com"
 
 or set `ATTENDEE_EMAILS` in `.env`. Any emails the platform *does* report are merged in automatically. Put your own domain in `EXCLUDE_EMAIL_DOMAINS` so the note is not logged against your own reps.
 
+**Recording defaults.** This template records audio only: it sends `video_required: false` explicitly, because the REST API treats an omitted `video_required` as true. If you turn video on in code, it sends `recording_config.video_layout: "speaker_view"` (the API default is `grid_view`, so speaker view has to be explicit); use `grid_view` only when you want the composited mosaic of everyone. Per-participant video (`video_separate_streams`) is never enabled implicitly.
+
 ## Run
 
 ```bash

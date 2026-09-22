@@ -8,12 +8,14 @@ npm install && cp .env.example .env && node index.js
 
 ## What it does
 
-1. `POST /bots/create_bot` with `video_required: true`.
+1. `POST /bots/create_bot` with `video_required: true` and `recording_config.video_layout: "speaker_view"`.
 2. Receives MeetStream lifecycle webhooks on `POST /webhook`.
 3. On `video.processed`, calls `GET /bots/{bot_id}/get_video`.
 4. Streams the recording into `recordings/<timestamp>_<bot_id>/`.
 
 `video.processed` fires *after* `audio.processed` in MeetStream's lifecycle, so audio finishing first is expected. A bounded poll loop runs alongside the webhooks: webhook delivery is best-effort, so polling `GET /bots/{bot_id}/status` plus retrying `get_video` is what actually guarantees this program finishes.
+
+**Recording defaults.** This template is one of the few where video is on by design, because downloading the MP4 is the whole point. Everywhere else in MeetStream Labs video is off by default (`video_required: false`, sent explicitly, because the REST API treats an omitted `video_required` as true). The layout is sent explicitly too: `speaker_view` unless you set `VIDEO_LAYOUT=grid_view`, because the API default is `grid_view`. Per-participant video streams are a separate opt-in, see [per-participant-video-recorder](../per-participant-video-recorder).
 
 ## Prerequisites
 
@@ -50,6 +52,7 @@ Leave `PUBLIC_WEBHOOK_URL` blank to skip the webhook server and rely on polling.
 | `PUBLIC_WEBHOOK_URL` | no | | Public HTTPS base URL; `callback_url` is `<PUBLIC_WEBHOOK_URL>/webhook`. Blank = poll-only. |
 | `PORT` | no | `3000` | Local webhook server port. |
 | `BOT_NAME` | no | `MeetStream Video Recorder` | Display name in the meeting. |
+| `VIDEO_LAYOUT` | no | `speaker_view` | `speaker_view` or `grid_view`. The API default is `grid_view`, so speaker view is sent explicitly. |
 | `OUTPUT_DIR` | no | `./recordings` | Where the video is written. |
 | `RETENTION_HOURS` | no | `0` | Auto-delete after N hours. `0` keeps the API default of 720 (30 days). |
 | `EVERYONE_LEFT_TIMEOUT` | no | `60` | Seconds the bot waits after everyone else leaves. |

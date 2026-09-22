@@ -456,7 +456,9 @@ async function cmdCreateBot(client, args) {
     signInEmail: optionalEnv('SIGN_IN_EMAIL'),
     strictEmail: strictRaw === undefined ? undefined : boolEnv('STRICT_EMAIL'),
     botName: optionalEnv('BOT_NAME'),
+    // Video is off by default; VIDEO_LAYOUT is only read when it is on.
     videoRequired: boolEnv('VIDEO_REQUIRED', false),
+    videoLayout: optionalEnv('VIDEO_LAYOUT', 'speaker_view'),
     waitingRoomTimeout: intEnv('WAITING_ROOM_TIMEOUT', { min: 60, max: 1800 }),
     callbackUrl: optionalEnv('CALLBACK_URL'),
   };

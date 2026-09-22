@@ -15,9 +15,13 @@ recordings/
       screen_share.mp4
 ```
 
+**Per-participant video is opt-in, and off by default everywhere else.** This is the one template that sets `video_separate_streams: true`, because one video file per participant is exactly what it is for. No other MeetStream Labs template sets it, and no bot should set it unless you asked for per-speaker video: it multiplies storage and processing by the number of people in the call. Video itself is off by default across the rest of the collection (`video_required: false`, sent explicitly, because the REST API treats an omitted `video_required` as true). Per-participant **audio** (`audio_separate_streams`) is a separate switch and is not covered by that rule.
+
+This template also records the composite (single-file) video, so it sends `recording_config.video_layout: "speaker_view"` explicitly: the API default is `grid_view`. Set `VIDEO_LAYOUT=grid_view` if you want the mosaic instead. The layout has no effect on the per-participant files.
+
 ## How it works
 
-1. `npm start` starts a local Express webhook server on `PORT`, opens an ngrok tunnel to it, and creates a bot with `POST /bots/create_bot` (`video_separate_streams: true`, `audio_separate_streams: true`, `callback_url` pointing at the tunnel).
+1. `npm start` starts a local Express webhook server on `PORT`, opens an ngrok tunnel to it, and creates a bot with `POST /bots/create_bot` (`video_separate_streams: true`, `audio_separate_streams: true`, `recording_config.video_layout: "speaker_view"` for the composite recording, `callback_url` pointing at the tunnel).
 2. It waits for the meeting to end. Every ending arrives once as `event: "bot.stopped"`; `bot_event` gives the reason (`bot.stopped`, `bot.kicked`, `bot.notallowed`, `bot.denied`, `bot.failed`). The app branches on `bot_event` and falls back to a case-insensitive `bot_status` only when it is missing.
 3. Ctrl+C removes the bot with `GET /bots/{bot_id}/remove_bot` (resent up to `BOT_STOP_MAX_ATTEMPTS` times) and waits for `bot.stopped`.
 4. After the bot has stopped it polls `GET /bots/{bot_id}/get_recording_streams` and `GET /bots/{bot_id}/get_audio_streams` (bounded by `RECORDING_POLL_MAX_ATTEMPTS`) until MeetStream returns downloadable media URLs. `video.processed` / `audio.processed` webhooks are a fast path; the poll loop is the guarantee, because webhook deliveries are not retried.
@@ -67,6 +71,7 @@ On Windows PowerShell, if `npm` is blocked by execution policy, use `npm.cmd sta
 | `NGROK_AUTHTOKEN` | yes | Opens the public tunnel for webhooks |
 | `NGROK_DOMAIN` | no | Reserved ngrok domain; blank = random domain each run |
 | `BOT_NAME` | no | Display name in the meeting (default `MeetStream Recorder`) |
+| `VIDEO_LAYOUT` | no | Layout of the composite recording: `speaker_view` (default) or `grid_view`. The API default is `grid_view`, so speaker view is sent explicitly. It does not affect the per-participant streams |
 | `PORT` | no | Local webhook port (default `3000`) |
 | `OUTPUT_DIR` | no | Where recordings are written (default `./recordings`) |
 | `LOG_LEVEL` | no | `fatal`, `error`, `warn`, `info` (default), `debug`, `trace`, `silent` |

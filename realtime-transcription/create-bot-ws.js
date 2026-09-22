@@ -68,6 +68,13 @@ const payload = {
   meeting_link: MEETING_URL,
   bot_name: "MeetStream Transcription Bot (WebSocket)",
 
+  // Audio only. `false` is sent explicitly because the REST API treats an
+  // omitted `video_required` as true, so leaving it out would silently record
+  // video. Live transcription needs no video at all. If you do turn it on,
+  // also send recording_config.video_layout: "speaker_view", since the API
+  // default is grid_view.
+  video_required: false,
+
   live_transcription_required: {
     websocket_url: `${WEBSOCKET_URL}/ws`,
   },

@@ -120,7 +120,9 @@ async function launchBot(callbackUrl) {
       meetingLink: process.env.MEETING_LINK,
       botName: process.env.BOT_NAME || 'Tunnel Test Bot',
       callbackUrl,
+      // Video is off by default; VIDEO_LAYOUT is only read when it is on.
       videoRequired: process.env.VIDEO_REQUIRED === 'true',
+      videoLayout: process.env.VIDEO_LAYOUT || 'speaker_view',
     });
     log.ok(`bot created (HTTP ${status}${replay ? ', idempotent replay' : ''})`);
     log.detail('bot_id', data?.bot_id ?? 'n/a');

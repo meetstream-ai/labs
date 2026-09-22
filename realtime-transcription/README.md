@@ -55,6 +55,8 @@ WebSocket mode is the same with `npm run start:ws` (port 3001), `WEBSOCKET_URL=w
 | `PROVIDER` | no | `deepgram` (default) or `assemblyai`. Both are `*_streaming` providers. |
 | `PORT` | no | Receiver port. Default `3000` (webhook) or `3001` (WebSocket). |
 
+**Recording defaults.** This template records audio only, and now sends `video_required: false` explicitly: the REST API treats an omitted `video_required` as **true**, so leaving the field out silently records video. If you turn video on, also send `recording_config.video_layout: "speaker_view"`, because the API default is `grid_view`; use `grid_view` only when you want the mosaic of everyone. Per-participant video (`video_separate_streams`) is never set here.
+
 ## How it works
 
 ```

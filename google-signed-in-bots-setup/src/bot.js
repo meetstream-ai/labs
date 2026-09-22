@@ -41,7 +41,8 @@ export function isGoogleMeetLink(link) {
  * @param {boolean} [opts.strictEmail]    only meaningful with signInEmail. true (the API default)
  *                                        fails if that account is busy or unhealthy; false falls
  *                                        back to any available login in the domain
- * @param {boolean} [opts.videoRequired]
+ * @param {boolean} [opts.videoRequired]   off by default; video is opt-in
+ * @param {string} [opts.videoLayout]      "speaker_view" (default) or "grid_view"
  * @param {number}  [opts.waitingRoomTimeout] seconds, 60-600 on Google Meet
  * @param {string} [opts.callbackUrl]     per-bot webhook URL
  * @param {object} [opts.customAttributes] string values only
@@ -54,6 +55,7 @@ export async function createSignedInBot(client, opts) {
     signInEmail,
     strictEmail,
     videoRequired = false,
+    videoLayout,
     waitingRoomTimeout,
     callbackUrl,
     customAttributes,
@@ -96,6 +98,19 @@ export async function createSignedInBot(client, opts) {
   }
   if (Number.isInteger(waitingRoomTimeout)) {
     body.automatic_leave = { waiting_room_timeout: waitingRoomTimeout };
+  }
+
+  // Video is off by default, and `false` is sent explicitly because the REST
+  // API treats an omitted `video_required` as true. When video IS on, pick the
+  // layout explicitly: the API default is `grid_view`, and speaker view follows
+  // the active speaker, which is what people want for review and clipping.
+  // Per-participant video (`video_separate_streams`) is never set here.
+  if (body.video_required) {
+    body.recording_config = body.recording_config || {};
+    body.recording_config.video_layout =
+      String(videoLayout || 'speaker_view').toLowerCase() === 'grid_view'
+        ? 'grid_view'
+        : 'speaker_view';
   }
 
   const { status, data, replayed } = await client.request('/bots/create_bot', {

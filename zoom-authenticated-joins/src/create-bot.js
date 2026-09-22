@@ -145,7 +145,13 @@ export async function createBot(config, flags) {
     mintSecret: config.mintSecret
   });
 
-  const body = { meeting_link: flags.meeting, bot_name: flags.botName };
+  // Audio only. `video_required: false` is sent explicitly because the REST
+  // API treats an omitted `video_required` as true, so leaving it out would
+  // silently record video. If you turn video on, also send
+  // recording_config.video_layout: "speaker_view" (the API default is
+  // grid_view), and never set video_separate_streams unless you asked for
+  // per-participant video.
+  const body = { meeting_link: flags.meeting, bot_name: flags.botName, video_required: false };
   if (zoom) body.zoom = zoom;
 
   const printable = {

@@ -68,11 +68,15 @@ MEETING_LINK=https://meet.google.com/abc-defg-hij
 | `MEETING_LINK` | one of | Start a new bot in this Zoom, Google Meet or Teams meeting. |
 | `BOT_ID` | one of | Control a bot that is already in a meeting instead. |
 | `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Recorder`. |
+| `VIDEO_REQUIRED` | no | Video is off by default. `true` records video as well as audio. Default `false`. |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (the default) or `grid_view`. The API default is `grid_view`, so speaker view is always sent explicitly. |
 | `EVERYONE_LEFT_TIMEOUT` | no | Seconds the bot waits after everyone else leaves. Default `60`. |
 | `AUTO_SEQUENCE` | no | Scripted `<seconds>:<pause|resume|stop>` list used only when stdin is not a TTY. Default `30:pause,60:resume,90:stop`. |
 | `REQUEST_TIMEOUT_MS` | no | Per-request timeout. Default `30000`. |
 | `MAX_RETRIES` | no | Retries on 429 / 5xx. Default `4`. |
 | `LOG_LEVEL` | no | `silent`, `error`, `warn`, `info` or `debug`. Default `info`. |
+
+**Recording defaults.** Pause and resume work the same for an audio-only bot, so this template now creates one: it sends `video_required: false` explicitly, because the REST API treats an omitted `video_required` as true. Set `VIDEO_REQUIRED=true` to record video too, and the template also sends `recording_config.video_layout: "speaker_view"` since the API default is `grid_view`. Per-participant video (`video_separate_streams`) is never set here.
 
 ## Run
 

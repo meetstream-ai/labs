@@ -83,7 +83,8 @@ Everything comes from `.env` (see `.env.example`).
 | `SIGN_IN_EMAIL` | no | Pin one account (`create-bot`, `verify`) |
 | `STRICT_EMAIL` | no | API default `true`; only matters with `SIGN_IN_EMAIL` |
 | `BOT_NAME` / `BOT_IMAGE_URL` | no | Only shown if the bot joins as a guest; a signed-in Teams bot uses the Microsoft account's name and picture, and the CLI warns if `BOT_IMAGE_URL` is set |
-| `VIDEO_REQUIRED` | no | `true` records video as well as audio (default `false`) |
+| `VIDEO_REQUIRED` | no | Video is off by default; `true` records video as well as audio. Default `false`. |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (the default) or `grid_view`. The API default is `grid_view`, so speaker view is always sent explicitly. |
 | `WAITING_ROOM_TIMEOUT` | no | Lobby wait in seconds, 60-1800 on Teams (default `600`) |
 | `CALLBACK_URL` | no | Per-bot webhook URL for lifecycle events |
 | `DEBUG` | no | Set to anything to print stack traces on unexpected errors |

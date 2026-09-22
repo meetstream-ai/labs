@@ -99,7 +99,8 @@ When the host refuses the prompt you get `bot.recording_permission_denied` with 
 | `WEBHOOK_SECRET` | no | Enables HMAC verification. Per-bot `callback_url` deliveries are not signed; only set this for a workspace endpoint. |
 | `NOTIFY_WEBHOOK_URL` | no | Alerts are also POSTed here as JSON. |
 | `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Notetaker`. |
-| `VIDEO_REQUIRED` | no | Record video as well as audio. Default `false`. |
+| `VIDEO_REQUIRED` | no | Video is off by default; `true` records video as well as audio. Default `false`. |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (the default) or `grid_view`. The API default is `grid_view`, so speaker view is always sent explicitly. |
 | `RECORDING_PERMISSION_DENIED_TIMEOUT` | no | Seconds to wait for the host's recording prompt. Range 60-300, default `60`. Zoom only. |
 | `WAITING_ROOM_TIMEOUT` | no | Seconds to wait in the waiting room. Zoom range 60-1200, API default 600. |
 | `EVERYONE_LEFT_TIMEOUT` | no | Leave once the count hits zero. Range 60-1800, API default 300. |

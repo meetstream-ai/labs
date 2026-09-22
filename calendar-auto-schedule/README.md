@@ -45,7 +45,7 @@ Everything except the API key feeds `default_bot_config`, which every auto-sched
 | --- | --- | --- |
 | `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>`. |
 | `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Auto Bot`. |
-| `VIDEO_REQUIRED` | no | `true` records video as well as audio. Default `false`. |
+| `VIDEO_REQUIRED` | no | Video is off by default; `true` records video as well as audio. Default `false`. |
 | `BOT_MESSAGE` | no | Message the bot posts in the meeting chat when it joins. |
 | `BOT_IMAGE_URL` | no | Public image URL for the bot's avatar. |
 | `CALLBACK_URL` | no, recommended | Webhook that receives every bot's lifecycle events. Without it you have to poll. |
@@ -103,6 +103,8 @@ What happens now:
   }
 }
 ```
+
+**Recording defaults.** Video is off by default and `video_required: false` is sent explicitly, because the REST API treats an omitted `video_required` as true. `default_bot_config` has no documented `recording_config`, so there is nowhere to send `video_layout`: an auto-scheduled bot with video on gets the API default, `grid_view`. When you want speaker view, schedule that meeting per event with [calendar-schedule-bot](../calendar-schedule-bot), whose `bot_config` does accept `recording_config.video_layout`. Per-participant video (`video_separate_streams`) is never set here.
 
 Documented `default_bot_config` fields: `bot_name`, `audio_required`, `video_required`, `bot_message`, `bot_image_url` and `automatic_leave`. `automatic_leave` accepts `waiting_room_timeout`, `no_one_joined_timeout`, `everyone_left_timeout`, `voice_inactivity_timeout`, `in_call_recording_timeout` and `recording_permission_denied_timeout`, all integer seconds. The calendar examples also carry `callback_url` and a `transcription` block, both of which this template supports through `.env`.
 

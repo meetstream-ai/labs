@@ -114,7 +114,10 @@ export function validateJobs(rawJobs, defaults = {}) {
       id,
       meetingLink,
       botName: job.bot_name ?? job.botName ?? defaults.botName ?? `Bot ${id}`,
+      // Video is off unless a job asks for it. `false` is sent explicitly on
+      // create, because the REST API treats an omitted `video_required` as true.
       videoRequired: job.video_required ?? defaults.videoRequired ?? false,
+      videoLayout: job.video_layout ?? defaults.videoLayout ?? null,
       joinAt: job.join_at ?? null,
       callbackUrl,
       provider,
@@ -146,6 +149,14 @@ export function toCreateBotPayload(job) {
       batch_job_id: job.id,
     },
   };
+
+  // Layout only matters when video is recorded. Speaker view is the default we
+  // recommend; the API would otherwise fall back to `grid_view`. A job can set
+  // `video_layout: "grid_view"` when it really wants the mosaic of everyone.
+  if (payload.video_required) {
+    payload.recording_config.video_layout =
+      job.videoLayout === 'grid_view' ? 'grid_view' : 'speaker_view';
+  }
 
   if (job.callbackUrl) payload.callback_url = job.callbackUrl;
   if (job.joinAt) payload.join_at = job.joinAt;

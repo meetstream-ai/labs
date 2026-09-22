@@ -103,7 +103,12 @@ async function main() {
   state.tunnelListener = listener;
 
   const callbackUrl = `${url}/webhook`;
-  const bot = await client.createBot({ meetingLink, botName, callbackUrl });
+  const bot = await client.createBot({
+    meetingLink,
+    botName,
+    callbackUrl,
+    videoLayout: process.env.VIDEO_LAYOUT,
+  });
   state.botId = bot.bot_id;
 
   logger.info('Bot is heading into the meeting...');

@@ -47,7 +47,8 @@ node index.js schedule-chain <eventId>
 | `MEETSTREAM_API_KEY` | yes | API key, sent as `Authorization: Token <key>` |
 | `OCCURRENCE_LIMIT` | no | Cap for `schedule-series` (default `52`, the API default); a CLI argument overrides it |
 | `BOT_NAME` | no | Bot display name in the meeting (default `MeetStream Recurring Bot`) |
-| `VIDEO_REQUIRED` | no | `true` records video as well as audio (default `false`) |
+| `VIDEO_REQUIRED` | no | Video is off by default; `true` records video as well as audio. Default `false`. |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (default) or `grid_view`. The API default is `grid_view`, so speaker view is sent explicitly. |
 | `CALLBACK_URL` | no | Per-bot webhook URL for lifecycle events, public HTTPS |
 | `MEETSTREAM_API_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
 

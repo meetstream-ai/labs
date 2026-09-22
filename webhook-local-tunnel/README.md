@@ -57,7 +57,8 @@ node index.js
 | `MEETSTREAM_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
 | `MEETING_LINK` | with `--create-bot` | Zoom, Google Meet or Teams link the test bot joins |
 | `BOT_NAME` | no | Test bot display name (default `Tunnel Test Bot`) |
-| `VIDEO_REQUIRED` | no | `true` records video as well as audio (default `false`) |
+| `VIDEO_REQUIRED` | no | Video is off by default; `true` records video as well as audio. Default `false`. |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (the default) or `grid_view`. The API default is `grid_view`, so speaker view is always sent explicitly. |
 | `NO_COLOR` | no | Set to anything to disable coloured output |
 
 ## Run

@@ -51,7 +51,9 @@ function readConfig() {
     notifyWebhookUrl: optionalEnv('NOTIFY_WEBHOOK_URL'),
     meetingLink: optionalEnv('MEETING_LINK'),
     botName: optionalEnv('BOT_NAME', 'MeetStream Notetaker'),
+    // Video is off by default; VIDEO_LAYOUT is only read when it is on.
     videoRequired: boolEnv('VIDEO_REQUIRED', false),
+    videoLayout: optionalEnv('VIDEO_LAYOUT', 'speaker_view'),
     waitingRoomTimeout,
     lobbyAlertSeconds: intEnv('LOBBY_ALERT_SECONDS', { fallback: 60, min: 0, max: 600 }),
     maxAttempts: intEnv('MAX_JOIN_ATTEMPTS', { fallback: 2, min: 1, max: 5 }),
@@ -140,6 +142,7 @@ async function run(config) {
       meetingLink: config.meetingLink,
       botName: config.botName,
       videoRequired: config.videoRequired,
+      videoLayout: config.videoLayout,
       waitingRoomTimeout: config.waitingRoomTimeout,
       callbackUrl,
       signedIn: config.signedInDomain

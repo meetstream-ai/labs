@@ -173,6 +173,8 @@ Both return `{ "token": "..." }`. OBF tokens are short-lived and single-use, so 
 | `DATA_DIR` | no | `./data` | Where refresh tokens are written |
 | `MEETSTREAM_API_BASE_URL` | no | `https://api.meetstream.ai/api/v1` | Override for testing |
 
+**Recording defaults.** This template records audio only, and now sends `video_required: false` explicitly: the REST API treats an omitted `video_required` as **true**, so leaving the field out silently records video. If you turn video on, also send `recording_config.video_layout: "speaker_view"`, because the API default is `grid_view`; use `grid_view` only when you want the mosaic of everyone. Per-participant video (`video_separate_streams`) is never set here.
+
 ## Troubleshooting
 
 | Symptom | Cause | Fix |

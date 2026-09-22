@@ -224,7 +224,9 @@ async function cmdCreateBot(client) {
     googleLoginDomain,
     signInEmail: optionalEnv('SIGN_IN_EMAIL'),
     strictEmail: optionalEnv('STRICT_EMAIL') === undefined ? undefined : boolEnv('STRICT_EMAIL'),
+    // Video is off by default; VIDEO_LAYOUT is only read when it is on.
     videoRequired: boolEnv('VIDEO_REQUIRED', false),
+    videoLayout: optionalEnv('VIDEO_LAYOUT', 'speaker_view'),
     waitingRoomTimeout: intEnv('WAITING_ROOM_TIMEOUT', { min: 60, max: 600 }),
     callbackUrl: optionalEnv('CALLBACK_URL'),
   });

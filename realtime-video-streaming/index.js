@@ -151,15 +151,27 @@ async function main() {
 
   const client = new MeetStreamClient(process.env.MEETSTREAM_API_KEY, { logger: log });
 
+  // Post-call recording layout. Only sent when VIDEO_RECORDING=true, because
+  // `video_layout` is ignored on an audio-only bot (nothing is composited).
+  // The API default is `grid_view`, so speaker view has to be explicit. Live
+  // streaming below is a separate switch and is not affected by the layout.
+  const videoLayout =
+    String(process.env.VIDEO_LAYOUT || "speaker_view").toLowerCase() === "grid_view"
+      ? "grid_view"
+      : "speaker_view";
+  const videoRecording = process.env.VIDEO_RECORDING === "true";
+
   log.info("Creating bot…");
   const bot = await client.createBot({
     meeting_link: process.env.MEETING_LINK,
     bot_name: BOT_NAME,
 
     // This is the post-call recording toggle and is independent of live
-    // streaming. Set VIDEO_RECORDING=true if you also want a downloadable
-    // recording afterwards via GET /bots/{id}/get_video.
-    video_required: process.env.VIDEO_RECORDING === "true",
+    // streaming. It is off by default, and `false` is sent explicitly because
+    // the REST API treats an omitted `video_required` as true. Set
+    // VIDEO_RECORDING=true if you also want a downloadable recording
+    // afterwards via GET /bots/{id}/get_video.
+    video_required: videoRecording,
 
     callback_url: callbackUrl,
 
@@ -169,6 +181,7 @@ async function main() {
 
     recording_config: {
       retention: { type: "timed", hours: 24 },
+      ...(videoRecording ? { video_layout: videoLayout } : {}),
     },
 
     automatic_leave: {

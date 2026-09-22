@@ -57,6 +57,7 @@ export class MeetStream {
     botName,
     callbackUrl,
     videoRequired = false,
+    videoLayout,
     provider = 'deepgram',
     customAttributes = {},
     idempotencyKey = randomUUID(),
@@ -78,6 +79,17 @@ export class MeetStream {
         in_call_recording_timeout: 3600,
       },
     };
+
+    // Video is off by default, and `false` is sent explicitly because the REST
+    // API treats an omitted `video_required` as true. When video IS on, send the
+    // layout explicitly: the API default is `grid_view`. `video_separate_streams`
+    // is never set here.
+    if (body.video_required) {
+      body.recording_config.video_layout =
+        String(videoLayout || 'speaker_view').toLowerCase() === 'grid_view'
+          ? 'grid_view'
+          : 'speaker_view';
+    }
 
     return this.#request('POST', '/bots/create_bot', {
       body,

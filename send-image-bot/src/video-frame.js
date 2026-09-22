@@ -162,6 +162,9 @@ export async function runVideoFrameMode(client, options) {
   const bot = await client.createBot({
     meeting_link: meetingLink,
     bot_name: botName,
+    // Audio only. `false` is sent explicitly because the REST API treats an
+    // omitted `video_required` as true. Video is opt-in, and when it is on
+    // the payload must also carry recording_config.video_layout: "speaker_view".
     video_required: false,
 
     // The control channel. This points at OUR WebSocket server: it is a

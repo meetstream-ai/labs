@@ -72,6 +72,8 @@ Press `Ctrl+C` to pull the bot out of the meeting early and go straight to the d
 | `MAX_RETRIES` | no | Retries on network errors and 429/5xx. Default `4`. |
 | `LOG_LEVEL` | no | `silent`, `error`, `warn`, `info` or `debug`. Default `info`. |
 
+**Recording defaults.** This template records per-participant AUDIO, which is unaffected by the video policy. Video itself is off: `video_required: false` is sent explicitly, because the REST API treats an omitted `video_required` as true. Per-participant VIDEO (`video_separate_streams`) is never set here; it is an explicit opt-in, see [per-participant-video-recorder](../per-participant-video-recorder).
+
 ## How it works
 
 ### Requesting per-participant audio

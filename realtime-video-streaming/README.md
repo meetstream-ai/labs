@@ -141,7 +141,8 @@ realtime-video-streaming/
 | `PORT` | no | Local port, default `3000` |
 | `BOT_NAME` | no | Name shown in the participant list |
 | `OUTPUT_DIR` | no | Default `./output` |
-| `VIDEO_RECORDING` | no | `true` also produces a post-call downloadable recording |
+| `VIDEO_RECORDING` | no | Post-call video recording is off by default; `true` also produces a downloadable recording. `video_required: false` is sent explicitly, because the REST API treats an omitted `video_required` as true |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_RECORDING=true`. `speaker_view` (the default) or `grid_view`. The API default is `grid_view`, so speaker view is sent explicitly. It does not affect the live stream |
 | `MAX_RELAY_CLIENTS` | no | Default `5` |
 | `JOIN_TIMEOUT_MINUTES` | no | Give up, remove the bot and exit 1 if no `bot.inmeeting`, video bytes or `bot.stopped` arrive in this many minutes. Default `12` |
 | `RELAY_URL` | no | Used by `consumer-example.js`. Default `ws://localhost:3000/stream` |

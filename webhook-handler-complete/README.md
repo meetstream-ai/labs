@@ -63,7 +63,8 @@ curl localhost:3000/bots/sim-postcall-1
 | `PUBLIC_URL` | `--create-bot` only | Public https origin, no trailing slash. `callback_url` = `PUBLIC_URL` + `WEBHOOK_PATH`. |
 | `MEETING_LINK` | `--create-bot` only | Zoom, Google Meet or Teams link the bot joins. |
 | `BOT_NAME` | no | Display name in the meeting. Default `Webhook Reference Bot`. |
-| `VIDEO_REQUIRED` | no | Record video as well as audio. Default `false`. |
+| `VIDEO_REQUIRED` | no | Video is off by default; `true` records video as well as audio. Default `false`. |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (the default) or `grid_view`. The API default is `grid_view`, so speaker view is always sent explicitly. |
 | `TRANSCRIPT_PROVIDER` | no | Post-call or streaming provider; decides whether a post-call transcript exists. Default `deepgram`. |
 | `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
 | `NO_COLOR` | no | Set to anything to disable ANSI colour in the log output. |

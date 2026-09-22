@@ -249,6 +249,9 @@ async function main() {
   const bot = await client.createBot({
     meeting_link: process.env.MEETING_LINK,
     bot_name: BOT_NAME,
+    // Audio only. `false` is sent explicitly because the REST API treats an
+    // omitted `video_required` as true. Video is opt-in, and when it is on
+    // the payload must also carry recording_config.video_layout: "speaker_view".
     video_required: false,
     callback_url: `${base}/webhook`,
 

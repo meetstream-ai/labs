@@ -84,12 +84,27 @@ async function doCreate(args) {
   const joinAt = resolveJoinAt(args);
   warnIfPast(joinAt);
 
+  // Video is OFF by default. `false` is sent explicitly, because the REST API
+  // treats an omitted `video_required` as true.
+  const videoRequired = String(process.env.VIDEO_REQUIRED || "false") === "true";
+
   const body = {
     meeting_link: meetingLink,
     bot_name: process.env.BOT_NAME || "Scheduled Bot",
-    video_required: String(process.env.VIDEO_REQUIRED || "false") === "true",
+    video_required: videoRequired,
     join_at: joinAt,
   };
+
+  // When video is on, send the layout explicitly: the API default is
+  // `grid_view`. Set VIDEO_LAYOUT=grid_view for the mosaic of everyone.
+  if (videoRequired) {
+    body.recording_config = {
+      video_layout:
+        String(process.env.VIDEO_LAYOUT || "speaker_view").toLowerCase() === "grid_view"
+          ? "grid_view"
+          : "speaker_view",
+    };
+  }
 
   console.log("POST /bots/create_bot");
   console.log(JSON.stringify(body, null, 2));

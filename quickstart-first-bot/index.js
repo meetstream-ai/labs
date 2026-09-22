@@ -61,25 +61,40 @@ function loadConfig() {
   return {
     meetingLink,
     botName: process.env.BOT_NAME || "Quickstart Bot",
+    // Video is OFF by default. `false` is sent explicitly on create, because
+    // the REST API treats an omitted `video_required` as true.
     videoRequired: String(process.env.VIDEO_REQUIRED || "false") === "true",
+    videoLayout: resolveVideoLayout(),
   };
 }
 
+/**
+ * Layout to send when video is on. The API default is `grid_view`, so speaker
+ * view has to be explicit. Set VIDEO_LAYOUT=grid_view for the mosaic.
+ */
+function resolveVideoLayout() {
+  return String(process.env.VIDEO_LAYOUT || "speaker_view").toLowerCase() === "grid_view"
+    ? "grid_view"
+    : "speaker_view";
+}
+
 /** Sends the bot into the meeting. Returns the create response body. */
-async function createBot({ meetingLink, botName, videoRequired }) {
+async function createBot({ meetingLink, botName, videoRequired, videoLayout }) {
+  const body = {
+    meeting_link: meetingLink,
+    bot_name: botName,
+    video_required: videoRequired,
+  };
+  // Layout is only meaningful when video is recorded; an audio-only bot never
+  // runs the compositor. Per-participant video is never enabled here.
+  if (videoRequired) body.recording_config = { video_layout: videoLayout };
+
   console.log("Creating bot...");
   console.log(`  meeting_link : ${meetingLink}`);
   console.log(`  bot_name     : ${botName}`);
-  console.log(`  video        : ${videoRequired ? "on" : "off (audio only)"}\n`);
+  console.log(`  video        : ${videoRequired ? `on (${videoLayout})` : "off (audio only)"}\n`);
 
-  const { status, data } = await call("/bots/create_bot", {
-    method: "POST",
-    body: {
-      meeting_link: meetingLink,
-      bot_name: botName,
-      video_required: videoRequired,
-    },
-  });
+  const { status, data } = await call("/bots/create_bot", { method: "POST", body });
 
   console.log(`Bot created (HTTP ${status})`);
   console.log(`  bot_id        : ${data?.bot_id}`);

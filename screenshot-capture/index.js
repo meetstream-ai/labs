@@ -65,10 +65,25 @@ async function main() {
   if (botId) {
     log.info(`Fetching screenshots for existing bot ${botId}.`);
   } else {
+    // Screenshots are cut from the video capture, so this template keeps video
+    // on: with `video_required: false` the bot records audio only and
+    // get_screenshots never returns anything. It is an exception; everywhere
+    // else video is off by default.
+    //
+    // The layout is sent explicitly because the API default is `grid_view`.
+    // Speaker view gives one frame per active speaker, which is what most
+    // screenshot workflows want. Set VIDEO_LAYOUT=grid_view when you want every
+    // participant in each frame.
     const payload = {
       meeting_link: meetingLink,
       bot_name: botName,
       video_required: true,
+      recording_config: {
+        video_layout:
+          (optionalEnv('VIDEO_LAYOUT') ?? 'speaker_view').toLowerCase() === 'grid_view'
+            ? 'grid_view'
+            : 'speaker_view',
+      },
       automatic_leave: { everyone_left_timeout: everyoneLeftTimeout },
     };
 

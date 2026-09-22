@@ -49,6 +49,10 @@ export function buildCreateBotPayload({ meetingLink, botName, extra = {} }) {
   return {
     meeting_link: meetingLink,
     bot_name: botName,
+    // Audio only by default. `false` is sent explicitly because the REST API
+    // treats an omitted `video_required` as true. If you turn video on here,
+    // also set `recording_config.video_layout: "speaker_view"` (the API default
+    // is `grid_view`). Never set `video_separate_streams` unless asked for it.
     video_required: false,
     recording_config: recordingConfig,
     automatic_leave: {

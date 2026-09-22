@@ -38,7 +38,8 @@ node index.js
 | `MEETSTREAM_BASE_URL` | no | API base URL. Default `https://api.meetstream.ai/api/v1`. |
 | `MEETING_LINK` | yes | The `meet.google.com` link to join. |
 | `BOT_NAME` | no | Display name for anonymous bots. Default `MeetStream Notetaker`. Ignored for signed-in bots. |
-| `VIDEO_REQUIRED` | no | Record video as well as audio. Default `false`. |
+| `VIDEO_REQUIRED` | no | Video is off by default; `true` records video as well as audio. Default `false`. |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (the default) or `grid_view`. The API default is `grid_view`, so speaker view is always sent explicitly. |
 | `PORT` | no | Local port for the webhook receiver. Default `3000`. |
 | `WEBHOOK_PATH` | no | Path the receiver listens on. Default `/webhook`. |
 | `PUBLIC_WEBHOOK_URL` | yes | Public HTTPS origin of this server; `callback_url` is `PUBLIC_WEBHOOK_URL + WEBHOOK_PATH`. |

@@ -65,7 +65,8 @@ node index.js gen-cert    # then follow "Configuration, step by step" below
 | `STRICT_EMAIL` | no | With `SIGN_IN_EMAIL` only. API default `true`: fail if that account is busy or unhealthy. `false`: fall back to any available login in the domain. |
 | `MEETING_LINK` | `create-bot` | The `meet.google.com` link to join. |
 | `BOT_NAME` | no | Sent as `bot_name`. Meet shows the Google account's own name, not this. Default `MeetStream Signed-In Bot`. |
-| `VIDEO_REQUIRED` | no | `true` records video as well as audio. Default `false`. |
+| `VIDEO_REQUIRED` | no | Video is off by default; `true` records video as well as audio. Default `false`. |
+| `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (the default) or `grid_view`. The API default is `grid_view`, so speaker view is always sent explicitly. |
 | `WAITING_ROOM_TIMEOUT` | no | `automatic_leave.waiting_room_timeout`, 60-600 seconds. Unset: API default 600. |
 | `CALLBACK_URL` | no | Per-bot webhook URL for lifecycle events. |
 | `DEBUG` | no | Set to any value to print full stack traces on unexpected errors. |

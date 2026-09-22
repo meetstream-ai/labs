@@ -99,6 +99,7 @@ async function launchBot() {
       botName: cfg.botName,
       callbackUrl,
       videoRequired: cfg.videoRequired,
+      videoLayout: cfg.videoLayout,
       provider: cfg.provider,
       // Stamp the pipeline mode so the handler knows where the event stream
       // ends. Webhooks never carry the provider. Values MUST be strings.
