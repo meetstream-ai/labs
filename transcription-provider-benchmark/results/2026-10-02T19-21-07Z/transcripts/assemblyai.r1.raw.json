@@ -1,0 +1,2433 @@
+{
+  "id": "cad44b2c-1bf7-4fc9-9f73-85979fe925de",
+  "language_model": "assemblyai_default",
+  "acoustic_model": "assemblyai_default",
+  "language_code": "en_us",
+  "speech_understanding": null,
+  "translated_texts": null,
+  "status": "completed",
+  "audio_url": "(removed: link to the recording)",
+  "text": "Foreign. Good morning everyone and thanks for joining the quarterly planning review. Let's start with the numbers. Revenue for the third quarter came in at $4.2 million, up 18% from last year. The enterprise team closed 23 new accounts, including two hospitals in Chicago and a logistics company in Rotterdam. Priya will walk us through the product roadmap after this. The short version is that the mobile app ships on November 14th and the API migration is about two weeks behind schedule. We have moved three engineers from the payments team to help, so we expect to recover most of that time by the end of the month. On hiring, we have nine open roles. Four are in customer support, three in engineering and two in finance. Please send referrals to Marcus by Friday. Finally, a reminder that the office will be closed on Monday for maintenance. If you need access to the lab, talk to facilities before Thursday. Any questions before we move on? SA.",
+  "words": [
+    {
+      "text": "Foreign.",
+      "start": 240,
+      "end": 640,
+      "confidence": 0.9094238,
+      "speaker": "A"
+    },
+    {
+      "text": "Good",
+      "start": 8560,
+      "end": 8920,
+      "confidence": 0.57714844,
+      "speaker": "A"
+    },
+    {
+      "text": "morning",
+      "start": 8920,
+      "end": 9280,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "everyone",
+      "start": 9280,
+      "end": 9680,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "and",
+      "start": 10080,
+      "end": 10440,
+      "confidence": 0.9326172,
+      "speaker": "A"
+    },
+    {
+      "text": "thanks",
+      "start": 10440,
+      "end": 10800,
+      "confidence": 0.9975586,
+      "speaker": "A"
+    },
+    {
+      "text": "for",
+      "start": 10800,
+      "end": 11000,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "joining",
+      "start": 11000,
+      "end": 11320,
+      "confidence": 0.9998372,
+      "speaker": "A"
+    },
+    {
+      "text": "the",
+      "start": 11320,
+      "end": 11520,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "quarterly",
+      "start": 11520,
+      "end": 12080,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "planning",
+      "start": 12080,
+      "end": 12520,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "review.",
+      "start": 12520,
+      "end": 12800,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "Let's",
+      "start": 13760,
+      "end": 14120,
+      "confidence": 0.9431966,
+      "speaker": "A"
+    },
+    {
+      "text": "start",
+      "start": 14120,
+      "end": 14280,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "with",
+      "start": 14280,
+      "end": 14520,
+      "confidence": 0.5620117,
+      "speaker": "A"
+    },
+    {
+      "text": "the",
+      "start": 14520,
+      "end": 14800,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "numbers.",
+      "start": 14800,
+      "end": 15280,
+      "confidence": 0.98413086,
+      "speaker": "A"
+    },
+    {
+      "text": "Revenue",
+      "start": 16000,
+      "end": 16560,
+      "confidence": 0.9998372,
+      "speaker": "A"
+    },
+    {
+      "text": "for",
+      "start": 16560,
+      "end": 16720,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "the",
+      "start": 16720,
+      "end": 16840,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "third",
+      "start": 16840,
+      "end": 17080,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "quarter",
+      "start": 17080,
+      "end": 17400,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "came",
+      "start": 17400,
+      "end": 17680,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "in",
+      "start": 17680,
+      "end": 17880,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "at",
+      "start": 17880,
+      "end": 18080,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "$4.2",
+      "start": 18080,
+      "end": 18800,
+      "confidence": 0.99507,
+      "speaker": "A"
+    },
+    {
+      "text": "million,",
+      "start": 18960,
+      "end": 19680,
+      "confidence": 0.99507,
+      "speaker": "A"
+    },
+    {
+      "text": "up",
+      "start": 19920,
+      "end": 20240,
+      "confidence": 0.9975586,
+      "speaker": "A"
+    },
+    {
+      "text": "18%",
+      "start": 20240,
+      "end": 20960,
+      "confidence": 0.99463,
+      "speaker": "A"
+    },
+    {
+      "text": "from",
+      "start": 20960,
+      "end": 21280,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "last",
+      "start": 21280,
+      "end": 21560,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "year.",
+      "start": 21560,
+      "end": 21920,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "The",
+      "start": 22560,
+      "end": 22920,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "enterprise",
+      "start": 22920,
+      "end": 23520,
+      "confidence": 0.99316406,
+      "speaker": "A"
+    },
+    {
+      "text": "team",
+      "start": 23520,
+      "end": 23840,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "closed",
+      "start": 23840,
+      "end": 24360,
+      "confidence": 0.99902344,
+      "speaker": "A"
+    },
+    {
+      "text": "23",
+      "start": 24360,
+      "end": 24880,
+      "confidence": 0.99976,
+      "speaker": "A"
+    },
+    {
+      "text": "new",
+      "start": 24880,
+      "end": 25120,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "accounts,",
+      "start": 25120,
+      "end": 25680,
+      "confidence": 0.99853516,
+      "speaker": "A"
+    },
+    {
+      "text": "including",
+      "start": 26220,
+      "end": 26460,
+      "confidence": 0.99853516,
+      "speaker": "A"
+    },
+    {
+      "text": "two",
+      "start": 26540,
+      "end": 26860,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "hospitals",
+      "start": 26860,
+      "end": 27420,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "in",
+      "start": 27420,
+      "end": 27580,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "Chicago",
+      "start": 27580,
+      "end": 28140,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "and",
+      "start": 28140,
+      "end": 28260,
+      "confidence": 0.99853516,
+      "speaker": "A"
+    },
+    {
+      "text": "a",
+      "start": 28260,
+      "end": 28420,
+      "confidence": 0.99853516,
+      "speaker": "A"
+    },
+    {
+      "text": "logistics",
+      "start": 28420,
+      "end": 28980,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "company",
+      "start": 28980,
+      "end": 29260,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "in",
+      "start": 29260,
+      "end": 29500,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "Rotterdam.",
+      "start": 29500,
+      "end": 30300,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "Priya",
+      "start": 30940,
+      "end": 31540,
+      "confidence": 0.95751953,
+      "speaker": "A"
+    },
+    {
+      "text": "will",
+      "start": 31540,
+      "end": 31780,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "walk",
+      "start": 31780,
+      "end": 31940,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "us",
+      "start": 31940,
+      "end": 32140,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "through",
+      "start": 32140,
+      "end": 32380,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "the",
+      "start": 32380,
+      "end": 32580,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "product",
+      "start": 32580,
+      "end": 32860,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "roadmap",
+      "start": 32860,
+      "end": 33500,
+      "confidence": 0.9946289,
+      "speaker": "A"
+    },
+    {
+      "text": "after",
+      "start": 33500,
+      "end": 33740,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "this.",
+      "start": 33740,
+      "end": 34060,
+      "confidence": 0.99853516,
+      "speaker": "A"
+    },
+    {
+      "text": "The",
+      "start": 34860,
+      "end": 35180,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "short",
+      "start": 35180,
+      "end": 35460,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "version",
+      "start": 35460,
+      "end": 35860,
+      "confidence": 0.9998779,
+      "speaker": "A"
+    },
+    {
+      "text": "is",
+      "start": 35860,
+      "end": 36020,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "that",
+      "start": 36020,
+      "end": 36180,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "the",
+      "start": 36180,
+      "end": 36340,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "mobile",
+      "start": 36340,
+      "end": 36660,
+      "confidence": 0.99869794,
+      "speaker": "A"
+    },
+    {
+      "text": "app",
+      "start": 36660,
+      "end": 36860,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "ships",
+      "start": 36860,
+      "end": 37180,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "on",
+      "start": 37180,
+      "end": 37340,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "November",
+      "start": 37340,
+      "end": 37860,
+      "confidence": 0.91308594,
+      "speaker": "A"
+    },
+    {
+      "text": "14th",
+      "start": 37860,
+      "end": 38460,
+      "confidence": 0.99951,
+      "speaker": "A"
+    },
+    {
+      "text": "and",
+      "start": 38620,
+      "end": 38940,
+      "confidence": 0.5620117,
+      "speaker": "A"
+    },
+    {
+      "text": "the",
+      "start": 38940,
+      "end": 39140,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "API",
+      "start": 39140,
+      "end": 39700,
+      "confidence": 0.8388672,
+      "speaker": "A"
+    },
+    {
+      "text": "migration",
+      "start": 39700,
+      "end": 40260,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "is",
+      "start": 40260,
+      "end": 40500,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "about",
+      "start": 40500,
+      "end": 40740,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "two",
+      "start": 40740,
+      "end": 40980,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "weeks",
+      "start": 40980,
+      "end": 41220,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "behind",
+      "start": 41220,
+      "end": 41580,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "schedule.",
+      "start": 41660,
+      "end": 42460,
+      "confidence": 0.9193115,
+      "speaker": "A"
+    },
+    {
+      "text": "We",
+      "start": 43020,
+      "end": 43300,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "have",
+      "start": 43300,
+      "end": 43500,
+      "confidence": 0.99902344,
+      "speaker": "A"
+    },
+    {
+      "text": "moved",
+      "start": 43500,
+      "end": 43820,
+      "confidence": 0.99975586,
+      "speaker": "A"
+    },
+    {
+      "text": "three",
+      "start": 43820,
+      "end": 44060,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "engineers",
+      "start": 44060,
+      "end": 44580,
+      "confidence": 0.9998372,
+      "speaker": "A"
+    },
+    {
+      "text": "from",
+      "start": 44580,
+      "end": 44820,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "the",
+      "start": 44820,
+      "end": 44980,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "payments",
+      "start": 44980,
+      "end": 45380,
+      "confidence": 0.998291,
+      "speaker": "A"
+    },
+    {
+      "text": "team",
+      "start": 45380,
+      "end": 45660,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "to",
+      "start": 45660,
+      "end": 45900,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "help,",
+      "start": 45900,
+      "end": 46220,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "so",
+      "start": 46620,
+      "end": 46900,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "we",
+      "start": 46900,
+      "end": 47100,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "expect",
+      "start": 47100,
+      "end": 47380,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "to",
+      "start": 47380,
+      "end": 47620,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "recover",
+      "start": 47620,
+      "end": 48020,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "most",
+      "start": 48020,
+      "end": 48300,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "of",
+      "start": 48300,
+      "end": 48460,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "that",
+      "start": 48460,
+      "end": 48660,
+      "confidence": 0.99902344,
+      "speaker": "A"
+    },
+    {
+      "text": "time",
+      "start": 48660,
+      "end": 48940,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "by",
+      "start": 48940,
+      "end": 49140,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "the",
+      "start": 49140,
+      "end": 49300,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "end",
+      "start": 49300,
+      "end": 49460,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "of",
+      "start": 49460,
+      "end": 49620,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "the",
+      "start": 49620,
+      "end": 49780,
+      "confidence": 0.99902344,
+      "speaker": "A"
+    },
+    {
+      "text": "month.",
+      "start": 49780,
+      "end": 50060,
+      "confidence": 0.9975586,
+      "speaker": "A"
+    },
+    {
+      "text": "On",
+      "start": 50860,
+      "end": 51180,
+      "confidence": 0.9785156,
+      "speaker": "A"
+    },
+    {
+      "text": "hiring,",
+      "start": 51180,
+      "end": 51660,
+      "confidence": 0.9991862,
+      "speaker": "A"
+    },
+    {
+      "text": "we",
+      "start": 52110,
+      "end": 52230,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "have",
+      "start": 52230,
+      "end": 52390,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "nine",
+      "start": 52390,
+      "end": 52590,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "open",
+      "start": 52590,
+      "end": 52910,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "roles.",
+      "start": 52910,
+      "end": 53550,
+      "confidence": 0.95092773,
+      "speaker": "A"
+    },
+    {
+      "text": "Four",
+      "start": 54270,
+      "end": 54590,
+      "confidence": 0.98583984,
+      "speaker": "A"
+    },
+    {
+      "text": "are",
+      "start": 54590,
+      "end": 54790,
+      "confidence": 0.9794922,
+      "speaker": "A"
+    },
+    {
+      "text": "in",
+      "start": 54790,
+      "end": 54990,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "customer",
+      "start": 54990,
+      "end": 55550,
+      "confidence": 0.99975586,
+      "speaker": "A"
+    },
+    {
+      "text": "support,",
+      "start": 55550,
+      "end": 55870,
+      "confidence": 0.99902344,
+      "speaker": "A"
+    },
+    {
+      "text": "three",
+      "start": 56350,
+      "end": 56670,
+      "confidence": 0.9980469,
+      "speaker": "A"
+    },
+    {
+      "text": "in",
+      "start": 56670,
+      "end": 56910,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "engineering",
+      "start": 56910,
+      "end": 57470,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "and",
+      "start": 57630,
+      "end": 58030,
+      "confidence": 0.5620117,
+      "speaker": "A"
+    },
+    {
+      "text": "two",
+      "start": 58030,
+      "end": 58310,
+      "confidence": 0.9975586,
+      "speaker": "A"
+    },
+    {
+      "text": "in",
+      "start": 58310,
+      "end": 58510,
+      "confidence": 0.99902344,
+      "speaker": "A"
+    },
+    {
+      "text": "finance.",
+      "start": 58510,
+      "end": 59150,
+      "confidence": 0.9987793,
+      "speaker": "A"
+    },
+    {
+      "text": "Please",
+      "start": 60030,
+      "end": 60350,
+      "confidence": 0.99902344,
+      "speaker": "A"
+    },
+    {
+      "text": "send",
+      "start": 60350,
+      "end": 60670,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "referrals",
+      "start": 60670,
+      "end": 61190,
+      "confidence": 0.99975586,
+      "speaker": "A"
+    },
+    {
+      "text": "to",
+      "start": 61190,
+      "end": 61350,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "Marcus",
+      "start": 61350,
+      "end": 61870,
+      "confidence": 0.8227539,
+      "speaker": "A"
+    },
+    {
+      "text": "by",
+      "start": 61870,
+      "end": 62110,
+      "confidence": 0.99853516,
+      "speaker": "A"
+    },
+    {
+      "text": "Friday.",
+      "start": 62110,
+      "end": 62430,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "Finally,",
+      "start": 63470,
+      "end": 64110,
+      "confidence": 0.99853516,
+      "speaker": "A"
+    },
+    {
+      "text": "a",
+      "start": 64190,
+      "end": 64470,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "reminder",
+      "start": 64470,
+      "end": 64950,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "that",
+      "start": 64950,
+      "end": 65110,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "the",
+      "start": 65110,
+      "end": 65270,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "office",
+      "start": 65270,
+      "end": 65510,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "will",
+      "start": 65510,
+      "end": 65750,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "be",
+      "start": 65750,
+      "end": 65950,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "closed",
+      "start": 65950,
+      "end": 66310,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "on",
+      "start": 66310,
+      "end": 66510,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "Monday",
+      "start": 66510,
+      "end": 66830,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "for",
+      "start": 66830,
+      "end": 67110,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "maintenance.",
+      "start": 67110,
+      "end": 67710,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "If",
+      "start": 68350,
+      "end": 68670,
+      "confidence": 0.59228516,
+      "speaker": "A"
+    },
+    {
+      "text": "you",
+      "start": 68670,
+      "end": 68870,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "need",
+      "start": 68870,
+      "end": 69110,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "access",
+      "start": 69110,
+      "end": 69470,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "to",
+      "start": 69470,
+      "end": 69750,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "the",
+      "start": 69750,
+      "end": 69910,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "lab,",
+      "start": 69910,
+      "end": 70190,
+      "confidence": 0.99902344,
+      "speaker": "A"
+    },
+    {
+      "text": "talk",
+      "start": 70510,
+      "end": 70830,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "to",
+      "start": 70830,
+      "end": 71070,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "facilities",
+      "start": 71070,
+      "end": 71550,
+      "confidence": 0.99975586,
+      "speaker": "A"
+    },
+    {
+      "text": "before",
+      "start": 71550,
+      "end": 71950,
+      "confidence": 0.91503906,
+      "speaker": "A"
+    },
+    {
+      "text": "Thursday.",
+      "start": 71950,
+      "end": 72350,
+      "confidence": 0.9995117,
+      "speaker": "A"
+    },
+    {
+      "text": "Any",
+      "start": 73390,
+      "end": 73710,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "questions",
+      "start": 73710,
+      "end": 74230,
+      "confidence": 0.99975586,
+      "speaker": "A"
+    },
+    {
+      "text": "before",
+      "start": 74230,
+      "end": 74510,
+      "confidence": 0.6791992,
+      "speaker": "A"
+    },
+    {
+      "text": "we",
+      "start": 74510,
+      "end": 74790,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "move",
+      "start": 74790,
+      "end": 74990,
+      "confidence": 1,
+      "speaker": "A"
+    },
+    {
+      "text": "on?",
+      "start": 74990,
+      "end": 75310,
+      "confidence": 0.99902344,
+      "speaker": "A"
+    },
+    {
+      "text": "SA.",
+      "start": 77640,
+      "end": 77880,
+      "confidence": 0.34887695,
+      "speaker": "A"
+    }
+  ],
+  "utterances": [
+    {
+      "speaker": "A",
+      "text": "Foreign. Good morning everyone and thanks for joining the quarterly planning review. Let's start with the numbers. Revenue for the third quarter came in at $4.2 million, up 18% from last year. The enterprise team closed 23 new accounts, including two hospitals in Chicago and a logistics company in Rotterdam. Priya will walk us through the product roadmap after this. The short version is that the mobile app ships on November 14th and the API migration is about two weeks behind schedule. We have moved three engineers from the payments team to help, so we expect to recover most of that time by the end of the month. On hiring, we have nine open roles. Four are in customer support, three in engineering and two in finance. Please send referrals to Marcus by Friday. Finally, a reminder that the office will be closed on Monday for maintenance. If you need access to the lab, talk to facilities before Thursday. Any questions before we move on? SA.",
+      "confidence": 0.9748554,
+      "start": 240,
+      "end": 77880,
+      "words": [
+        {
+          "text": "Foreign.",
+          "start": 240,
+          "end": 640,
+          "confidence": 0.9094238,
+          "speaker": "A"
+        },
+        {
+          "text": "Good",
+          "start": 8560,
+          "end": 8920,
+          "confidence": 0.57714844,
+          "speaker": "A"
+        },
+        {
+          "text": "morning",
+          "start": 8920,
+          "end": 9280,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "everyone",
+          "start": 9280,
+          "end": 9680,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "and",
+          "start": 10080,
+          "end": 10440,
+          "confidence": 0.9326172,
+          "speaker": "A"
+        },
+        {
+          "text": "thanks",
+          "start": 10440,
+          "end": 10800,
+          "confidence": 0.9975586,
+          "speaker": "A"
+        },
+        {
+          "text": "for",
+          "start": 10800,
+          "end": 11000,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "joining",
+          "start": 11000,
+          "end": 11320,
+          "confidence": 0.9998372,
+          "speaker": "A"
+        },
+        {
+          "text": "the",
+          "start": 11320,
+          "end": 11520,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "quarterly",
+          "start": 11520,
+          "end": 12080,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "planning",
+          "start": 12080,
+          "end": 12520,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "review.",
+          "start": 12520,
+          "end": 12800,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "Let's",
+          "start": 13760,
+          "end": 14120,
+          "confidence": 0.9431966,
+          "speaker": "A"
+        },
+        {
+          "text": "start",
+          "start": 14120,
+          "end": 14280,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "with",
+          "start": 14280,
+          "end": 14520,
+          "confidence": 0.5620117,
+          "speaker": "A"
+        },
+        {
+          "text": "the",
+          "start": 14520,
+          "end": 14800,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "numbers.",
+          "start": 14800,
+          "end": 15280,
+          "confidence": 0.98413086,
+          "speaker": "A"
+        },
+        {
+          "text": "Revenue",
+          "start": 16000,
+          "end": 16560,
+          "confidence": 0.9998372,
+          "speaker": "A"
+        },
+        {
+          "text": "for",
+          "start": 16560,
+          "end": 16720,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "the",
+          "start": 16720,
+          "end": 16840,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "third",
+          "start": 16840,
+          "end": 17080,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "quarter",
+          "start": 17080,
+          "end": 17400,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "came",
+          "start": 17400,
+          "end": 17680,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "in",
+          "start": 17680,
+          "end": 17880,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "at",
+          "start": 17880,
+          "end": 18080,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "$4.2",
+          "start": 18080,
+          "end": 18800,
+          "confidence": 0.99507,
+          "speaker": "A"
+        },
+        {
+          "text": "million,",
+          "start": 18960,
+          "end": 19680,
+          "confidence": 0.99507,
+          "speaker": "A"
+        },
+        {
+          "text": "up",
+          "start": 19920,
+          "end": 20240,
+          "confidence": 0.9975586,
+          "speaker": "A"
+        },
+        {
+          "text": "18%",
+          "start": 20240,
+          "end": 20960,
+          "confidence": 0.99463,
+          "speaker": "A"
+        },
+        {
+          "text": "from",
+          "start": 20960,
+          "end": 21280,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "last",
+          "start": 21280,
+          "end": 21560,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "year.",
+          "start": 21560,
+          "end": 21920,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "The",
+          "start": 22560,
+          "end": 22920,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "enterprise",
+          "start": 22920,
+          "end": 23520,
+          "confidence": 0.99316406,
+          "speaker": "A"
+        },
+        {
+          "text": "team",
+          "start": 23520,
+          "end": 23840,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "closed",
+          "start": 23840,
+          "end": 24360,
+          "confidence": 0.99902344,
+          "speaker": "A"
+        },
+        {
+          "text": "23",
+          "start": 24360,
+          "end": 24880,
+          "confidence": 0.99976,
+          "speaker": "A"
+        },
+        {
+          "text": "new",
+          "start": 24880,
+          "end": 25120,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "accounts,",
+          "start": 25120,
+          "end": 25680,
+          "confidence": 0.99853516,
+          "speaker": "A"
+        },
+        {
+          "text": "including",
+          "start": 26220,
+          "end": 26460,
+          "confidence": 0.99853516,
+          "speaker": "A"
+        },
+        {
+          "text": "two",
+          "start": 26540,
+          "end": 26860,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "hospitals",
+          "start": 26860,
+          "end": 27420,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "in",
+          "start": 27420,
+          "end": 27580,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "Chicago",
+          "start": 27580,
+          "end": 28140,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "and",
+          "start": 28140,
+          "end": 28260,
+          "confidence": 0.99853516,
+          "speaker": "A"
+        },
+        {
+          "text": "a",
+          "start": 28260,
+          "end": 28420,
+          "confidence": 0.99853516,
+          "speaker": "A"
+        },
+        {
+          "text": "logistics",
+          "start": 28420,
+          "end": 28980,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "company",
+          "start": 28980,
+          "end": 29260,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "in",
+          "start": 29260,
+          "end": 29500,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "Rotterdam.",
+          "start": 29500,
+          "end": 30300,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "Priya",
+          "start": 30940,
+          "end": 31540,
+          "confidence": 0.95751953,
+          "speaker": "A"
+        },
+        {
+          "text": "will",
+          "start": 31540,
+          "end": 31780,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "walk",
+          "start": 31780,
+          "end": 31940,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "us",
+          "start": 31940,
+          "end": 32140,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "through",
+          "start": 32140,
+          "end": 32380,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "the",
+          "start": 32380,
+          "end": 32580,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "product",
+          "start": 32580,
+          "end": 32860,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "roadmap",
+          "start": 32860,
+          "end": 33500,
+          "confidence": 0.9946289,
+          "speaker": "A"
+        },
+        {
+          "text": "after",
+          "start": 33500,
+          "end": 33740,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "this.",
+          "start": 33740,
+          "end": 34060,
+          "confidence": 0.99853516,
+          "speaker": "A"
+        },
+        {
+          "text": "The",
+          "start": 34860,
+          "end": 35180,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "short",
+          "start": 35180,
+          "end": 35460,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "version",
+          "start": 35460,
+          "end": 35860,
+          "confidence": 0.9998779,
+          "speaker": "A"
+        },
+        {
+          "text": "is",
+          "start": 35860,
+          "end": 36020,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "that",
+          "start": 36020,
+          "end": 36180,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "the",
+          "start": 36180,
+          "end": 36340,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "mobile",
+          "start": 36340,
+          "end": 36660,
+          "confidence": 0.99869794,
+          "speaker": "A"
+        },
+        {
+          "text": "app",
+          "start": 36660,
+          "end": 36860,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "ships",
+          "start": 36860,
+          "end": 37180,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "on",
+          "start": 37180,
+          "end": 37340,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "November",
+          "start": 37340,
+          "end": 37860,
+          "confidence": 0.91308594,
+          "speaker": "A"
+        },
+        {
+          "text": "14th",
+          "start": 37860,
+          "end": 38460,
+          "confidence": 0.99951,
+          "speaker": "A"
+        },
+        {
+          "text": "and",
+          "start": 38620,
+          "end": 38940,
+          "confidence": 0.5620117,
+          "speaker": "A"
+        },
+        {
+          "text": "the",
+          "start": 38940,
+          "end": 39140,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "API",
+          "start": 39140,
+          "end": 39700,
+          "confidence": 0.8388672,
+          "speaker": "A"
+        },
+        {
+          "text": "migration",
+          "start": 39700,
+          "end": 40260,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "is",
+          "start": 40260,
+          "end": 40500,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "about",
+          "start": 40500,
+          "end": 40740,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "two",
+          "start": 40740,
+          "end": 40980,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "weeks",
+          "start": 40980,
+          "end": 41220,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "behind",
+          "start": 41220,
+          "end": 41580,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "schedule.",
+          "start": 41660,
+          "end": 42460,
+          "confidence": 0.9193115,
+          "speaker": "A"
+        },
+        {
+          "text": "We",
+          "start": 43020,
+          "end": 43300,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "have",
+          "start": 43300,
+          "end": 43500,
+          "confidence": 0.99902344,
+          "speaker": "A"
+        },
+        {
+          "text": "moved",
+          "start": 43500,
+          "end": 43820,
+          "confidence": 0.99975586,
+          "speaker": "A"
+        },
+        {
+          "text": "three",
+          "start": 43820,
+          "end": 44060,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "engineers",
+          "start": 44060,
+          "end": 44580,
+          "confidence": 0.9998372,
+          "speaker": "A"
+        },
+        {
+          "text": "from",
+          "start": 44580,
+          "end": 44820,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "the",
+          "start": 44820,
+          "end": 44980,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "payments",
+          "start": 44980,
+          "end": 45380,
+          "confidence": 0.998291,
+          "speaker": "A"
+        },
+        {
+          "text": "team",
+          "start": 45380,
+          "end": 45660,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "to",
+          "start": 45660,
+          "end": 45900,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "help,",
+          "start": 45900,
+          "end": 46220,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "so",
+          "start": 46620,
+          "end": 46900,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "we",
+          "start": 46900,
+          "end": 47100,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "expect",
+          "start": 47100,
+          "end": 47380,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "to",
+          "start": 47380,
+          "end": 47620,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "recover",
+          "start": 47620,
+          "end": 48020,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "most",
+          "start": 48020,
+          "end": 48300,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "of",
+          "start": 48300,
+          "end": 48460,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "that",
+          "start": 48460,
+          "end": 48660,
+          "confidence": 0.99902344,
+          "speaker": "A"
+        },
+        {
+          "text": "time",
+          "start": 48660,
+          "end": 48940,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "by",
+          "start": 48940,
+          "end": 49140,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "the",
+          "start": 49140,
+          "end": 49300,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "end",
+          "start": 49300,
+          "end": 49460,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "of",
+          "start": 49460,
+          "end": 49620,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "the",
+          "start": 49620,
+          "end": 49780,
+          "confidence": 0.99902344,
+          "speaker": "A"
+        },
+        {
+          "text": "month.",
+          "start": 49780,
+          "end": 50060,
+          "confidence": 0.9975586,
+          "speaker": "A"
+        },
+        {
+          "text": "On",
+          "start": 50860,
+          "end": 51180,
+          "confidence": 0.9785156,
+          "speaker": "A"
+        },
+        {
+          "text": "hiring,",
+          "start": 51180,
+          "end": 51660,
+          "confidence": 0.9991862,
+          "speaker": "A"
+        },
+        {
+          "text": "we",
+          "start": 52110,
+          "end": 52230,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "have",
+          "start": 52230,
+          "end": 52390,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "nine",
+          "start": 52390,
+          "end": 52590,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "open",
+          "start": 52590,
+          "end": 52910,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "roles.",
+          "start": 52910,
+          "end": 53550,
+          "confidence": 0.95092773,
+          "speaker": "A"
+        },
+        {
+          "text": "Four",
+          "start": 54270,
+          "end": 54590,
+          "confidence": 0.98583984,
+          "speaker": "A"
+        },
+        {
+          "text": "are",
+          "start": 54590,
+          "end": 54790,
+          "confidence": 0.9794922,
+          "speaker": "A"
+        },
+        {
+          "text": "in",
+          "start": 54790,
+          "end": 54990,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "customer",
+          "start": 54990,
+          "end": 55550,
+          "confidence": 0.99975586,
+          "speaker": "A"
+        },
+        {
+          "text": "support,",
+          "start": 55550,
+          "end": 55870,
+          "confidence": 0.99902344,
+          "speaker": "A"
+        },
+        {
+          "text": "three",
+          "start": 56350,
+          "end": 56670,
+          "confidence": 0.9980469,
+          "speaker": "A"
+        },
+        {
+          "text": "in",
+          "start": 56670,
+          "end": 56910,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "engineering",
+          "start": 56910,
+          "end": 57470,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "and",
+          "start": 57630,
+          "end": 58030,
+          "confidence": 0.5620117,
+          "speaker": "A"
+        },
+        {
+          "text": "two",
+          "start": 58030,
+          "end": 58310,
+          "confidence": 0.9975586,
+          "speaker": "A"
+        },
+        {
+          "text": "in",
+          "start": 58310,
+          "end": 58510,
+          "confidence": 0.99902344,
+          "speaker": "A"
+        },
+        {
+          "text": "finance.",
+          "start": 58510,
+          "end": 59150,
+          "confidence": 0.9987793,
+          "speaker": "A"
+        },
+        {
+          "text": "Please",
+          "start": 60030,
+          "end": 60350,
+          "confidence": 0.99902344,
+          "speaker": "A"
+        },
+        {
+          "text": "send",
+          "start": 60350,
+          "end": 60670,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "referrals",
+          "start": 60670,
+          "end": 61190,
+          "confidence": 0.99975586,
+          "speaker": "A"
+        },
+        {
+          "text": "to",
+          "start": 61190,
+          "end": 61350,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "Marcus",
+          "start": 61350,
+          "end": 61870,
+          "confidence": 0.8227539,
+          "speaker": "A"
+        },
+        {
+          "text": "by",
+          "start": 61870,
+          "end": 62110,
+          "confidence": 0.99853516,
+          "speaker": "A"
+        },
+        {
+          "text": "Friday.",
+          "start": 62110,
+          "end": 62430,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "Finally,",
+          "start": 63470,
+          "end": 64110,
+          "confidence": 0.99853516,
+          "speaker": "A"
+        },
+        {
+          "text": "a",
+          "start": 64190,
+          "end": 64470,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "reminder",
+          "start": 64470,
+          "end": 64950,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "that",
+          "start": 64950,
+          "end": 65110,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "the",
+          "start": 65110,
+          "end": 65270,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "office",
+          "start": 65270,
+          "end": 65510,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "will",
+          "start": 65510,
+          "end": 65750,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "be",
+          "start": 65750,
+          "end": 65950,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "closed",
+          "start": 65950,
+          "end": 66310,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "on",
+          "start": 66310,
+          "end": 66510,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "Monday",
+          "start": 66510,
+          "end": 66830,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "for",
+          "start": 66830,
+          "end": 67110,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "maintenance.",
+          "start": 67110,
+          "end": 67710,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "If",
+          "start": 68350,
+          "end": 68670,
+          "confidence": 0.59228516,
+          "speaker": "A"
+        },
+        {
+          "text": "you",
+          "start": 68670,
+          "end": 68870,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "need",
+          "start": 68870,
+          "end": 69110,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "access",
+          "start": 69110,
+          "end": 69470,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "to",
+          "start": 69470,
+          "end": 69750,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "the",
+          "start": 69750,
+          "end": 69910,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "lab,",
+          "start": 69910,
+          "end": 70190,
+          "confidence": 0.99902344,
+          "speaker": "A"
+        },
+        {
+          "text": "talk",
+          "start": 70510,
+          "end": 70830,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "to",
+          "start": 70830,
+          "end": 71070,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "facilities",
+          "start": 71070,
+          "end": 71550,
+          "confidence": 0.99975586,
+          "speaker": "A"
+        },
+        {
+          "text": "before",
+          "start": 71550,
+          "end": 71950,
+          "confidence": 0.91503906,
+          "speaker": "A"
+        },
+        {
+          "text": "Thursday.",
+          "start": 71950,
+          "end": 72350,
+          "confidence": 0.9995117,
+          "speaker": "A"
+        },
+        {
+          "text": "Any",
+          "start": 73390,
+          "end": 73710,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "questions",
+          "start": 73710,
+          "end": 74230,
+          "confidence": 0.99975586,
+          "speaker": "A"
+        },
+        {
+          "text": "before",
+          "start": 74230,
+          "end": 74510,
+          "confidence": 0.6791992,
+          "speaker": "A"
+        },
+        {
+          "text": "we",
+          "start": 74510,
+          "end": 74790,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "move",
+          "start": 74790,
+          "end": 74990,
+          "confidence": 1,
+          "speaker": "A"
+        },
+        {
+          "text": "on?",
+          "start": 74990,
+          "end": 75310,
+          "confidence": 0.99902344,
+          "speaker": "A"
+        },
+        {
+          "text": "SA.",
+          "start": 77640,
+          "end": 77880,
+          "confidence": 0.34887695,
+          "speaker": "A"
+        }
+      ]
+    }
+  ],
+  "confidence": 0.9748554,
+  "audio_duration": 96,
+  "punctuate": true,
+  "format_text": true,
+  "dual_channel": false,
+  "webhook_url": null,
+  "webhook_status_code": null,
+  "webhook_auth": false,
+  "webhook_auth_header_name": null,
+  "speed_boost": false,
+  "auto_highlights_result": null,
+  "auto_highlights": false,
+  "audio_start_from": null,
+  "audio_end_at": null,
+  "word_boost": [],
+  "boost_param": null,
+  "prompt": null,
+  "keyterms_prompt": [],
+  "filter_profanity": false,
+  "redact_pii": false,
+  "redact_pii_audio": false,
+  "redact_pii_audio_quality": null,
+  "redact_pii_audio_options": null,
+  "redact_pii_policies": null,
+  "redact_pii_sub": null,
+  "redact_static_entities": null,
+  "speaker_labels": true,
+  "speaker_options": {
+    "min_speakers_expected": null,
+    "max_speakers_expected": null,
+    "advanced_speaker_segmentation": false
+  },
+  "content_safety": false,
+  "iab_categories": false,
+  "content_safety_labels": {
+    "status": "unavailable",
+    "results": [],
+    "summary": {}
+  },
+  "iab_categories_result": {
+    "status": "unavailable",
+    "results": [],
+    "summary": {}
+  },
+  "language_detection": false,
+  "language_detection_options": null,
+  "language_detection_results": null,
+  "language_confidence_threshold": null,
+  "language_confidence": null,
+  "custom_spelling": null,
+  "throttled": false,
+  "auto_chapters": false,
+  "summarization": false,
+  "summary_type": null,
+  "summary_model": null,
+  "custom_topics": false,
+  "topics": [],
+  "speech_threshold": null,
+  "speech_model": null,
+  "speech_models": [
+    "universal-2"
+  ],
+  "speech_model_used": "universal-2",
+  "metadata": {
+    "warnings": [
+      {
+        "message": "For highest accuracy and broadest language coverage: set \"speech_models\" to [\"universal-3-5-pro\", \"universal-2\"]."
+      }
+    ]
+  },
+  "temperature": null,
+  "remove_audio_tags": "all",
+  "chapters": null,
+  "disfluencies": false,
+  "entity_detection": false,
+  "sentiment_analysis": false,
+  "sentiment_analysis_results": null,
+  "entities": null,
+  "speakers_expected": null,
+  "summary": null,
+  "custom_topics_results": null,
+  "is_deleted": null,
+  "multichannel": null,
+  "project_id": 2048909,
+  "token_id": 2087394
+}

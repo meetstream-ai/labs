@@ -1,0 +1,14 @@
+{
+  "title": "Transcription provider benchmark, 2026-09-28 to 2026-10-02",
+  "runs": [
+    { "id": "2026-09-28T18-08-58Z", "test": "sample", "platform": "Google Meet", "label": "Sample clip, recording A (Test 1)", "note": "5 s poll; JigsawStack re-run on its own" },
+    { "id": "2026-10-02T19-10-28Z", "test": "sample", "platform": "Google Meet", "label": "Sample clip, recording B" },
+    { "id": "2026-10-02T19-14-43Z", "test": "sample", "platform": "Google Meet", "label": "Sample clip, recording C" },
+    { "id": "2026-10-02T19-18-58Z", "test": "sample", "platform": "Google Meet", "label": "Sample clip, recording D" },
+    { "id": "2026-10-02T19-21-07Z", "test": "script", "platform": "Google Meet", "label": "Typed script, read by Windows text-to-speech" },
+    { "id": "2026-10-02T19-24-13Z", "test": "clip-b", "platform": "Google Meet", "label": "Own audio file (clip B)" },
+    { "id": "2026-10-02T19-25-58Z", "test": "talk", "platform": "Google Meet", "label": "A person reading aloud (reference added after)" },
+    { "id": "2026-10-02T19-50-03Z", "test": "sample", "platform": "Microsoft Teams", "label": "Sample clip on Microsoft Teams" },
+    { "id": "2026-10-02T20-42-29Z", "test": "sample", "platform": "Zoom", "label": "Sample clip on Zoom" }
+  ]
+}

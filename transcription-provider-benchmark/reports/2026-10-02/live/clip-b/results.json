@@ -1,0 +1,481 @@
+{
+  "source": "file `../transcription-provider-benchmark/reports/2026-10-02/inputs/clip-b.wav` (16000 Hz, resampled to 48 kHz)",
+  "providers": [
+    {
+      "provider": "assemblyai",
+      "name": "AssemblyAI (speech-to-text)",
+      "ran": true,
+      "finals": 17,
+      "interims": 121,
+      "transcript": "The little girl had been asleep, but she heard the raps and opened the door. The king has fled in disgrace and your friends are asking for you. I begged Rugado long ago to send him away, but he would not do so. I also offered to help your brother to escape, but he would not go. He eats and sleeps very steadily, replied the new king. I hope he doesn't work too hard, said Shaggy. He doesn't work at all. In fact, there's nothing he can do in these dominions as well as our gnomes, whose numbers are so great that it worries us to keep them all busy. Not exactly, returned Calico. Where is my brother now? inquired Shaggy. In the Metal Forest. Where is that? The Metal Forest is in the great domed cavern, the largest in all our dominions, replied Calico. Calico hesitated. However, if we look sharp, we may be able to discover one of these secret ways. Oh no, I'm quite sure he didn't. That's funny, remarked Betsy thoughtfully. I don't believe Anne knew any magic, or she'd have worked it before. I do not know, confessed Shaggy. True, agreed Calico. Calico went to the big gong and pounded on it just as Brigado used to do, but no one answered the summons. Having returned to the royal cavern, Calico first pounded the gong and then sat in the throne, wearing Rugedo's discarded ruby crown and holding in his hand the scepter which Rugedo had so often thrown at his head. A man said to the universe, Sir, I exist.",
+      "latency_median_s": 0.433,
+      "latency_p90_s": 0.552,
+      "latency_samples": 17,
+      "end_of_stream_s": 0.22,
+      "segments": [
+        {
+          "text": "The little girl had been asleep, but she heard the raps and opened the door.",
+          "audio_end_s": 4.536,
+          "arrived_s": 4.989
+        },
+        {
+          "text": "The king has fled in disgrace and your friends are asking for you.",
+          "audio_end_s": 9.552,
+          "arrived_s": 9.981
+        },
+        {
+          "text": "I begged Rugado long ago to send him away, but he would not do so.",
+          "audio_end_s": 14.932,
+          "arrived_s": 15.484
+        },
+        {
+          "text": "I also offered to help your brother to escape, but he would not go.",
+          "audio_end_s": 19.831,
+          "arrived_s": 20.289
+        },
+        {
+          "text": "He eats and sleeps very steadily, replied the new king.",
+          "audio_end_s": 24.762,
+          "arrived_s": 25.189
+        },
+        {
+          "text": "I hope he doesn't work too hard, said Shaggy. He doesn't work at all.",
+          "audio_end_s": 31.844,
+          "arrived_s": 32.278
+        },
+        {
+          "text": "In fact, there's nothing he can do in these dominions as well as our gnomes, whose numbers are so great that it worries us to keep them all busy.",
+          "audio_end_s": 41.642,
+          "arrived_s": 42.08
+        },
+        {
+          "text": "Not exactly, returned Calico. Where is my brother now?",
+          "audio_end_s": 48.468,
+          "arrived_s": 48.881
+        },
+        {
+          "text": "inquired Shaggy. In the Metal Forest. Where is that?",
+          "audio_end_s": 55.061,
+          "arrived_s": 55.488
+        },
+        {
+          "text": "The Metal Forest is in the great domed cavern, the largest in all our dominions, replied Calico. Calico hesitated.",
+          "audio_end_s": 66.042,
+          "arrived_s": 66.475
+        },
+        {
+          "text": "However, if we look sharp, we may be able to discover one of these secret ways.",
+          "audio_end_s": 74.027,
+          "arrived_s": 74.479
+        },
+        {
+          "text": "Oh no, I'm quite sure he didn't.",
+          "audio_end_s": 77.081,
+          "arrived_s": 77.474
+        },
+        {
+          "text": "That's funny, remarked Betsy thoughtfully.",
+          "audio_end_s": 81.66,
+          "arrived_s": 81.982
+        },
+        {
+          "text": "I don't believe Anne knew any magic, or she'd have worked it before.",
+          "audio_end_s": 86.643,
+          "arrived_s": 86.984
+        },
+        {
+          "text": "I do not know, confessed Shaggy. True, agreed Calico. Calico went to the big gong and pounded on it just as Brigado used to do, but no one answered the summons.",
+          "audio_end_s": 101.73,
+          "arrived_s": 102.177
+        },
+        {
+          "text": "Having returned to the royal cavern, Calico first pounded the gong and then sat in the throne, wearing Rugedo's discarded ruby crown and holding in his hand the scepter which Rugedo had so often thrown at his head.",
+          "audio_end_s": 117.026,
+          "arrived_s": 117.578
+        },
+        {
+          "text": "A man said to the universe, Sir, I exist.",
+          "audio_end_s": 122.459,
+          "arrived_s": 122.769
+        }
+      ],
+      "wer": 0.051470588235294115,
+      "substitutions": 13,
+      "deletions": 1,
+      "insertions": 0,
+      "reference_words": 272,
+      "outside_clip_words": 0,
+      "errors": [
+        {
+          "op": "S",
+          "ref": "ruggedo",
+          "hyp": "rugado"
+        },
+        {
+          "op": "D",
+          "ref": "there",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "is",
+          "hyp": "there's"
+        },
+        {
+          "op": "S",
+          "ref": "nomes",
+          "hyp": "gnomes"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "ann",
+          "hyp": "anne"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo",
+          "hyp": "brigado"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo's",
+          "hyp": "rugedo's"
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo",
+          "hyp": "rugedo"
+        }
+      ]
+    },
+    {
+      "provider": "deepgram",
+      "name": "Deepgram (speech-to-text)",
+      "ran": true,
+      "finals": 38,
+      "interims": 75,
+      "transcript": "The little girl had been asleep, but she heard the raps and opened the door. The king has flooded disgrace, and your friends are asking for you. I begged Ruggedo long ago to send him away, but he would not do so. I also offered to help your brother to escape. But he would not go. He eats and sleeps very steadily, replied the new king. I hope he doesn't work too hard, said Shaggy. He doesn't work at all. In fact, there's nothing he can do in these dominions as well as our gnomes. Whose numbers are so great that it worries us to keep them all busy. Not exactly, returned Calico. Where is my brother now? Inquired Shaggy. In the metal forest. Where is that? The meadow forest is in the great domed cavern the largest in all our dominions. Replied Calico. Calico hesitated. However, if we look sharp, we may be able to discover one of these secret ways. Oh, no. I'm quite sure he didn't That's funny, remarked Betsy thoughtfully. I don't believe Anne knew any magic she'd have worked it before. I do not know, confessed Shaggy. True, agreed Calico. Calico went to the big gong and pounded on it just as Brigado used to do, but no one answered the summons. Having returned to the royal cavern, Calico first pounded the gong and then sat in the throne wearing Rigideaux's discarded ruby crown. And holding in his hand the scepter which Ragiddo had so often thrown at his head. A man said to the universe, sir, I exist.",
+      "latency_median_s": 0.277,
+      "latency_p90_s": 0.467,
+      "latency_samples": 38,
+      "end_of_stream_s": 0.1,
+      "segments": [
+        {
+          "text": "The little girl had been asleep,",
+          "audio_end_s": 1.9,
+          "arrived_s": 2.15
+        },
+        {
+          "text": "but she heard the raps and opened the door.",
+          "audio_end_s": 4.4399999999999995,
+          "arrived_s": 4.719
+        },
+        {
+          "text": "The king has flooded disgrace, and your friends are asking for you.",
+          "audio_end_s": 9.399999600000001,
+          "arrived_s": 9.678
+        },
+        {
+          "text": "I begged Ruggedo long ago to send him away, but he would",
+          "audio_end_s": 13.86,
+          "arrived_s": 14.663
+        },
+        {
+          "text": "not do so.",
+          "audio_end_s": 14.8700002,
+          "arrived_s": 15.125
+        },
+        {
+          "text": "I also offered to help your brother to escape.",
+          "audio_end_s": 18.41,
+          "arrived_s": 18.676
+        },
+        {
+          "text": "But he would not go.",
+          "audio_end_s": 19.9200002,
+          "arrived_s": 20.217
+        },
+        {
+          "text": "He eats and sleeps very steadily, replied the new king.",
+          "audio_end_s": 24.6200003,
+          "arrived_s": 24.894
+        },
+        {
+          "text": "I hope he doesn't work too hard, said Shaggy.",
+          "audio_end_s": 28.919999500000003,
+          "arrived_s": 29.205
+        },
+        {
+          "text": "He doesn't work at all.",
+          "audio_end_s": 31.809999400000002,
+          "arrived_s": 32.085
+        },
+        {
+          "text": "In fact, there's nothing he can do in these dominions as well as our",
+          "audio_end_s": 36.6300016,
+          "arrived_s": 37.083
+        },
+        {
+          "text": "gnomes.",
+          "audio_end_s": 37.7599973,
+          "arrived_s": 38.059
+        },
+        {
+          "text": "Whose numbers are so great that it worries us to keep them all busy.",
+          "audio_end_s": 41.2900026,
+          "arrived_s": 41.559
+        },
+        {
+          "text": "Not exactly, returned Calico.",
+          "audio_end_s": 45.249999200000005,
+          "arrived_s": 45.513
+        },
+        {
+          "text": "Where is my brother now?",
+          "audio_end_s": 48.4000034,
+          "arrived_s": 48.662
+        },
+        {
+          "text": "Inquired Shaggy.",
+          "audio_end_s": 50.369997399999995,
+          "arrived_s": 50.656
+        },
+        {
+          "text": "In the metal forest.",
+          "audio_end_s": 52.5200002,
+          "arrived_s": 52.82
+        },
+        {
+          "text": "Where is that?",
+          "audio_end_s": 54.849998,
+          "arrived_s": 55.111
+        },
+        {
+          "text": "The meadow forest is in the great domed cavern",
+          "audio_end_s": 59.680002,
+          "arrived_s": 59.959
+        },
+        {
+          "text": "the largest in all our dominions.",
+          "audio_end_s": 61.9999997,
+          "arrived_s": 62.263
+        },
+        {
+          "text": "Replied Calico.",
+          "audio_end_s": 63.4599991,
+          "arrived_s": 63.725
+        },
+        {
+          "text": "Calico hesitated.",
+          "audio_end_s": 65.96000000000001,
+          "arrived_s": 66.226
+        },
+        {
+          "text": "However,",
+          "audio_end_s": 68.5899957,
+          "arrived_s": 68.86
+        },
+        {
+          "text": "if we look sharp, we may be able to discover one of these secret ways.",
+          "audio_end_s": 73.4100073,
+          "arrived_s": 73.854
+        },
+        {
+          "text": "Oh, no. I'm quite sure he didn't",
+          "audio_end_s": 76.9200012,
+          "arrived_s": 77.197
+        },
+        {
+          "text": "That's funny, remarked Betsy thoughtfully.",
+          "audio_end_s": 81.1100012,
+          "arrived_s": 81.387
+        },
+        {
+          "text": "I don't believe Anne knew any magic",
+          "audio_end_s": 85.07,
+          "arrived_s": 85.338
+        },
+        {
+          "text": "she'd have worked it before.",
+          "audio_end_s": 86.58999659999999,
+          "arrived_s": 86.881
+        },
+        {
+          "text": "I do not know, confessed Shaggy.",
+          "audio_end_s": 90.37000640000001,
+          "arrived_s": 90.648
+        },
+        {
+          "text": "True, agreed Calico.",
+          "audio_end_s": 93.76000429999999,
+          "arrived_s": 94.02
+        },
+        {
+          "text": "Calico went to the big gong and pounded on it just",
+          "audio_end_s": 97.9700043,
+          "arrived_s": 100.212
+        },
+        {
+          "text": "as Brigado used to do, but no one answered the summons.",
+          "audio_end_s": 101.4599979,
+          "arrived_s": 101.763
+        },
+        {
+          "text": "Having returned to the royal cavern, Calico first pounded the gong and then sat in the throne wearing Rigideaux's discarded ruby crown.",
+          "audio_end_s": 111.33000299999999,
+          "arrived_s": 111.797
+        },
+        {
+          "text": "And holding in his hand the scepter which Ragiddo had",
+          "audio_end_s": 114.5899945,
+          "arrived_s": 116.596
+        },
+        {
+          "text": "so often thrown at his head.",
+          "audio_end_s": 116.84,
+          "arrived_s": 117.117
+        },
+        {
+          "text": "A man said to the universe,",
+          "audio_end_s": 120.20000060000001,
+          "arrived_s": 120.482
+        },
+        {
+          "text": "sir,",
+          "audio_end_s": 121.3300049,
+          "arrived_s": 121.604
+        },
+        {
+          "text": "I exist.",
+          "audio_end_s": 122.3799954,
+          "arrived_s": 122.649
+        }
+      ],
+      "wer": 0.0625,
+      "substitutions": 14,
+      "deletions": 3,
+      "insertions": 0,
+      "reference_words": 272,
+      "outside_clip_words": 0,
+      "errors": [
+        {
+          "op": "D",
+          "ref": "fled",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "in",
+          "hyp": "flooded"
+        },
+        {
+          "op": "D",
+          "ref": "there",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "is",
+          "hyp": "there's"
+        },
+        {
+          "op": "S",
+          "ref": "nomes",
+          "hyp": "gnomes"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "metal",
+          "hyp": "meadow"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "ann",
+          "hyp": "anne"
+        },
+        {
+          "op": "D",
+          "ref": "or",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo",
+          "hyp": "brigado"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo's",
+          "hyp": "rigideaux's"
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo",
+          "hyp": "ragiddo"
+        }
+      ]
+    }
+  ],
+  "audio_seconds": 122.55,
+  "scored": true
+}

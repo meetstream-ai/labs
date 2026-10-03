@@ -1,0 +1,182 @@
+[
+  {
+    "participant": {
+      "id": 100,
+      "name": "Benchmark Speaker",
+      "platform": "desktop",
+      "extra_data": {
+        "google_meet": {
+          "static_participant_id": "5xY9V3V_kvbplmRb1Votd0LT1DudaRaNR4IFo_c1y60="
+        }
+      }
+    },
+    "words": [
+      {
+        "text": "Good morning everyone, and thanks for joining the quarterly planning",
+        "start_timestamp": {
+          "relative": 8.52,
+          "absolute": 8.52
+        },
+        "end_timestamp": {
+          "relative": 12.82,
+          "absolute": 12.82
+        }
+      },
+      {
+        "text": "review. Let's start with the numbers. Revenue for the third",
+        "start_timestamp": {
+          "relative": 12.82,
+          "absolute": 12.82
+        },
+        "end_timestamp": {
+          "relative": 17.11,
+          "absolute": 17.11
+        }
+      },
+      {
+        "text": "quarter came in at $4.2 million, up 18% from last",
+        "start_timestamp": {
+          "relative": 17.11,
+          "absolute": 17.11
+        },
+        "end_timestamp": {
+          "relative": 21.41,
+          "absolute": 21.41
+        }
+      },
+      {
+        "text": "year. The enterprise team closed 23 new accounts, including two",
+        "start_timestamp": {
+          "relative": 21.41,
+          "absolute": 21.41
+        },
+        "end_timestamp": {
+          "relative": 25.71,
+          "absolute": 25.71
+        }
+      },
+      {
+        "text": "hospitals in Chicago and a logistics company in Rotterdam. Priya",
+        "start_timestamp": {
+          "relative": 25.71,
+          "absolute": 25.71
+        },
+        "end_timestamp": {
+          "relative": 30,
+          "absolute": 30
+        }
+      },
+      {
+        "text": "will walk us through the product roadmap after this.",
+        "start_timestamp": {
+          "relative": 30,
+          "absolute": 30
+        },
+        "end_timestamp": {
+          "relative": 34.3,
+          "absolute": 34.3
+        }
+      },
+      {
+        "text": "The short version is that the mobile app ships on November 14, and",
+        "start_timestamp": {
+          "relative": 34.78,
+          "absolute": 34.78
+        },
+        "end_timestamp": {
+          "relative": 39.43,
+          "absolute": 39.43
+        }
+      },
+      {
+        "text": "the API migration is about two weeks behind schedule. We have moved three",
+        "start_timestamp": {
+          "relative": 39.43,
+          "absolute": 39.43
+        },
+        "end_timestamp": {
+          "relative": 44.07,
+          "absolute": 44.07
+        }
+      },
+      {
+        "text": "engineers from the payments team to help, so we expect to recover most",
+        "start_timestamp": {
+          "relative": 44.07,
+          "absolute": 44.07
+        },
+        "end_timestamp": {
+          "relative": 48.72,
+          "absolute": 48.72
+        }
+      },
+      {
+        "text": "of that time by the end of the month. On hiring, we have",
+        "start_timestamp": {
+          "relative": 48.72,
+          "absolute": 48.72
+        },
+        "end_timestamp": {
+          "relative": 53.37,
+          "absolute": 53.37
+        }
+      },
+      {
+        "text": "nine open roles. Four are in customer support, three in engineering, and two",
+        "start_timestamp": {
+          "relative": 53.37,
+          "absolute": 53.37
+        },
+        "end_timestamp": {
+          "relative": 58.01,
+          "absolute": 58.01
+        }
+      },
+      {
+        "text": "in finance. Please send referrals to Marcus by Friday.",
+        "start_timestamp": {
+          "relative": 58.01,
+          "absolute": 58.01
+        },
+        "end_timestamp": {
+          "relative": 62.66,
+          "absolute": 62.66
+        }
+      },
+      {
+        "text": "Finally, a reminder that the office will be closed on Monday",
+        "start_timestamp": {
+          "relative": 63.18,
+          "absolute": 63.18
+        },
+        "end_timestamp": {
+          "relative": 67.29,
+          "absolute": 67.29
+        }
+      },
+      {
+        "text": "for maintenance. If you need access to the lab, talk to",
+        "start_timestamp": {
+          "relative": 67.29,
+          "absolute": 67.29
+        },
+        "end_timestamp": {
+          "relative": 71.39,
+          "absolute": 71.39
+        }
+      },
+      {
+        "text": "facilities before Thursday. Any questions before we move on?",
+        "start_timestamp": {
+          "relative": 71.39,
+          "absolute": 71.39
+        },
+        "end_timestamp": {
+          "relative": 75.5,
+          "absolute": 75.5
+        }
+      }
+    ],
+    "language_code": "en"
+  }
+]

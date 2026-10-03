@@ -1,0 +1,457 @@
+[
+  {
+    "participant": {
+      "id": 200,
+      "name": "Benchmark Speaker",
+      "platform": "desktop",
+      "extra_data": {
+        "google_meet": {
+          "static_participant_id": "ldfVZe5f5kytM-pqI_2O1oT5lHs6kYRgnP2gCEzTVuk="
+        }
+      }
+    },
+    "words": [
+      {
+        "text": "Mr. Quilter is the apostle of the middle classes and we are",
+        "start_timestamp": {
+          "relative": 6.4,
+          "absolute": 6.4
+        },
+        "end_timestamp": {
+          "relative": 11.2,
+          "absolute": 11.2
+        }
+      },
+      {
+        "text": "glad to welcome his gospel. Nor is Mr. Quilter's manner less interesting",
+        "start_timestamp": {
+          "relative": 11.2,
+          "absolute": 11.2
+        },
+        "end_timestamp": {
+          "relative": 16,
+          "absolute": 16
+        }
+      },
+      {
+        "text": "than his manner. He tells us that at this festive season of",
+        "start_timestamp": {
+          "relative": 16,
+          "absolute": 16
+        },
+        "end_timestamp": {
+          "relative": 20.8,
+          "absolute": 20.8
+        }
+      },
+      {
+        "text": "the year, with Christmas and roast beef looming before us, similes drawn",
+        "start_timestamp": {
+          "relative": 20.8,
+          "absolute": 20.8
+        },
+        "end_timestamp": {
+          "relative": 25.6,
+          "absolute": 25.6
+        }
+      },
+      {
+        "text": "from eating and its results occur most readily to the mind.",
+        "start_timestamp": {
+          "relative": 25.6,
+          "absolute": 25.6
+        },
+        "end_timestamp": {
+          "relative": 30.4,
+          "absolute": 30.4
+        }
+      },
+      {
+        "text": "He has grave doubts whether Sir Frederick Leighton's work is really",
+        "start_timestamp": {
+          "relative": 31.86,
+          "absolute": 31.86
+        },
+        "end_timestamp": {
+          "relative": 36.71,
+          "absolute": 36.71
+        }
+      },
+      {
+        "text": "Greek after all, and can discover in it but little of",
+        "start_timestamp": {
+          "relative": 36.71,
+          "absolute": 36.71
+        },
+        "end_timestamp": {
+          "relative": 41.56,
+          "absolute": 41.56
+        }
+      },
+      {
+        "text": "Waki Ithaka. Lynyll's pictures are a sort of Upgards and Adam",
+        "start_timestamp": {
+          "relative": 41.56,
+          "absolute": 41.56
+        },
+        "end_timestamp": {
+          "relative": 46.41,
+          "absolute": 46.41
+        }
+      },
+      {
+        "text": "paintings, and Mason's exquisite idylls are as national as a djingo",
+        "start_timestamp": {
+          "relative": 46.41,
+          "absolute": 46.41
+        },
+        "end_timestamp": {
+          "relative": 51.26,
+          "absolute": 51.26
+        }
+      },
+      {
+        "text": "poem. Mr. Burkett Foster's landscapes smile at one much in the",
+        "start_timestamp": {
+          "relative": 51.26,
+          "absolute": 51.26
+        },
+        "end_timestamp": {
+          "relative": 56.11,
+          "absolute": 56.11
+        }
+      },
+      {
+        "text": "same way that Mr. Carker used to flash his teeth.",
+        "start_timestamp": {
+          "relative": 56.11,
+          "absolute": 56.11
+        },
+        "end_timestamp": {
+          "relative": 60.96,
+          "absolute": 60.96
+        }
+      },
+      {
+        "text": "and Mr. John Collier gives his sitter a cheerful slap",
+        "start_timestamp": {
+          "relative": 61.66,
+          "absolute": 61.66
+        },
+        "end_timestamp": {
+          "relative": 65.95,
+          "absolute": 65.95
+        }
+      },
+      {
+        "text": "on the back, before he says, like a shampooer in",
+        "start_timestamp": {
+          "relative": 65.95,
+          "absolute": 65.95
+        },
+        "end_timestamp": {
+          "relative": 70.24,
+          "absolute": 70.24
+        }
+      },
+      {
+        "text": "a Turkish bath, \"Next man!\" It is obviously unnecessary for",
+        "start_timestamp": {
+          "relative": 70.24,
+          "absolute": 70.24
+        },
+        "end_timestamp": {
+          "relative": 74.53,
+          "absolute": 74.53
+        }
+      },
+      {
+        "text": "us to point out how luminous these criticisms are, how",
+        "start_timestamp": {
+          "relative": 74.53,
+          "absolute": 74.53
+        },
+        "end_timestamp": {
+          "relative": 78.82,
+          "absolute": 78.82
+        }
+      },
+      {
+        "text": "delicate in expression. On the general principles of art, Mr.",
+        "start_timestamp": {
+          "relative": 78.82,
+          "absolute": 78.82
+        },
+        "end_timestamp": {
+          "relative": 83.11,
+          "absolute": 83.11
+        }
+      },
+      {
+        "text": "Quilter writes with equal lucidity:",
+        "start_timestamp": {
+          "relative": 83.11,
+          "absolute": 83.11
+        },
+        "end_timestamp": {
+          "relative": 87.4,
+          "absolute": 87.4
+        }
+      },
+      {
+        "text": "painting he tells us is of a different quality to",
+        "start_timestamp": {
+          "relative": 88.78,
+          "absolute": 88.78
+        },
+        "end_timestamp": {
+          "relative": 93.56,
+          "absolute": 93.56
+        }
+      },
+      {
+        "text": "mathematics and finish in art is adding more fact as",
+        "start_timestamp": {
+          "relative": 93.56,
+          "absolute": 93.56
+        },
+        "end_timestamp": {
+          "relative": 98.34,
+          "absolute": 98.34
+        }
+      },
+      {
+        "text": "for etchings they are of two kinds british and foreign",
+        "start_timestamp": {
+          "relative": 98.34,
+          "absolute": 98.34
+        },
+        "end_timestamp": {
+          "relative": 103.12,
+          "absolute": 103.12
+        }
+      },
+      {
+        "text": "he laments most bitterly the divorce that has been made",
+        "start_timestamp": {
+          "relative": 103.12,
+          "absolute": 103.12
+        },
+        "end_timestamp": {
+          "relative": 107.9,
+          "absolute": 107.9
+        }
+      },
+      {
+        "text": "between decorative art and what we usually call pictures",
+        "start_timestamp": {
+          "relative": 107.9,
+          "absolute": 107.9
+        },
+        "end_timestamp": {
+          "relative": 112.68,
+          "absolute": 112.68
+        }
+      },
+      {
+        "text": "makes a customary appeal to the last judgment and reminds us",
+        "start_timestamp": {
+          "relative": 113,
+          "absolute": 113
+        },
+        "end_timestamp": {
+          "relative": 117.53,
+          "absolute": 117.53
+        }
+      },
+      {
+        "text": "that in the great days of art michael angelo was the",
+        "start_timestamp": {
+          "relative": 117.53,
+          "absolute": 117.53
+        },
+        "end_timestamp": {
+          "relative": 122.06,
+          "absolute": 122.06
+        }
+      },
+      {
+        "text": "furnishing upholsterer near the fire and the ornaments fred brought home",
+        "start_timestamp": {
+          "relative": 122.06,
+          "absolute": 122.06
+        },
+        "end_timestamp": {
+          "relative": 126.59,
+          "absolute": 126.59
+        }
+      },
+      {
+        "text": "from india on the mantel-board in fact he is quite severe",
+        "start_timestamp": {
+          "relative": 126.59,
+          "absolute": 126.59
+        },
+        "end_timestamp": {
+          "relative": 131.13,
+          "absolute": 131.13
+        }
+      },
+      {
+        "text": "on mr ruskin for not recognizing that a picture should denote",
+        "start_timestamp": {
+          "relative": 131.13,
+          "absolute": 131.13
+        },
+        "end_timestamp": {
+          "relative": 135.66,
+          "absolute": 135.66
+        }
+      },
+      {
+        "text": "the frailty of man and remarks with pleasing courtesy and felicitous",
+        "start_timestamp": {
+          "relative": 135.66,
+          "absolute": 135.66
+        },
+        "end_timestamp": {
+          "relative": 140.19,
+          "absolute": 140.19
+        }
+      },
+      {
+        "text": "grace that many phases of feeling",
+        "start_timestamp": {
+          "relative": 140.19,
+          "absolute": 140.19
+        },
+        "end_timestamp": {
+          "relative": 144.72,
+          "absolute": 144.72
+        }
+      },
+      {
+        "text": "only unfortunately his own work never does get good mr",
+        "start_timestamp": {
+          "relative": 145.9,
+          "absolute": 145.9
+        },
+        "end_timestamp": {
+          "relative": 150.42,
+          "absolute": 150.42
+        }
+      },
+      {
+        "text": "quilter has missed his chance for he has failed even",
+        "start_timestamp": {
+          "relative": 150.42,
+          "absolute": 150.42
+        },
+        "end_timestamp": {
+          "relative": 154.94,
+          "absolute": 154.94
+        }
+      },
+      {
+        "text": "to make himself the tupper of painting by harry quilter",
+        "start_timestamp": {
+          "relative": 154.94,
+          "absolute": 154.94
+        },
+        "end_timestamp": {
+          "relative": 159.46,
+          "absolute": 159.46
+        }
+      },
+      {
+        "text": "m a because you are sleeping instead of conquering the",
+        "start_timestamp": {
+          "relative": 159.46,
+          "absolute": 159.46
+        },
+        "end_timestamp": {
+          "relative": 163.98,
+          "absolute": 163.98
+        }
+      },
+      {
+        "text": "lovely rose princess has become a fiddle without a bow",
+        "start_timestamp": {
+          "relative": 163.98,
+          "absolute": 163.98
+        },
+        "end_timestamp": {
+          "relative": 168.5,
+          "absolute": 168.5
+        }
+      },
+      {
+        "text": "while poor shaggy sits there a cooing dove",
+        "start_timestamp": {
+          "relative": 168.5,
+          "absolute": 168.5
+        },
+        "end_timestamp": {
+          "relative": 173.02,
+          "absolute": 173.02
+        }
+      },
+      {
+        "text": "he has gone and gone for good answered polychrome who had managed",
+        "start_timestamp": {
+          "relative": 174.56,
+          "absolute": 174.56
+        },
+        "end_timestamp": {
+          "relative": 179.09,
+          "absolute": 179.09
+        }
+      },
+      {
+        "text": "to squeeze into the room beside the dragon and had witnessed the",
+        "start_timestamp": {
+          "relative": 179.09,
+          "absolute": 179.09
+        },
+        "end_timestamp": {
+          "relative": 183.62,
+          "absolute": 183.62
+        }
+      },
+      {
+        "text": "occurrences with much interest i have remained a prisoner only because i",
+        "start_timestamp": {
+          "relative": 183.62,
+          "absolute": 183.62
+        },
+        "end_timestamp": {
+          "relative": 188.14,
+          "absolute": 188.14
+        }
+      },
+      {
+        "text": "wished to be one and with this he stepped forward and burst",
+        "start_timestamp": {
+          "relative": 188.14,
+          "absolute": 188.14
+        },
+        "end_timestamp": {
+          "relative": 192.67,
+          "absolute": 192.67
+        }
+      },
+      {
+        "text": "the stout chains as easily as if they had been threads",
+        "start_timestamp": {
+          "relative": 192.67,
+          "absolute": 192.67
+        },
+        "end_timestamp": {
+          "relative": 197.2,
+          "absolute": 197.2
+        }
+      }
+    ],
+    "language_code": "en"
+  }
+]

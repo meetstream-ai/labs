@@ -1,0 +1,218 @@
+{
+  "request_id": "20261002_9ac1b9cf-92f0-4684-9cc0-3deea990ebf4",
+  "transcript": "Mr. Quilter is the apostle of the middle classes, and we are glad to welcome his gospel. Nor is Mr. Quilter's manner less interesting than his matter. He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similes drawn from eating and its results occur most readily to the mind. He has grave doubts whether Sir Frederick Layton's work is really Greek after all, and can discover in it but little of Rocky Ithaca. Linell's pictures are a sort of Upguards and Adam paintings, and Mason's exquisite idylls are as national as a Jingo poem. Mr. Burkett Foster's landscapes smile at one much in the same way that Mr. Karkar used to flash his teeth. and Mr. John Collier gives his sitter a cheerful slap on the back before he says, like a shampooer in a Turkish bath, next man. It is obviously unnecessary for us to point out how luminous these criticisms are, how delicate an expression. On the general principles of art, Mr. Quilter writes with equal lucidity. Painting, he tells us, is of a different quality to mathematics, and finish in art is adding more fact. As for etchings, they are of two kinds, British and foreign. He laments most bitterly the divorce that has been made between decorative art and what we usually call pictures, makes a customary appeal to the last judgment and reminds us that in the great days of art, Michelangelo was the furnishing upholsterer. near the fire, and the ornaments Fred brought home from India on the mantelboard. In fact, he is quite severe on Mr. Ruskin for not recognizing that a picture should denote the frailty of man, and remarks with pleasing courtesy and felicitor's grace that many faces of feeling... Only, unfortunately, his own work never does get good. Mr. Quilter has missed his chance, for he has failed even to make himself the tupper of painting. by Harry Quilter, M.A. Because you were sleeping instead of conquering, the lovely rose princess has become a fiddle without a bow, while poor Shaggy sits there a-cooing dove. He has gone and gone for good, answered Polychrome, who had managed to squeeze into the room beside the dragon and had witnessed the occurrences with much interest. I have remained a prisoner only because I wished to be one. And with this, he stepped forward and burst the stout chains as easily as if they had been threads.",
+  "timestamps": {
+    "words": [
+      "Mr. Quilter is the apostle of the middle classes, and we are glad to welcome his gospel.",
+      "Nor is Mr. Quilter's manner less interesting than his matter.",
+      "He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similes drawn from eating and its results occur most readily to the mind.",
+      "He has grave doubts whether Sir Frederick Layton's work is really Greek after all, and can discover in it but little of Rocky Ithaca.",
+      "Linell's pictures are a sort of Upguards and Adam paintings, and Mason's exquisite idylls are as national as a Jingo poem.",
+      "Mr. Burkett Foster's landscapes smile at one much in the same way that Mr. Karkar used to flash his teeth.",
+      "and Mr. John Collier gives his sitter a cheerful slap on the back before he says, like a shampooer in a Turkish bath, next man.",
+      "It is obviously unnecessary for us to point out how luminous these criticisms are, how delicate an expression.",
+      "On the general principles of art, Mr. Quilter writes with equal lucidity.",
+      "Painting, he tells us, is of a different quality to mathematics, and finish in art is adding more fact.",
+      "As for etchings, they are of two kinds, British and foreign.",
+      "He laments most bitterly the divorce that has been made between decorative art and what we usually call pictures, makes a customary appeal to the last judgment and reminds us that in the great days of art, Michelangelo was the furnishing upholsterer.",
+      "near the fire, and the ornaments Fred brought home from India on the mantelboard.",
+      "In fact, he is quite severe on Mr. Ruskin for not recognizing that a picture should denote the frailty of man, and remarks with pleasing courtesy and felicitor's grace that many faces of feeling...",
+      "Only, unfortunately, his own work never does get good.",
+      "Mr. Quilter has missed his chance, for he has failed even to make himself the tupper of painting.",
+      "by Harry Quilter, M.A.",
+      "Because you were sleeping instead of conquering, the lovely rose princess has become a fiddle without a bow, while poor Shaggy sits there a-cooing dove.",
+      "He has gone and gone for good, answered Polychrome, who had managed to squeeze into the room beside the dragon and had witnessed the occurrences with much interest.",
+      "I have remained a prisoner only because I wished to be one.",
+      "And with this, he stepped forward and burst the stout chains as easily as if",
+      "they had been threads."
+    ],
+    "start_time_seconds": [
+      0.57,
+      7.19,
+      12.77,
+      25.91,
+      36.55,
+      47.51,
+      55.57,
+      66.51,
+      76.25,
+      82.57,
+      92.47,
+      98.35,
+      116.81,
+      123.55,
+      139.37,
+      145.35,
+      152.99,
+      156.07,
+      167.87,
+      179.25,
+      184.67,
+      188.79
+    ],
+    "end_time_seconds": [
+      5.51,
+      11.09,
+      24.11,
+      34.81,
+      46.03,
+      54.47,
+      64.87,
+      74.55,
+      80.93,
+      90.79,
+      96.57,
+      115.43,
+      121.75,
+      137.85,
+      143.69,
+      151.41,
+      154.69,
+      165.97,
+      177.61,
+      183.49,
+      188.79,
+      189.93
+    ]
+  },
+  "diarized_transcript": {
+    "entries": [
+      {
+        "transcript": "Mr. Quilter is the apostle of the middle classes, and we are glad to welcome his gospel.",
+        "start_time_seconds": 0.57,
+        "end_time_seconds": 5.51,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Nor is Mr. Quilter's manner less interesting than his matter.",
+        "start_time_seconds": 7.19,
+        "end_time_seconds": 11.09,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similes drawn from eating and its results occur most readily to the mind.",
+        "start_time_seconds": 12.77,
+        "end_time_seconds": 24.11,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "He has grave doubts whether Sir Frederick Layton's work is really Greek after all, and can discover in it but little of Rocky Ithaca.",
+        "start_time_seconds": 25.91,
+        "end_time_seconds": 34.81,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Linell's pictures are a sort of Upguards and Adam paintings, and Mason's exquisite idylls are as national as a Jingo poem.",
+        "start_time_seconds": 36.55,
+        "end_time_seconds": 46.03,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Mr. Burkett Foster's landscapes smile at one much in the same way that Mr. Karkar used to flash his teeth.",
+        "start_time_seconds": 47.51,
+        "end_time_seconds": 54.47,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "and Mr. John Collier gives his sitter a cheerful slap on the back before he says, like a shampooer in a Turkish bath, next man.",
+        "start_time_seconds": 55.57,
+        "end_time_seconds": 64.87,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "It is obviously unnecessary for us to point out how luminous these criticisms are, how delicate an expression.",
+        "start_time_seconds": 66.51,
+        "end_time_seconds": 74.55,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "On the general principles of art, Mr. Quilter writes with equal lucidity.",
+        "start_time_seconds": 76.25,
+        "end_time_seconds": 80.93,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Painting, he tells us, is of a different quality to mathematics, and finish in art is adding more fact.",
+        "start_time_seconds": 82.57,
+        "end_time_seconds": 90.79,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "As for etchings, they are of two kinds, British and foreign.",
+        "start_time_seconds": 92.47,
+        "end_time_seconds": 96.57,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "He laments most bitterly the divorce that has been made between decorative art and what we usually call pictures, makes a customary appeal to the last judgment and reminds us that in the great days of art, Michelangelo was the furnishing upholsterer.",
+        "start_time_seconds": 98.35,
+        "end_time_seconds": 115.43,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "near the fire, and the ornaments Fred brought home from India on the mantelboard.",
+        "start_time_seconds": 116.81,
+        "end_time_seconds": 121.75,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "In fact, he is quite severe on Mr. Ruskin for not recognizing that a picture should denote the frailty of man, and remarks with pleasing courtesy and felicitor's grace that many faces of feeling...",
+        "start_time_seconds": 123.55,
+        "end_time_seconds": 137.85,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Only, unfortunately, his own work never does get good.",
+        "start_time_seconds": 139.37,
+        "end_time_seconds": 143.69,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Mr. Quilter has missed his chance, for he has failed even to make himself the tupper of painting.",
+        "start_time_seconds": 145.35,
+        "end_time_seconds": 151.41,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "by Harry Quilter, M.A.",
+        "start_time_seconds": 152.99,
+        "end_time_seconds": 154.69,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Because you were sleeping instead of conquering, the lovely rose princess has become a fiddle without a bow, while poor Shaggy sits there a-cooing dove.",
+        "start_time_seconds": 156.07,
+        "end_time_seconds": 165.97,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "He has gone and gone for good, answered Polychrome, who had managed to squeeze into the room beside the dragon and had witnessed the occurrences with much interest.",
+        "start_time_seconds": 167.87,
+        "end_time_seconds": 177.61,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "I have remained a prisoner only because I wished to be one.",
+        "start_time_seconds": 179.25,
+        "end_time_seconds": 183.49,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "And with this, he stepped forward and burst the stout chains as easily as if",
+        "start_time_seconds": 184.67,
+        "end_time_seconds": 188.79,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "they had been threads.",
+        "start_time_seconds": 188.79,
+        "end_time_seconds": 189.93,
+        "speaker_id": "2"
+      }
+    ]
+  },
+  "language_code": "en-IN",
+  "language_probability": null,
+  "audio_hash": "f97ef5df1a4a42deef39b5fd664d4e45",
+  "audio_mime": "audio/wav"
+}

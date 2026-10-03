@@ -1,0 +1,218 @@
+{
+  "request_id": "20261002_0222e574-12c4-4761-8de7-f3788cbbff6e",
+  "transcript": "The little girl had been asleep, but she heard the raps and opened the door. The king is flooded with disgrace and your friends are asking for you. I begged Rigado long ago to send him away, but he would not do so. I also offered to help your brother to escape, but he would not go. He eats and sleeps very steadily, replied the new king. I hope it doesn't work too hard, said Shaggy. He doesn't work at all. In fact, there's nothing he can do in these dominions as well as our gnomes, whose numbers are so great that it worries us to keep them all busy. Not exactly, return Calico. Where is my brother now? inquired Shaggy in the metal forest. Where is that? The middle forest is in the great domed cavern, the largest in all our dominions, replied Calico. Kalgo hesitated. However, if we look sharp, we may be able to discover one of these secret ways. Oh no, I'm quite sure he didn't. That's funny, remarked Betsy thoughtfully. I don't believe Anne knew any magic or she'd have worked it before. I do not know, confessed Shaggy. true, agreed Calico. Calico went to the big gong and pounded on it just as Brigado used to do, but no one answered the summons. Having returned to the royal cavern, Calico first pounded the gong and then sat in the throne, wearing Rigido's discarded ruby crown and holding in his hand the scepter which Rigido had so often thrown at his head. A man said to the universe, Sir, I exist.",
+  "timestamps": {
+    "words": [
+      "The little girl had been asleep, but she heard the raps and opened the door.",
+      "The king is flooded with disgrace and your friends are asking for you.",
+      "I begged Rigado long ago to send him away, but he would not do so.",
+      "I also offered to help your brother to escape, but he would not go.",
+      "He eats and sleeps very steadily, replied the new king.",
+      "I hope it doesn't work too hard, said Shaggy.",
+      "He doesn't work at all.",
+      "In fact, there's nothing he can do in these dominions as well as our gnomes, whose numbers are so great that it worries us to keep them all busy.",
+      "Not exactly, return Calico.",
+      "Where is my brother now? inquired Shaggy in the metal forest.",
+      "Where is that?",
+      "The middle forest is in the great domed cavern, the largest in all our dominions, replied Calico.",
+      "Kalgo hesitated.",
+      "However, if we look sharp, we may be able to discover one of these secret ways.",
+      "Oh no, I'm quite sure he didn't.",
+      "That's funny, remarked Betsy thoughtfully.",
+      "I don't believe Anne knew any magic or she'd have worked it before.",
+      "I do not know, confessed Shaggy.",
+      "true, agreed Calico.",
+      "Calico went to the big gong and pounded on it just as Brigado used to do, but no one answered the summons.",
+      "Having returned to the royal cavern, Calico first pounded the gong and then sat in the throne, wearing Rigido's discarded ruby crown and holding in his hand the scepter which Rigido had so often thrown at his head.",
+      "A man said to the universe, Sir, I exist."
+    ],
+    "start_time_seconds": [
+      7.87,
+      13.41,
+      18.39,
+      23.79,
+      28.79,
+      33.61,
+      38.05,
+      40.51,
+      50.45,
+      54.35,
+      61.53,
+      64.01,
+      72.01,
+      75.13,
+      82.45,
+      85.63,
+      89.75,
+      95.11,
+      98.45,
+      101.85,
+      110.11,
+      125.13
+    ],
+    "end_time_seconds": [
+      11.87,
+      16.83,
+      22.31,
+      27.09,
+      31.97,
+      36.33,
+      39.13,
+      48.71,
+      52.69,
+      59.89,
+      62.27,
+      70.41,
+      73.23,
+      80.85,
+      83.97,
+      88.11,
+      93.37,
+      96.97,
+      100.35,
+      108.25,
+      123.51,
+      128.93
+    ]
+  },
+  "diarized_transcript": {
+    "entries": [
+      {
+        "transcript": "The little girl had been asleep, but she heard the raps and opened the door.",
+        "start_time_seconds": 7.87,
+        "end_time_seconds": 11.87,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "The king is flooded with disgrace and your friends are asking for you.",
+        "start_time_seconds": 13.41,
+        "end_time_seconds": 16.83,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "I begged Rigado long ago to send him away, but he would not do so.",
+        "start_time_seconds": 18.39,
+        "end_time_seconds": 22.31,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "I also offered to help your brother to escape, but he would not go.",
+        "start_time_seconds": 23.79,
+        "end_time_seconds": 27.09,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "He eats and sleeps very steadily, replied the new king.",
+        "start_time_seconds": 28.79,
+        "end_time_seconds": 31.97,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "I hope it doesn't work too hard, said Shaggy.",
+        "start_time_seconds": 33.61,
+        "end_time_seconds": 36.33,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "He doesn't work at all.",
+        "start_time_seconds": 38.05,
+        "end_time_seconds": 39.13,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "In fact, there's nothing he can do in these dominions as well as our gnomes, whose numbers are so great that it worries us to keep them all busy.",
+        "start_time_seconds": 40.51,
+        "end_time_seconds": 48.71,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Not exactly, return Calico.",
+        "start_time_seconds": 50.45,
+        "end_time_seconds": 52.69,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Where is my brother now? inquired Shaggy in the metal forest.",
+        "start_time_seconds": 54.35,
+        "end_time_seconds": 59.89,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Where is that?",
+        "start_time_seconds": 61.53,
+        "end_time_seconds": 62.27,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "The middle forest is in the great domed cavern, the largest in all our dominions, replied Calico.",
+        "start_time_seconds": 64.01,
+        "end_time_seconds": 70.41,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Kalgo hesitated.",
+        "start_time_seconds": 72.01,
+        "end_time_seconds": 73.23,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "However, if we look sharp, we may be able to discover one of these secret ways.",
+        "start_time_seconds": 75.13,
+        "end_time_seconds": 80.85,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Oh no, I'm quite sure he didn't.",
+        "start_time_seconds": 82.45,
+        "end_time_seconds": 83.97,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "That's funny, remarked Betsy thoughtfully.",
+        "start_time_seconds": 85.63,
+        "end_time_seconds": 88.11,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "I don't believe Anne knew any magic or she'd have worked it before.",
+        "start_time_seconds": 89.75,
+        "end_time_seconds": 93.37,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "I do not know, confessed Shaggy.",
+        "start_time_seconds": 95.11,
+        "end_time_seconds": 96.97,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "true, agreed Calico.",
+        "start_time_seconds": 98.45,
+        "end_time_seconds": 100.35,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Calico went to the big gong and pounded on it just as Brigado used to do, but no one answered the summons.",
+        "start_time_seconds": 101.85,
+        "end_time_seconds": 108.25,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Having returned to the royal cavern, Calico first pounded the gong and then sat in the throne, wearing Rigido's discarded ruby crown and holding in his hand the scepter which Rigido had so often thrown at his head.",
+        "start_time_seconds": 110.11,
+        "end_time_seconds": 123.51,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "A man said to the universe, Sir, I exist.",
+        "start_time_seconds": 125.13,
+        "end_time_seconds": 128.93,
+        "speaker_id": "1"
+      }
+    ]
+  },
+  "language_code": "en-IN",
+  "language_probability": null,
+  "audio_hash": "db637368fd57d3022cccfa14107d3eaf",
+  "audio_mime": "audio/wav"
+}

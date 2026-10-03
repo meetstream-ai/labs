@@ -1,0 +1,125 @@
+{
+  "source": {
+    "corpus": "LibriSpeech dev-clean (Panayotov et al., 2015), https://www.openslr.org/12",
+    "license": "CC BY 4.0",
+    "dataset": "hf-internal-testing/librispeech_asr_dummy",
+    "revision": "5be91486e11a2d616f4ec5db8d3fd248585ac07a",
+    "file": "clean/validation-00000-of-00001.parquet",
+    "file_sha256": "4e69a06fa5edc90921e5e7e39a7084881f8b3ed9c805c574f4f39c6fde27c603"
+  },
+  "selection": "First 18 utterances in file order, stopping once the clip reached 180s.",
+  "sample_rate": 16000,
+  "gap_seconds": 0.75,
+  "duration_seconds": 191.435,
+  "clip_sha256": "f2d2ec68f98c7e87ed55965b8f07380f584d2405ab714991fb6d820e611f1aa8",
+  "utterances": [
+    {
+      "id": "1272-128104-0000",
+      "start": 0,
+      "duration": 5.855,
+      "text": "MISTER QUILTER IS THE APOSTLE OF THE MIDDLE CLASSES AND WE ARE GLAD TO WELCOME HIS GOSPEL"
+    },
+    {
+      "id": "1272-128104-0001",
+      "start": 5.855,
+      "duration": 4.815,
+      "text": "NOR IS MISTER QUILTER'S MANNER LESS INTERESTING THAN HIS MATTER"
+    },
+    {
+      "id": "1272-128104-0002",
+      "start": 11.42,
+      "duration": 12.485,
+      "text": "HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND"
+    },
+    {
+      "id": "1272-128104-0003",
+      "start": 24.655,
+      "duration": 9.9,
+      "text": "HE HAS GRAVE DOUBTS WHETHER SIR FREDERICK LEIGHTON'S WORK IS REALLY GREEK AFTER ALL AND CAN DISCOVER IN IT BUT LITTLE OF ROCKY ITHACA"
+    },
+    {
+      "id": "1272-128104-0004",
+      "start": 35.305,
+      "duration": 29.4,
+      "text": "LINNELL'S PICTURES ARE A SORT OF UP GUARDS AND AT EM PAINTINGS AND MASON'S EXQUISITE IDYLLS ARE AS NATIONAL AS A JINGO POEM MISTER BIRKET FOSTER'S LANDSCAPES SMILE AT ONE MUCH IN THE SAME WAY THAT MISTER CARKER USED TO FLASH HIS TEETH AND MISTER JOHN COLLIER GIVES HIS SITTER A CHEERFUL SLAP ON THE BACK BEFORE HE SAYS LIKE A SHAMPOOER IN A TURKISH BATH NEXT MAN"
+    },
+    {
+      "id": "1272-128104-0005",
+      "start": 65.455,
+      "duration": 9.01,
+      "text": "IT IS OBVIOUSLY UNNECESSARY FOR US TO POINT OUT HOW LUMINOUS THESE CRITICISMS ARE HOW DELICATE IN EXPRESSION"
+    },
+    {
+      "id": "1272-128104-0006",
+      "start": 75.215,
+      "duration": 5.64,
+      "text": "ON THE GENERAL PRINCIPLES OF ART MISTER QUILTER WRITES WITH EQUAL LUCIDITY"
+    },
+    {
+      "id": "1272-128104-0007",
+      "start": 81.605,
+      "duration": 9.24,
+      "text": "PAINTING HE TELLS US IS OF A DIFFERENT QUALITY TO MATHEMATICS AND FINISH IN ART IS ADDING MORE FACT"
+    },
+    {
+      "id": "1272-128104-0008",
+      "start": 91.595,
+      "duration": 5.12,
+      "text": "AS FOR ETCHINGS THEY ARE OF TWO KINDS BRITISH AND FOREIGN"
+    },
+    {
+      "id": "1272-128104-0009",
+      "start": 97.465,
+      "duration": 18.29,
+      "text": "HE LAMENTS MOST BITTERLY THE DIVORCE THAT HAS BEEN MADE BETWEEN DECORATIVE ART AND WHAT WE USUALLY CALL PICTURES MAKES THE CUSTOMARY APPEAL TO THE LAST JUDGMENT AND REMINDS US THAT IN THE GREAT DAYS OF ART MICHAEL ANGELO WAS THE FURNISHING UPHOLSTERER"
+    },
+    {
+      "id": "1272-128104-0010",
+      "start": 116.505,
+      "duration": 5.6,
+      "text": "NEAR THE FIRE AND THE ORNAMENTS FRED BROUGHT HOME FROM INDIA ON THE MANTEL BOARD"
+    },
+    {
+      "id": "1272-128104-0011",
+      "start": 122.855,
+      "duration": 15.115,
+      "text": "IN FACT HE IS QUITE SEVERE ON MISTER RUSKIN FOR NOT RECOGNISING THAT A PICTURE SHOULD DENOTE THE FRAILTY OF MAN AND REMARKS WITH PLEASING COURTESY AND FELICITOUS GRACE THAT MANY PHASES OF FEELING"
+    },
+    {
+      "id": "1272-128104-0012",
+      "start": 138.72,
+      "duration": 5.38,
+      "text": "ONLY UNFORTUNATELY HIS OWN WORK NEVER DOES GET GOOD"
+    },
+    {
+      "id": "1272-128104-0013",
+      "start": 144.85,
+      "duration": 7.1,
+      "text": "MISTER QUILTER HAS MISSED HIS CHANCE FOR HE HAS FAILED EVEN TO MAKE HIMSELF THE TUPPER OF PAINTING"
+    },
+    {
+      "id": "1272-128104-0014",
+      "start": 152.7,
+      "duration": 2.245,
+      "text": "BY HARRY QUILTER M A"
+    },
+    {
+      "id": "1272-135031-0000",
+      "start": 155.695,
+      "duration": 10.885,
+      "text": "BECAUSE YOU WERE SLEEPING INSTEAD OF CONQUERING THE LOVELY ROSE PRINCESS HAS BECOME A FIDDLE WITHOUT A BOW WHILE POOR SHAGGY SITS THERE A COOING DOVE"
+    },
+    {
+      "id": "1272-135031-0001",
+      "start": 167.33,
+      "duration": 11.13,
+      "text": "HE HAS GONE AND GONE FOR GOOD ANSWERED POLYCHROME WHO HAD MANAGED TO SQUEEZE INTO THE ROOM BESIDE THE DRAGON AND HAD WITNESSED THE OCCURRENCES WITH MUCH INTEREST"
+    },
+    {
+      "id": "1272-135031-0002",
+      "start": 179.21,
+      "duration": 11.475,
+      "text": "I HAVE REMAINED A PRISONER ONLY BECAUSE I WISHED TO BE ONE AND WITH THIS HE STEPPED FORWARD AND BURST THE STOUT CHAINS AS EASILY AS IF THEY HAD BEEN THREADS"
+    }
+  ]
+}

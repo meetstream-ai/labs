@@ -1,0 +1,292 @@
+[
+  {
+    "participant": {
+      "id": 100,
+      "name": "Benchmark Speaker",
+      "platform": "desktop",
+      "extra_data": {
+        "google_meet": {
+          "static_participant_id": "bIHsdWtvKd5CbNhKzWopNJBGg5pkBxs58HDsX6we8vA="
+        }
+      }
+    },
+    "words": [
+      {
+        "text": "the little girl had been asleep but she heard the raps and opened",
+        "start_timestamp": {
+          "relative": 7.62,
+          "absolute": 7.62
+        },
+        "end_timestamp": {
+          "relative": 12.28,
+          "absolute": 12.28
+        }
+      },
+      {
+        "text": "the door the king is fled in disgrace and your friends are asking",
+        "start_timestamp": {
+          "relative": 12.28,
+          "absolute": 12.28
+        },
+        "end_timestamp": {
+          "relative": 16.94,
+          "absolute": 16.94
+        }
+      },
+      {
+        "text": "for you i begged ruggedo long ago to send him away but he",
+        "start_timestamp": {
+          "relative": 16.94,
+          "absolute": 16.94
+        },
+        "end_timestamp": {
+          "relative": 21.6,
+          "absolute": 21.6
+        }
+      },
+      {
+        "text": "would not do so i also offered to help your brother to escape",
+        "start_timestamp": {
+          "relative": 21.6,
+          "absolute": 21.6
+        },
+        "end_timestamp": {
+          "relative": 26.26,
+          "absolute": 26.26
+        }
+      },
+      {
+        "text": "but he would not go he eats and sleeps very steadily replied the",
+        "start_timestamp": {
+          "relative": 26.26,
+          "absolute": 26.26
+        },
+        "end_timestamp": {
+          "relative": 30.92,
+          "absolute": 30.92
+        }
+      },
+      {
+        "text": "new king i hope he doesn't work too hard said shaggy he doesn't",
+        "start_timestamp": {
+          "relative": 30.92,
+          "absolute": 30.92
+        },
+        "end_timestamp": {
+          "relative": 35.58,
+          "absolute": 35.58
+        }
+      },
+      {
+        "text": "work at all in fact there is nothing he can do in these",
+        "start_timestamp": {
+          "relative": 35.58,
+          "absolute": 35.58
+        },
+        "end_timestamp": {
+          "relative": 40.24,
+          "absolute": 40.24
+        }
+      },
+      {
+        "text": "dominions as well as our gnomes",
+        "start_timestamp": {
+          "relative": 40.24,
+          "absolute": 40.24
+        },
+        "end_timestamp": {
+          "relative": 44.9,
+          "absolute": 44.9
+        }
+      },
+      {
+        "text": "whose numbers are so great that it worries us to",
+        "start_timestamp": {
+          "relative": 45.24,
+          "absolute": 45.24
+        },
+        "end_timestamp": {
+          "relative": 50.1,
+          "absolute": 50.1
+        }
+      },
+      {
+        "text": "keep them all busy. Not exactly, returned Calico. Where is",
+        "start_timestamp": {
+          "relative": 50.1,
+          "absolute": 50.1
+        },
+        "end_timestamp": {
+          "relative": 54.96,
+          "absolute": 54.96
+        }
+      },
+      {
+        "text": "my brother now? inquired Shaggy. In the metal forest. Where",
+        "start_timestamp": {
+          "relative": 54.96,
+          "absolute": 54.96
+        },
+        "end_timestamp": {
+          "relative": 59.82,
+          "absolute": 59.82
+        }
+      },
+      {
+        "text": "is that? The metal forest is in the great domed",
+        "start_timestamp": {
+          "relative": 59.82,
+          "absolute": 59.82
+        },
+        "end_timestamp": {
+          "relative": 64.68,
+          "absolute": 64.68
+        }
+      },
+      {
+        "text": "cavern, the largest in all our dominions, replied Calico. Calico",
+        "start_timestamp": {
+          "relative": 64.68,
+          "absolute": 64.68
+        },
+        "end_timestamp": {
+          "relative": 69.54,
+          "absolute": 69.54
+        }
+      },
+      {
+        "text": "hesitated. However, if we look sharp, we may be able",
+        "start_timestamp": {
+          "relative": 69.54,
+          "absolute": 69.54
+        },
+        "end_timestamp": {
+          "relative": 74.4,
+          "absolute": 74.4
+        }
+      },
+      {
+        "text": "to discover one of these secret ways. Oh, no, I'm",
+        "start_timestamp": {
+          "relative": 74.4,
+          "absolute": 74.4
+        },
+        "end_timestamp": {
+          "relative": 79.26,
+          "absolute": 79.26
+        }
+      },
+      {
+        "text": "quite sure he didn't.",
+        "start_timestamp": {
+          "relative": 79.26,
+          "absolute": 79.26
+        },
+        "end_timestamp": {
+          "relative": 84.12,
+          "absolute": 84.12
+        }
+      },
+      {
+        "text": "that's funny remarked betsy thoughtfully i don't believe ann knew",
+        "start_timestamp": {
+          "relative": 85.4,
+          "absolute": 85.4
+        },
+        "end_timestamp": {
+          "relative": 89.99,
+          "absolute": 89.99
+        }
+      },
+      {
+        "text": "any magic or she'd have worked it before i do",
+        "start_timestamp": {
+          "relative": 89.99,
+          "absolute": 89.99
+        },
+        "end_timestamp": {
+          "relative": 94.58,
+          "absolute": 94.58
+        }
+      },
+      {
+        "text": "not know confessed shaggy true agreed calico calico went to",
+        "start_timestamp": {
+          "relative": 94.58,
+          "absolute": 94.58
+        },
+        "end_timestamp": {
+          "relative": 99.16,
+          "absolute": 99.16
+        }
+      },
+      {
+        "text": "the big gong and pounded on it just as ruggedo",
+        "start_timestamp": {
+          "relative": 99.16,
+          "absolute": 99.16
+        },
+        "end_timestamp": {
+          "relative": 103.75,
+          "absolute": 103.75
+        }
+      },
+      {
+        "text": "used to do but no one answered the summons",
+        "start_timestamp": {
+          "relative": 103.75,
+          "absolute": 103.75
+        },
+        "end_timestamp": {
+          "relative": 108.34,
+          "absolute": 108.34
+        }
+      },
+      {
+        "text": "having returned to the royal cavern kalico first pounded the gong and",
+        "start_timestamp": {
+          "relative": 109.9,
+          "absolute": 109.9
+        },
+        "end_timestamp": {
+          "relative": 114.68,
+          "absolute": 114.68
+        }
+      },
+      {
+        "text": "then sat in the throne wearing ruggedo's discarded ruby crown and holding",
+        "start_timestamp": {
+          "relative": 114.68,
+          "absolute": 114.68
+        },
+        "end_timestamp": {
+          "relative": 119.46,
+          "absolute": 119.46
+        }
+      },
+      {
+        "text": "in his hand the sceptre which ruggedo had so often thrown at",
+        "start_timestamp": {
+          "relative": 119.46,
+          "absolute": 119.46
+        },
+        "end_timestamp": {
+          "relative": 124.24,
+          "absolute": 124.24
+        }
+      },
+      {
+        "text": "his head a man said to the universe sir i exist",
+        "start_timestamp": {
+          "relative": 124.24,
+          "absolute": 124.24
+        },
+        "end_timestamp": {
+          "relative": 129.02,
+          "absolute": 129.02
+        }
+      }
+    ],
+    "language_code": "en"
+  }
+]

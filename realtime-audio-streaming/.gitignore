@@ -24,3 +24,5 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+# npm run compare output
+results/

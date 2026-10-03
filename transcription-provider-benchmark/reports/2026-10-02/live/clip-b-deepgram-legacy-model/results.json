@@ -1,0 +1,596 @@
+{
+  "source": "file `../transcription-provider-benchmark/reports/2026-10-02/inputs/clip-b.wav` (16000 Hz, resampled to 48 kHz)",
+  "providers": [
+    {
+      "provider": "assemblyai",
+      "name": "AssemblyAI (speech-to-text)",
+      "ran": true,
+      "finals": 17,
+      "interims": 121,
+      "transcript": "The little girl had been asleep, but she heard the raps and opened the door. The king has fled in disgrace and your friends are asking for you. I begged Rugado long ago to send him away, but he would not do so. I also offered to help your brother to escape, but he would not go. He eats and sleeps very steadily, replied the new king. I hope he doesn't work too hard, said Shaggy. He doesn't work at all. In fact, there's nothing he can do in these dominions as well as our gnomes, whose numbers are so great that it worries us to keep them all busy. Not exactly, returned Calico. Where is my brother now? inquired Shaggy. In the Metal Forest. Where is that? The Metal Forest is in the great domed cavern, the largest in all our dominions, replied Calico. Calico hesitated. However, if we look sharp, we may be able to discover one of these secret ways. Oh no, I'm quite sure he didn't. That's funny, remarked Betsy thoughtfully. I don't believe Anne knew any magic, or she'd have worked it before. I do not know, confessed Shaggy. True, agreed Calico. Calico went to the big gong and pounded on it just as Brigado used to do, but no one answered the summons. Having returned to the royal cavern, Calico first pounded the gong and then sat in the throne, wearing Rugedo's discarded ruby crown and holding in his hand the scepter which Rugedo had so often thrown at his head. A man said to the universe, Sir, I exist.",
+      "latency_median_s": 0.432,
+      "latency_p90_s": 0.466,
+      "latency_samples": 17,
+      "end_of_stream_s": 0.227,
+      "segments": [
+        {
+          "text": "The little girl had been asleep, but she heard the raps and opened the door.",
+          "audio_end_s": 4.536,
+          "arrived_s": 4.98
+        },
+        {
+          "text": "The king has fled in disgrace and your friends are asking for you.",
+          "audio_end_s": 9.552,
+          "arrived_s": 9.975
+        },
+        {
+          "text": "I begged Rugado long ago to send him away, but he would not do so.",
+          "audio_end_s": 14.932,
+          "arrived_s": 15.38
+        },
+        {
+          "text": "I also offered to help your brother to escape, but he would not go.",
+          "audio_end_s": 19.8,
+          "arrived_s": 20.282
+        },
+        {
+          "text": "He eats and sleeps very steadily, replied the new king.",
+          "audio_end_s": 24.762,
+          "arrived_s": 25.171
+        },
+        {
+          "text": "I hope he doesn't work too hard, said Shaggy. He doesn't work at all.",
+          "audio_end_s": 31.844,
+          "arrived_s": 32.28
+        },
+        {
+          "text": "In fact, there's nothing he can do in these dominions as well as our gnomes, whose numbers are so great that it worries us to keep them all busy.",
+          "audio_end_s": 41.642,
+          "arrived_s": 42.079
+        },
+        {
+          "text": "Not exactly, returned Calico. Where is my brother now?",
+          "audio_end_s": 48.468,
+          "arrived_s": 48.883
+        },
+        {
+          "text": "inquired Shaggy. In the Metal Forest. Where is that?",
+          "audio_end_s": 55.061,
+          "arrived_s": 55.381
+        },
+        {
+          "text": "The Metal Forest is in the great domed cavern, the largest in all our dominions, replied Calico. Calico hesitated.",
+          "audio_end_s": 66.042,
+          "arrived_s": 66.474
+        },
+        {
+          "text": "However, if we look sharp, we may be able to discover one of these secret ways.",
+          "audio_end_s": 74.027,
+          "arrived_s": 74.485
+        },
+        {
+          "text": "Oh no, I'm quite sure he didn't.",
+          "audio_end_s": 77.081,
+          "arrived_s": 77.481
+        },
+        {
+          "text": "That's funny, remarked Betsy thoughtfully.",
+          "audio_end_s": 81.66,
+          "arrived_s": 81.977
+        },
+        {
+          "text": "I don't believe Anne knew any magic, or she'd have worked it before.",
+          "audio_end_s": 86.643,
+          "arrived_s": 86.976
+        },
+        {
+          "text": "I do not know, confessed Shaggy. True, agreed Calico. Calico went to the big gong and pounded on it just as Brigado used to do, but no one answered the summons.",
+          "audio_end_s": 101.73,
+          "arrived_s": 102.192
+        },
+        {
+          "text": "Having returned to the royal cavern, Calico first pounded the gong and then sat in the throne, wearing Rugedo's discarded ruby crown and holding in his hand the scepter which Rugedo had so often thrown at his head.",
+          "audio_end_s": 117.026,
+          "arrived_s": 117.492
+        },
+        {
+          "text": "A man said to the universe, Sir, I exist.",
+          "audio_end_s": 122.459,
+          "arrived_s": 122.775
+        }
+      ],
+      "wer": 0.051470588235294115,
+      "substitutions": 13,
+      "deletions": 1,
+      "insertions": 0,
+      "reference_words": 272,
+      "outside_clip_words": 0,
+      "errors": [
+        {
+          "op": "S",
+          "ref": "ruggedo",
+          "hyp": "rugado"
+        },
+        {
+          "op": "D",
+          "ref": "there",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "is",
+          "hyp": "there's"
+        },
+        {
+          "op": "S",
+          "ref": "nomes",
+          "hyp": "gnomes"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "ann",
+          "hyp": "anne"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo",
+          "hyp": "brigado"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo's",
+          "hyp": "rugedo's"
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo",
+          "hyp": "rugedo"
+        }
+      ]
+    },
+    {
+      "provider": "deepgram",
+      "name": "Deepgram (speech-to-text)",
+      "ran": true,
+      "finals": 36,
+      "interims": 76,
+      "transcript": "The little girl had been asleep but she heard the wraps and open the door. The king has flood disgrace and your friends are asking for you I begged rugged long ago to send him away, but he would not do so. I also offered to help your brother to escape he would not go, but he eats and sleeps very steadily, replied the new king. Hope he doesn't work too hard since Shaggy. He doesn't work at all. In fact, there's nothing he can do in these dominion as well as our norms. Whose numbers are so great that it worries us to keep them all busy. Not exactly. Return calico. Where is my brother Now? Inquired S. In the metal forest, Where is that? The middle forest is in the Great Dome Cavern the largest and all our dominion. Rep reply Call. Rep Call hesitate However, If we look sharp, we may be able to discover one of these secret ways. Oh, no. I'm quite sure he didn't That's funny. Remarked Betsy thoughtfully. I don't believe anne knew any magic or she'd have worked it before or I do not know confess Shaggy. True, agreed chemical went to the big gong and pounded on it. Just B used to do, but no one answered the summons. Having returned to the royal Cavern, calico First pounded the gong and then sat the throne, wearing reg discarded ruby crab around and holding in his hand to sc, which reg head so often thrown at his head. A man said to the universe sir, I exist.",
+      "latency_median_s": 0.3405,
+      "latency_p90_s": 0.605,
+      "latency_samples": 36,
+      "end_of_stream_s": 0.213,
+      "segments": [
+        {
+          "text": "The little girl had been asleep",
+          "audio_end_s": 1.9,
+          "arrived_s": 2.221
+        },
+        {
+          "text": "but she heard the wraps and open the door.",
+          "audio_end_s": 4.4399999999999995,
+          "arrived_s": 4.852
+        },
+        {
+          "text": "The king has flood disgrace and your friends are asking for you",
+          "audio_end_s": 9.399999600000001,
+          "arrived_s": 9.721
+        },
+        {
+          "text": "I begged rugged long ago to send him away, but he would",
+          "audio_end_s": 13.86,
+          "arrived_s": 14.718
+        },
+        {
+          "text": "not do so.",
+          "audio_end_s": 14.8700002,
+          "arrived_s": 15.194
+        },
+        {
+          "text": "I also offered to help your brother to escape",
+          "audio_end_s": 18.41,
+          "arrived_s": 18.821
+        },
+        {
+          "text": "he would not go, but",
+          "audio_end_s": 19.9200002,
+          "arrived_s": 20.237
+        },
+        {
+          "text": "he eats and sleeps very steadily, replied the new king.",
+          "audio_end_s": 24.6200003,
+          "arrived_s": 24.959
+        },
+        {
+          "text": "Hope he doesn't work too hard since Shaggy.",
+          "audio_end_s": 28.919999500000003,
+          "arrived_s": 29.257
+        },
+        {
+          "text": "He doesn't work at all.",
+          "audio_end_s": 31.809999400000002,
+          "arrived_s": 32.134
+        },
+        {
+          "text": "In fact, there's nothing he can do in these dominion as well as our",
+          "audio_end_s": 36.6300016,
+          "arrived_s": 37.12
+        },
+        {
+          "text": "norms.",
+          "audio_end_s": 37.7599973,
+          "arrived_s": 38.149
+        },
+        {
+          "text": "Whose numbers are so great that it worries us to keep them all busy.",
+          "audio_end_s": 41.2900026,
+          "arrived_s": 41.621
+        },
+        {
+          "text": "Not exactly. Return calico.",
+          "audio_end_s": 45.249999200000005,
+          "arrived_s": 45.557
+        },
+        {
+          "text": "Where is my brother Now?",
+          "audio_end_s": 48.4000034,
+          "arrived_s": 48.718
+        },
+        {
+          "text": "Inquired S.",
+          "audio_end_s": 50.369997399999995,
+          "arrived_s": 50.712
+        },
+        {
+          "text": "In the metal forest,",
+          "audio_end_s": 52.5200002,
+          "arrived_s": 52.832
+        },
+        {
+          "text": "Where is that?",
+          "audio_end_s": 54.849998,
+          "arrived_s": 55.222
+        },
+        {
+          "text": "The middle forest is in the Great Dome Cavern the largest and all our dominion.",
+          "audio_end_s": 62.0000015,
+          "arrived_s": 62.315
+        },
+        {
+          "text": "Rep reply Call. Rep Call hesitate",
+          "audio_end_s": 65.959999,
+          "arrived_s": 66.335
+        },
+        {
+          "text": "However,",
+          "audio_end_s": 68.5899957,
+          "arrived_s": 68.915
+        },
+        {
+          "text": "If we look sharp, we may be able to discover one of these secret ways.",
+          "audio_end_s": 73.4100073,
+          "arrived_s": 73.966
+        },
+        {
+          "text": "Oh, no. I'm quite sure he didn't",
+          "audio_end_s": 76.9200012,
+          "arrived_s": 77.326
+        },
+        {
+          "text": "That's funny. Remarked Betsy thoughtfully.",
+          "audio_end_s": 81.1100012,
+          "arrived_s": 81.414
+        },
+        {
+          "text": "I don't believe anne knew any magic",
+          "audio_end_s": 85.07,
+          "arrived_s": 85.442
+        },
+        {
+          "text": "or she'd have worked it before or",
+          "audio_end_s": 86.58999659999999,
+          "arrived_s": 86.936
+        },
+        {
+          "text": "I do not know confess Shaggy.",
+          "audio_end_s": 90.37000640000001,
+          "arrived_s": 90.687
+        },
+        {
+          "text": "True, agreed chemical",
+          "audio_end_s": 93.76000429999999,
+          "arrived_s": 94.179
+        },
+        {
+          "text": "went to the big gong and pounded on it. Just",
+          "audio_end_s": 97.9700043,
+          "arrived_s": 100.274
+        },
+        {
+          "text": "B used to do, but no one answered the summons.",
+          "audio_end_s": 101.4599979,
+          "arrived_s": 101.792
+        },
+        {
+          "text": "Having returned to the royal Cavern, calico First pounded the gong and then sat the throne, wearing reg discarded ruby crab",
+          "audio_end_s": 111.33000299999999,
+          "arrived_s": 111.935
+        },
+        {
+          "text": "around and holding in his hand to sc, which reg head",
+          "audio_end_s": 114.5899945,
+          "arrived_s": 116.631
+        },
+        {
+          "text": "so often thrown at his head.",
+          "audio_end_s": 116.84,
+          "arrived_s": 117.177
+        },
+        {
+          "text": "A man said to the universe",
+          "audio_end_s": 120.20000060000001,
+          "arrived_s": 120.617
+        },
+        {
+          "text": "sir,",
+          "audio_end_s": 121.3300049,
+          "arrived_s": 121.629
+        },
+        {
+          "text": "I exist.",
+          "audio_end_s": 122.3799954,
+          "arrived_s": 122.761
+        }
+      ],
+      "wer": 0.15441176470588236,
+      "substitutions": 30,
+      "deletions": 7,
+      "insertions": 5,
+      "reference_words": 272,
+      "outside_clip_words": 0,
+      "errors": [
+        {
+          "op": "S",
+          "ref": "raps",
+          "hyp": "wraps"
+        },
+        {
+          "op": "S",
+          "ref": "opened",
+          "hyp": "open"
+        },
+        {
+          "op": "D",
+          "ref": "fled",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "in",
+          "hyp": "flood"
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo",
+          "hyp": "rugged"
+        },
+        {
+          "op": "D",
+          "ref": "but",
+          "hyp": null
+        },
+        {
+          "op": "I",
+          "ref": null,
+          "hyp": "but"
+        },
+        {
+          "op": "D",
+          "ref": "i",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "said",
+          "hyp": "since"
+        },
+        {
+          "op": "D",
+          "ref": "there",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "is",
+          "hyp": "there's"
+        },
+        {
+          "op": "S",
+          "ref": "dominions",
+          "hyp": "dominion"
+        },
+        {
+          "op": "S",
+          "ref": "nomes",
+          "hyp": "norms"
+        },
+        {
+          "op": "S",
+          "ref": "returned",
+          "hyp": "return"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "S",
+          "ref": "shaggy",
+          "hyp": "s"
+        },
+        {
+          "op": "S",
+          "ref": "metal",
+          "hyp": "middle"
+        },
+        {
+          "op": "S",
+          "ref": "domed",
+          "hyp": "dome"
+        },
+        {
+          "op": "S",
+          "ref": "in",
+          "hyp": "and"
+        },
+        {
+          "op": "I",
+          "ref": null,
+          "hyp": "dominion"
+        },
+        {
+          "op": "I",
+          "ref": null,
+          "hyp": "rep"
+        },
+        {
+          "op": "S",
+          "ref": "dominions",
+          "hyp": "reply"
+        },
+        {
+          "op": "S",
+          "ref": "replied",
+          "hyp": "call"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "rep"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "call"
+        },
+        {
+          "op": "S",
+          "ref": "hesitated",
+          "hyp": "hesitate"
+        },
+        {
+          "op": "S",
+          "ref": "ann",
+          "hyp": "anne"
+        },
+        {
+          "op": "I",
+          "ref": null,
+          "hyp": "or"
+        },
+        {
+          "op": "S",
+          "ref": "confessed",
+          "hyp": "confess"
+        },
+        {
+          "op": "D",
+          "ref": "kaliko",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "chemical"
+        },
+        {
+          "op": "D",
+          "ref": "as",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo",
+          "hyp": "b"
+        },
+        {
+          "op": "S",
+          "ref": "kaliko",
+          "hyp": "calico"
+        },
+        {
+          "op": "D",
+          "ref": "in",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo's",
+          "hyp": "reg"
+        },
+        {
+          "op": "I",
+          "ref": null,
+          "hyp": "crab"
+        },
+        {
+          "op": "S",
+          "ref": "crown",
+          "hyp": "around"
+        },
+        {
+          "op": "S",
+          "ref": "the",
+          "hyp": "to"
+        },
+        {
+          "op": "S",
+          "ref": "scepter",
+          "hyp": "sc"
+        },
+        {
+          "op": "S",
+          "ref": "ruggedo",
+          "hyp": "reg"
+        },
+        {
+          "op": "S",
+          "ref": "had",
+          "hyp": "head"
+        }
+      ]
+    }
+  ],
+  "audio_seconds": 122.55,
+  "scored": true
+}

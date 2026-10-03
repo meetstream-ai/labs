@@ -1,0 +1,9 @@
+# Shell scripts run on Linux/macOS (Docker, CI): keep LF even on Windows checkouts.
+*.sh text eol=lf
+
+# Published results and the sample are checked by SHA-256, so they must be the
+# same bytes on every OS: LF line endings everywhere, and audio left alone.
+results/** text eol=lf
+sample/** text eol=lf
+*.wav binary
+*.parquet binary

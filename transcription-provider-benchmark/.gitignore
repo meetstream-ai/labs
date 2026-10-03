@@ -1,0 +1,26 @@
+node_modules/
+.env
+
+# Built by `npm run fetch-sample`; manifest.json and reference.txt are committed
+# so the clip's contents and checksum are visible without running anything.
+sample/.cache/
+sample/clip.wav
+
+# Per-run output. Commit a run's directory deliberately when publishing it.
+recordings/
+results/
+
+# Files uploaded through the UI
+uploads/
+
+# Desktop builds (npm run dist)
+dist/
+
+# Stamped by npm run dist (the commit the desktop app was built from)
+build-info.json
+
+# Rebuilt byte-identical by reports/*/inputs/build-clip-b.js
+reports/*/inputs/clip-b.wav
+
+# Scratch data while rendering a report PDF
+reports/*/.pdf-profile/

@@ -1,0 +1,244 @@
+[
+  {
+    "speaker": "Benchmark Speaker",
+    "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+    "transcript": "Mr. Quilter is the apostle of the middle classes, and we are glad to welcome his gospel. Nor is Mr. Quilter's manner less interesting than his matter. He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similes drawn from eating and its results occur most readily to the mind. He has grave doubts whether Sir Frederick Layton's work is really Greek after all, and can discover in it but little of Rocky Ithaca. Linell's pictures are a sort of Upguards and Adam paintings, and Mason's exquisite idylls are as national as a Gingo poem. Mr. Burkett Foster's landscapes smile at one much in the same way that Mr. Carker used to flash his teeth. and Mr. John Collier gives his sitter a cheerful slap in the back before he says, like a shampooer in a Turkish bath, next man. It is obviously unnecessary for us to point out how luminous these criticisms are, how delicate an expression. On the general principles of art, Mr. Quilter writes with equal lucidity. Painting, he tells us, is of a different quality to mathematics, and finishing art is adding more fact. As for etchings, they are of two kinds, British and foreign. He laments most bitterly the divorce that has been made between decorative art and what we usually call pictures, makes a customary appeal to the last judgment and reminds us that in the great days of art, Michelangelo was the furnishing upholsterer. near the fire, and the ornaments Fred brought home from India on the mantelboard. In fact, he is quite severe on Mr. Ruskin for not recognizing that a picture should denote the frailty of man, and remarks with pleasing courtesy and felicitor's grace that many phases of feeling... Only, unfortunately, his own work never does get good. Mr. Quilter has missed his chance, for he has failed even to make himself the tupper of painting. by Harry Quilter, M.A. Because you were sleeping instead of conquering, the lovely rose princess has become a fiddle without a bow, while poor Shaggy sits there a-cooing dove. He has gone and gone for good, answered Polychrome, who had managed to squeeze into the room beside the dragon and had witnessed the occurrences with much interest. I have remained a prisoner only because I wished to be one. And with this, he stepped forward and burst the stout chains as easily as if they had been threaded.",
+    "start_time": 8.21,
+    "end_time": 198.41,
+    "words": [
+      {
+        "word": "Mr. Quilter is the apostle of the middle classes, and we are glad to welcome his gospel.",
+        "punctuated_word": "Mr. Quilter is the apostle of the middle classes, and we are glad to welcome his gospel.",
+        "start": 8.21,
+        "end": 13.11,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Nor is Mr. Quilter's manner less interesting than his matter.",
+        "punctuated_word": "Nor is Mr. Quilter's manner less interesting than his matter.",
+        "start": 14.81,
+        "end": 18.67,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similes drawn from eating and its results occur most readily to the mind.",
+        "punctuated_word": "He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similes drawn from eating and its results occur most readily to the mind.",
+        "start": 20.39,
+        "end": 31.81,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "He has grave doubts whether Sir Frederick Layton's work is really Greek after all, and can discover in it but little of Rocky Ithaca.",
+        "punctuated_word": "He has grave doubts whether Sir Frederick Layton's work is really Greek after all, and can discover in it but little of Rocky Ithaca.",
+        "start": 33.63,
+        "end": 42.49,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Linell's pictures are a sort of Upguards and Adam paintings, and Mason's exquisite idylls are as national as a Gingo poem.",
+        "punctuated_word": "Linell's pictures are a sort of Upguards and Adam paintings, and Mason's exquisite idylls are as national as a Gingo poem.",
+        "start": 44.27,
+        "end": 53.67,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Mr. Burkett Foster's landscapes smile at one much in the same way that Mr. Carker used to flash his teeth.",
+        "punctuated_word": "Mr. Burkett Foster's landscapes smile at one much in the same way that Mr. Carker used to flash his teeth.",
+        "start": 55.23,
+        "end": 62.37,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "and Mr. John Collier gives his sitter a cheerful slap in the back before he says, like a shampooer in a Turkish bath, next man.",
+        "punctuated_word": "and Mr. John Collier gives his sitter a cheerful slap in the back before he says, like a shampooer in a Turkish bath, next man.",
+        "start": 63.49,
+        "end": 72.77,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "It is obviously unnecessary for us to point out how luminous these criticisms are, how delicate an expression.",
+        "punctuated_word": "It is obviously unnecessary for us to point out how luminous these criticisms are, how delicate an expression.",
+        "start": 74.43,
+        "end": 82.43,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "On the general principles of art, Mr. Quilter writes with equal lucidity.",
+        "punctuated_word": "On the general principles of art, Mr. Quilter writes with equal lucidity.",
+        "start": 84.17,
+        "end": 88.83,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Painting, he tells us, is of a different quality to mathematics, and finishing art is adding more fact.",
+        "punctuated_word": "Painting, he tells us, is of a different quality to mathematics, and finishing art is adding more fact.",
+        "start": 90.55,
+        "end": 98.85,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "As for etchings, they are of two kinds, British and foreign.",
+        "punctuated_word": "As for etchings, they are of two kinds, British and foreign.",
+        "start": 100.57,
+        "end": 104.65,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "He laments most bitterly the divorce that has been made between decorative art and what we usually call pictures, makes a customary appeal to the last judgment and reminds us that in the great days of art, Michelangelo was the furnishing upholsterer.",
+        "punctuated_word": "He laments most bitterly the divorce that has been made between decorative art and what we usually call pictures, makes a customary appeal to the last judgment and reminds us that in the great days of art, Michelangelo was the furnishing upholsterer.",
+        "start": 106.45,
+        "end": 123.71,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "near the fire, and the ornaments Fred brought home from India on the mantelboard.",
+        "punctuated_word": "near the fire, and the ornaments Fred brought home from India on the mantelboard.",
+        "start": 125.09,
+        "end": 130.05,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "In fact, he is quite severe on Mr. Ruskin for not recognizing that a picture should denote the frailty of man, and remarks with pleasing courtesy and felicitor's grace that many phases of feeling...",
+        "punctuated_word": "In fact, he is quite severe on Mr. Ruskin for not recognizing that a picture should denote the frailty of man, and remarks with pleasing courtesy and felicitor's grace that many phases of feeling...",
+        "start": 131.87,
+        "end": 146.13,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Only, unfortunately, his own work never does get good.",
+        "punctuated_word": "Only, unfortunately, his own work never does get good.",
+        "start": 147.69,
+        "end": 152.17,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Mr. Quilter has missed his chance, for he has failed even to make himself the tupper of painting.",
+        "punctuated_word": "Mr. Quilter has missed his chance, for he has failed even to make himself the tupper of painting.",
+        "start": 153.83,
+        "end": 159.89,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "by Harry Quilter, M.A.",
+        "punctuated_word": "by Harry Quilter, M.A.",
+        "start": 161.47,
+        "end": 163.17,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Because you were sleeping instead of conquering, the lovely rose princess has become a fiddle without a bow, while poor Shaggy sits there a-cooing dove.",
+        "punctuated_word": "Because you were sleeping instead of conquering, the lovely rose princess has become a fiddle without a bow, while poor Shaggy sits there a-cooing dove.",
+        "start": 164.55,
+        "end": 174.45,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "He has gone and gone for good, answered Polychrome, who had managed to squeeze into the room beside the dragon and had witnessed the occurrences with much interest.",
+        "punctuated_word": "He has gone and gone for good, answered Polychrome, who had managed to squeeze into the room beside the dragon and had witnessed the occurrences with much interest.",
+        "start": 176.33,
+        "end": 186.37,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "I have remained a prisoner only because I wished to be one.",
+        "punctuated_word": "I have remained a prisoner only because I wished to be one.",
+        "start": 187.97,
+        "end": 192.21,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "And with this, he stepped forward and burst the stout chains as easily as if they had been threaded.",
+        "punctuated_word": "And with this, he stepped forward and burst the stout chains as easily as if they had been threaded.",
+        "start": 193.43,
+        "end": 198.41,
+        "speaker": "2",
+        "_provider_speaker": "2",
+        "_dg_cluster": "2",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/113",
+        "speaker_resolution": "phase1_global_one_to_one"
+      }
+    ],
+    "absolute_start_time": "1970-01-01T00:00:08.210000",
+    "absolute_end_time": "1970-01-01T00:03:18.410000"
+  }
+]
