@@ -1,0 +1,26 @@
+{
+  "name": "@meetstream-labs/multi-provider-transcription",
+  "version": "1.0.0",
+  "private": true,
+  "description": "One MeetStream template covering all five post-call transcription providers (deepgram, assemblyai, sarvam, jigsawstack, meetstream), switchable with a single env var.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "transcription",
+    "deepgram",
+    "assemblyai",
+    "sarvam",
+    "jigsawstack"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

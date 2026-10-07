@@ -1,0 +1,27 @@
+{
+  "name": "@meetstream-labs/error-handling-and-retries",
+  "version": "1.0.0",
+  "description": "Production-grade MeetStream API client demonstrating the full error surface: 400/401/403/404/409/429/500/503, 507 as success, and capped 202 polling.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "live": "node index.js --live",
+    "table": "node index.js --table"
+  },
+  "keywords": [
+    "meetstream",
+    "retry",
+    "backoff",
+    "idempotency",
+    "error-handling",
+    "rate-limit"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

@@ -1,5 +1,5 @@
 /**
- * MeetStream Labs — Real-Time Transcription
+ * MeetStream Labs - Real-Time Transcription
  * create-bot.js
  *
  * Creates a MeetStream bot with live transcription enabled.
@@ -25,8 +25,10 @@ if (!API_KEY || !WEBHOOK_URL || !MEETING_URL) {
 }
 
 // ─── Provider config ──────────────────────────────────────────────────────────
-// Set PROVIDER to "deepgram" or "assemblyai"
-const PROVIDER = "deepgram";
+// PROVIDER=deepgram (default) or PROVIDER=assemblyai. Both are *_streaming
+// providers: live_transcription_required needs one, and a streaming-only bot
+// produces no post-call transcript.
+const PROVIDER = (process.env.PROVIDER || "deepgram").trim();
 
 const providers = {
   deepgram: {
@@ -69,6 +71,13 @@ const payload = {
   meeting_link: MEETING_URL,
   bot_name: "MeetStream Transcription Bot",
 
+  // Audio only. `false` is sent explicitly because the REST API treats an
+  // omitted `video_required` as true, so leaving it out would silently record
+  // video. Live transcription needs no video at all. If you do turn it on,
+  // also send recording_config.video_layout: "speaker_view", since the API
+  // default is grid_view.
+  video_required: false,
+
   // Required for live transcription: where to POST events
   live_transcription_required: {
     webhook_url: `${WEBHOOK_URL}/webhook`,
@@ -80,7 +89,7 @@ const payload = {
     },
   },
 
-  // Echoed back in every webhook event — useful for session correlation
+  // Echoed back in every webhook event - useful for session correlation
   custom_attributes: {
     provider: PROVIDER,
   },

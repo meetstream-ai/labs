@@ -1,0 +1,25 @@
+{
+  "name": "@meetstream-labs/manage-scheduled-bots",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Admin CLI for MeetStream bots that have not joined yet: list, reschedule, rename, retag and cancel.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "calendar",
+    "scheduled-bots",
+    "cli",
+    "admin"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

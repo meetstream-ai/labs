@@ -90,11 +90,27 @@ it for you (see below).
 Key options: `--agent-id ID` or `--agent-name TEXT` (fuzzy-matched against
 `list-agents.sh`, case-insensitive substring — the script refuses to guess
 and lists candidates if the name is ambiguous), `--video`/`--no-video`
-(default: video on), `--message TEXT` (chat message on join), `--join-at
+(default: `--no-video`, audio only), `--video-layout speaker_view|grid_view`
+(only used with `--video`), `--message TEXT` (chat message on join), `--join-at
 ISO8601` (schedule instead of joining now), `--attr KEY=VALUE` (repeatable
 custom metadata), `--transcription PROVIDER`, `--language CODE`,
 `--retention-hours N`, `--separate-audio`, `--separate-video`,
 `--live-transcript URL`, `--idempotency-key UUID`, and `--json`.
+
+Recording defaults, in order of how often they bite:
+
+1. **Video is off unless the user asked for it.** The script sends
+   `video_required: false` explicitly, because the REST API treats an omitted
+   `video_required` as true. Audio only is faster to process and smaller to
+   store, and transcripts, summaries, diarization and speaker timelines all
+   work without video.
+2. **When video is on, send `speaker_view`.** The script puts
+   `recording_config.video_layout: "speaker_view"` in the payload, because the
+   API default is `grid_view`. Pass `--video-layout grid_view` only when the
+   user asks for grid or gallery view.
+3. **Never pass `--separate-video` unless the user asked for per-participant
+   video.** One video file per participant multiplies storage and processing.
+   `--separate-audio` is not covered by this rule.
 
 For a Hosted MIA, pass only `agent_config_id`; do not add custom bridge
 WebSocket URLs. For bot architecture choices and recipes, read

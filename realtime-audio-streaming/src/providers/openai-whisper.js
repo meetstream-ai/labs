@@ -6,9 +6,9 @@
  *
  * Env required: OPENAI_API_KEY
  *
- * This is a worked example of adding a NEW provider — copy this file's
+ * This is a worked example of adding a NEW provider - copy this file's
  * shape for any other service. The only 3 things every provider implements
- * are connect(), sendAudio(), and disconnect() — see provider-interface.js.
+ * are connect(), sendAudio(), and disconnect() - see provider-interface.js.
  */
 
 import { WebSocket } from "ws";
@@ -34,7 +34,7 @@ export default {
 
       this.socket.on("open", () => {
         // Configure the transcription session: tell OpenAI exactly what
-        // format we're sending (PCM16, 48kHz handled server-side — OpenAI
+        // format we're sending (PCM16, 48kHz handled server-side - OpenAI
         // resamples automatically) and which model to use.
         this.socket.send(JSON.stringify({
           type: "transcription_session.update",

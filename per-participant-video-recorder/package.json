@@ -1,5 +1,5 @@
 {
-  "name": "per-participant-video-recorder",
+  "name": "@meetstream-labs/per-participant-video-recorder",
   "version": "1.0.0",
   "description": "Plug-and-play MeetStream Labs example that records every meeting participant's audio and video as separate local files.",
   "type": "module",

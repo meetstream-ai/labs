@@ -1,0 +1,29 @@
+{
+  "name": "@meetstream-labs/realtime-video-streaming",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Receive a MeetStream bot's live meeting video as fMP4 over WebSocket, write it to a playable file, and relay it to your own consumers.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "consumer": "node consumer-example.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@ngrok/ngrok": "^1.4.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "ws": "^8.17.0"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "live-video",
+    "fmp4",
+    "websocket"
+  ],
+  "license": "MIT"
+}

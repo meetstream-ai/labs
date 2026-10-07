@@ -1,0 +1,6 @@
+[
+  { "after_seconds": 0,    "message": "Hi everyone. I am the notetaker for this session and recording has started." },
+  { "after_seconds": 300,  "message": "Five minutes in. Transcript and summary will be shared afterwards." },
+  { "after_seconds": 1500, "message": "Five minutes left on the agenda." },
+  { "after_seconds": 1800, "message": "Wrapping up. Thanks all, notes will land in your inbox shortly." }
+]

@@ -1,0 +1,28 @@
+{
+  "name": "@meetstream-labs/zoom-meeting-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Zoom meeting bot with MeetStream: Marketplace app prerequisites, the host recording-permission flow, and recording_permission_denied_timeout.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "listen": "node index.js listen",
+    "check": "node index.js check"
+  },
+  "keywords": [
+    "meetstream",
+    "zoom",
+    "meeting-bot",
+    "recording-permission",
+    "webhooks"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

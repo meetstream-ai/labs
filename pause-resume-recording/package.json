@@ -1,0 +1,17 @@
+{
+  "name": "@meetstream-labs/pause-resume-recording",
+  "version": "1.0.0",
+  "description": "Interactive CLI that opens and closes recording privacy windows with MeetStream's pause_recording and resume_recording endpoints.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}

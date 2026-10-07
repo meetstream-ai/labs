@@ -67,7 +67,12 @@ export const createSessionSchema = z.object({
     bot_message: z.string().optional().default(
       "Hermes has joined the meeting. Start with Hey Hermes, Hey Assistant, Hey Bot, Okay Agent, or Okay Bot."
     ),
+    // Video is OFF by default, and `false` is sent explicitly on create because
+    // the REST API treats an omitted `video_required` as true.
     video_required: z.boolean().default(false),
+    // Only used when video_required is true. The API default is grid_view, so
+    // speaker view has to be sent explicitly.
+    video_layout: z.enum(["speaker_view", "grid_view"]).default("speaker_view"),
     automatic_leave: object.default({
       waiting_room_timeout: 600,
       everyone_left_timeout: 120,

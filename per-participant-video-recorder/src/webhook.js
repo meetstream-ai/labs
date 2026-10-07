@@ -2,10 +2,11 @@ import express from 'express';
 import logger from './logger.js';
 
 /**
- * Event names we care about, per MeetStream's documented webhook events
- * (https://docs.meetstream.ai/guides/webhooks/webhooks-and-events).
- * Anything not listed here is logged and ignored rather than causing an
- * error, since MeetStream may add event types over time.
+ * Event names this app acts on (see
+ * https://docs.meetstream.ai/guides/webhooks/webhooks-and-events for the
+ * full set). Every ending arrives as event `bot.stopped`; `bot_event` holds
+ * the reason. `bot.done` is the final event on every path. Anything not
+ * listed here is logged at debug level and ignored.
  */
 const KNOWN_EVENTS = new Set([
   'bot.joining',
@@ -29,20 +30,19 @@ const KNOWN_EVENTS = new Set([
 export function createWebhookRouter({ onEvent }) {
   const router = express.Router();
 
-  // MeetStream doesn't send a delivery-id header; its own docs recommend
-  // de-duping by {bot_id, event, timestamp}. This mainly matters for
-  // `bot.joining`, which MeetStream may send up to 3 times if join
-  // retries are configured - other events are documented as "sent at
-  // most once".
+  // MeetStream doesn't send a delivery-id header. Every delivery carries
+  // `event` (generic name), usually `bot_event` (specific name; on terminals
+  // it is the reason, e.g. bot.kicked) and an ISO `timestamp`, so de-dupe on
+  // {bot_id, bot_event ?? event, timestamp}.
   const seenDeliveries = new Set();
 
   router.post('/webhook', express.json({ limit: '5mb' }), (req, res) => {
     const body = req.body ?? {};
     const eventType = body.event ?? 'unknown';
-    const deliveryKey = `${body.bot_id ?? ''}:${eventType}:${body.timestamp ?? ''}`;
+    const deliveryKey = `${body.bot_id ?? ''}:${body.bot_event ?? eventType}:${body.timestamp ?? ''}`;
 
-    // Acknowledge immediately so MeetStream doesn't retry due to slow
-    // downstream processing; the real work happens after we respond.
+    // Acknowledge immediately; webhook deliveries are not retried, so keep
+    // this handler fast and do the real work after responding.
     res.status(200).json({ received: true });
 
     if (deliveryKey !== '::' ) {

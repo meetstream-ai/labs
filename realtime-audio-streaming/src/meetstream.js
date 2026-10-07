@@ -8,7 +8,7 @@
 
 const BASE_URL = "https://api.meetstream.ai/api/v1";
 
-// Retry tuning — generous enough to survive transient blips without
+// Retry tuning - generous enough to survive transient blips without
 // hammering the API. 429/5xx are retried; 4xx (bad request, bad auth) are not.
 const MAX_RETRIES = 4;
 const BASE_DELAY_MS = 500;     // first retry waits ~500ms
@@ -16,6 +16,35 @@ const MAX_DELAY_MS = 8000;     // never wait longer than 8s between retries
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Error raised for any non-2xx MeetStream response. `status` is the HTTP
+ * code and `apiMessage` is the API's own `message` / `error` / `detail`
+ * field, so callers and the terminal see why the call failed instead of
+ * a bare status code.
+ */
+export class MeetStreamApiError extends Error {
+  constructor(method, path, status, data) {
+    const apiMessage = extractApiMessage(data);
+    super(`MeetStream API ${method} ${path} -> HTTP ${status}${apiMessage ? `: ${apiMessage}` : ""}`);
+    this.name = "MeetStreamApiError";
+    this.status = status;
+    this.apiMessage = apiMessage;
+    this.body = data;
+  }
+}
+
+function extractApiMessage(data) {
+  if (data == null) return "";
+  if (typeof data === "string") return data.slice(0, 300);
+  const msg = data.message ?? data.error ?? data.detail ?? data.raw;
+  if (typeof msg === "string") return msg.slice(0, 300);
+  try { return JSON.stringify(data).slice(0, 300); } catch { return ""; }
+}
+
+function isRetryableStatus(status) {
+  return status === 429 || (status >= 500 && status < 600);
 }
 
 export class MeetStreamClient {
@@ -38,7 +67,7 @@ export class MeetStreamClient {
    *    otherwise falls back to exponential backoff.
    *  - 5xx (server error) or network failure: exponential backoff.
    *  - 4xx other than 429 (bad request, bad auth, not found): fails
-   *    immediately — retrying won't fix a malformed request or bad key.
+   *    immediately - retrying won't fix a malformed request or bad key.
    */
   async #request(method, path, body) {
     const url = `${BASE_URL}${path}`;
@@ -58,13 +87,16 @@ export class MeetStreamClient {
 
         if (res.ok) return data;
 
-        // Non-retryable: bad request / auth / not found — fail fast
-        if (res.status >= 400 && res.status < 500 && res.status !== 429) {
-          throw new Error(`MeetStream API ${method} ${path} → ${res.status}: ${text}`);
-        }
+        // Every non-2xx response becomes a MeetStreamApiError that carries
+        // the API's own message field.
+        const apiErr = new MeetStreamApiError(method, path, res.status, data);
+
+        // Non-retryable: 400 / 401 / 403 / 404 / 409 - fail fast, retrying
+        // will not fix a malformed request, a bad key or a missing bot.
+        if (!isRetryableStatus(res.status)) throw apiErr;
 
         // Retryable: 429 (rate limited) or 5xx (server-side issue)
-        lastErr = new Error(`MeetStream API ${method} ${path} → ${res.status}: ${text}`);
+        lastErr = apiErr;
 
         if (attempt < MAX_RETRIES) {
           const retryAfterHeader = res.headers.get("retry-after");
@@ -73,7 +105,7 @@ export class MeetStreamClient {
             : Math.min(BASE_DELAY_MS * 2 ** attempt, MAX_DELAY_MS);
 
           this.logger.info(
-            `MeetStream API ${res.status} on ${path} — retrying in ${(delay / 1000).toFixed(1)}s ` +
+            `MeetStream API ${res.status} on ${path} - retrying in ${(delay / 1000).toFixed(1)}s ` +
             `(attempt ${attempt + 1}/${MAX_RETRIES})`
           );
           await sleep(delay);
@@ -82,13 +114,13 @@ export class MeetStreamClient {
       } catch (err) {
         // Network-level failure (DNS, connection reset, timeout, etc.)
         lastErr = err;
-        if (err.message?.includes("MeetStream API") && !err.message.includes("→ 5") && !err.message.includes("→ 429")) {
-          throw err; // non-retryable API error thrown above — propagate immediately
+        if (err instanceof MeetStreamApiError) {
+          throw err; // non-retryable API error thrown above - propagate immediately
         }
         if (attempt < MAX_RETRIES) {
           const delay = Math.min(BASE_DELAY_MS * 2 ** attempt, MAX_DELAY_MS);
           this.logger.info(
-            `Network error on ${path} — retrying in ${(delay / 1000).toFixed(1)}s ` +
+            `Network error on ${path} - retrying in ${(delay / 1000).toFixed(1)}s ` +
             `(attempt ${attempt + 1}/${MAX_RETRIES}): ${err.message}`
           );
           await sleep(delay);
@@ -107,7 +139,7 @@ export class MeetStreamClient {
    * The transcription provider is configured separately under
    * recording_config.transcript.provider.
    *
-   * We use "meeting_captions" as the provider — it's MeetStream's
+   * We use "meeting_captions" as the provider - it's MeetStream's
    * built-in captioning engine and requires no external API key.
    *
    * Audio: PCM16 little-endian, 48 kHz, mono, per-speaker binary frames.
@@ -117,6 +149,9 @@ export class MeetStreamClient {
       meeting_link: meetingLink,
       bot_name: "MeetStream Labs Bot",
       audio_required: true,
+      // Audio only. `false` is sent explicitly because the REST API treats an
+      // omitted `video_required` as true. Video is opt-in, and when it is on
+      // the payload must also carry recording_config.video_layout: "speaker_view".
       video_required: false,
       bot_message: "👋 MeetStream Labs bot is recording this meeting.",
 
@@ -124,7 +159,7 @@ export class MeetStreamClient {
       callback_url: callbackUrl,
 
       // Live transcript segments streamed to our webhook in real time.
-      // Provider is configured in recording_config below — NOT here.
+      // Provider is configured in recording_config below - NOT here.
       live_transcription_required: {
         webhook_url: transcriptWebhookUrl,
       },
@@ -167,6 +202,9 @@ export class MeetStreamClient {
 
     this.logger.info("Creating MeetStream bot…");
     const data = await this.#request("POST", "/bots/create_bot", payload);
+    if (!data?.bot_id) {
+      throw new Error(`create_bot returned 2xx but no bot_id: ${JSON.stringify(data).slice(0, 300)}`);
+    }
     return data.bot_id;
   }
 
@@ -175,7 +213,7 @@ export class MeetStreamClient {
   }
 
   async removeBot(botId) {
-    return this.#request("GET", `/bots/${botId}/remove`);
+    return this.#request("GET", `/bots/${botId}/remove_bot`);
   }
 
   async getTranscript(transcriptId) {

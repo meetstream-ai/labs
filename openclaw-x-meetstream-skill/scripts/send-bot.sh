@@ -13,7 +13,9 @@
 #   --agent-id ID           MIA agent_config_id to power the bot
 #   --agent-name TEXT       Resolve a MIA agent by (partial, case-insensitive)
 #                           name instead of passing --agent-id directly
-#   --video / --no-video    Record video (default: --video)
+#   --video / --no-video    Record video (default: --no-video, audio only)
+#   --video-layout NAME     speaker_view (default) or grid_view; only used
+#                           with --video, since the API default is grid_view
 #   --message TEXT          Message the bot posts in meeting chat on join
 #   --image-url URL         Bot avatar image URL
 #   --callback-url URL      Webhook URL for lifecycle events
@@ -38,14 +40,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 usage() {
-  sed -n '2,32p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,34p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 
 link=""
 name=""
 agent_id=""
 agent_name=""
-video_required=true
+# Video is OFF by default. `video_required: false` is sent explicitly, because
+# the REST API treats an omitted `video_required` as true.
+video_required=false
+# Layout used only when --video is passed. The API default is grid_view, so
+# speaker view has to be sent explicitly.
+video_layout="speaker_view"
 message=""
 image_url=""
 callback_url=""
@@ -68,6 +75,7 @@ while [[ $# -gt 0 ]]; do
     --agent-id) ms_require_option_value "$1" "${2-}"; agent_id="$2"; shift 2 ;;
     --agent-name) ms_require_option_value "$1" "${2-}"; agent_name="$2"; shift 2 ;;
     --video) video_required=true; shift ;;
+    --video-layout) ms_require_option_value "$1" "${2-}"; video_layout="$2"; shift 2 ;;
     --no-video) video_required=false; shift ;;
     --message) ms_require_option_value "$1" "${2-}"; message="$2"; shift 2 ;;
     --image-url) ms_require_option_value "$1" "${2-}"; image_url="$2"; shift 2 ;;
@@ -187,6 +195,7 @@ payload="$(jq -n \
   --arg meeting_link "$link" \
   --arg bot_name "$name" \
   --argjson video_required "$video_required" \
+  --arg video_layout "$video_layout" \
   --arg bot_message "$message" \
   --arg bot_image_url "$image_url" \
   --arg agent_config_id "$agent_id" \
@@ -210,11 +219,15 @@ payload="$(jq -n \
   + (if $separate_audio then {audio_separate_streams:true} else {} end)
   + (if $separate_video then {video_separate_streams:true} else {} end)
   + (if $live_transcript_webhook != "" then {live_transcription_required:{webhook_url:$live_transcript_webhook}} else {} end)
-  + (if ($transcription_provider != "" or $retention_hours != "") then {
+  + (if ($transcription_provider != "" or $retention_hours != "" or $video_required) then {
       recording_config:
         ({}
           + (if $transcription_provider != "" then {transcript:{provider:$transcript_provider}} else {} end)
-          + (if $retention_hours != "" then {retention:{type:"timed",hours:($retention_hours|tonumber)}} else {} end))
+          + (if $retention_hours != "" then {retention:{type:"timed",hours:($retention_hours|tonumber)}} else {} end)
+          # Layout is only meaningful when video is recorded; an audio-only bot
+          # never runs the compositor. grid_view is the API default, so speaker
+          # view is sent explicitly.
+          + (if $video_required then {video_layout: (if $video_layout == "grid_view" then "grid_view" else "speaker_view" end)} else {} end))
     } else {} end)
   + {automatic_leave:{
       waiting_room_timeout:300,

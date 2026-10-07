@@ -233,7 +233,14 @@ export class Bridge {
                   channels: 1
                 }
               }
-            }
+            },
+            // Layout only matters when video is recorded; an audio-only bot
+            // never runs the compositor. grid_view is the API default, so
+            // speaker view is sent explicitly. Per-participant video
+            // (video_separate_streams) is never enabled here.
+            ...(input.meetstream.video_required
+              ? { video_layout: input.meetstream.video_layout }
+              : {})
           }
         })
       }), "MeetStream");

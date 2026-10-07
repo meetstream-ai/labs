@@ -1,0 +1,27 @@
+{
+  "name": "@meetstream-labs/sentiment-and-insights",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Analyses a MeetStream transcript for sentiment trends, topics and talk-time balance, and produces a coaching-style report.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "sentiment",
+    "talk-time",
+    "sales-coaching",
+    "conversation-intelligence"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@meetstream-labs/send-chat-message",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CLI for posting chat messages into a live meeting as your MeetStream bot, immediately or on a timed announcement plan.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "help": "node index.js --help"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "chat",
+    "announcements",
+    "cli"
+  ],
+  "license": "MIT"
+}

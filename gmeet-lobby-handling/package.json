@@ -1,0 +1,28 @@
+{
+  "name": "@meetstream-labs/gmeet-lobby-handling",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Handle the Google Meet waiting room: tune waiting_room_timeout, detect NotAllowed vs Denied over webhooks, and retry or notify accordingly.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "listen": "node index.js listen"
+  },
+  "keywords": [
+    "meetstream",
+    "google-meet",
+    "waiting-room",
+    "lobby",
+    "webhooks",
+    "meeting-bot"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

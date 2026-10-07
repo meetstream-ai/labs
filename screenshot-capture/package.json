@@ -1,0 +1,17 @@
+{
+  "name": "@meetstream-labs/screenshot-capture",
+  "version": "1.0.0",
+  "description": "Download a meeting's screenshots from MeetStream and map them onto the meeting timeline alongside the speaker timeline.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}

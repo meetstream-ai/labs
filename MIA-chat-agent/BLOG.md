@@ -240,4 +240,4 @@ Check the OpenAI connection under **MeetStream Dashboard > Integrations**. Local
 
 This project now demonstrates the MeetStream Hosted Agent path directly: configure an Agent in the dashboard, pass its ID and the hosted bridge URLs to `create_bot`, and let MeetStream run the live meeting pipeline.
 
-See the official [MeetStream MIA guide](https://docs.meetstream.ai/guides/mia-meetstream-infrastructure-agents/create-mia) for dashboard configuration and API details.
+See the official [MeetStream MIA guide](https://docs.meetstream.ai/guides/mia/create-an-agent) for dashboard configuration and API details.

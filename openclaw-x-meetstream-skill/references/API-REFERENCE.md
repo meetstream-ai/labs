@@ -29,7 +29,18 @@ mutates state. Never try every endpoint speculatively or retry writes blindly.
 
 - Retention: usage guide says 24 hours; schema says indefinite. Always set it.
 - Video: recordings prose calls it opt-in; CreateBotRequest defaults true.
-  Explicitly choose video_required; the convenience script defaults true.
+  Always send video_required explicitly. Product policy is video OFF by
+  default, so the convenience script now defaults to --no-video and sends
+  video_required: false. Turn it on only when the user asks for video.
+- Video layout: recording_config.video_layout accepts exactly speaker_view and
+  grid_view, and grid_view is the API default when video_required is true. Send
+  speaker_view explicitly whenever video is on; use grid_view only when the
+  user asks for grid or gallery view. The field is ignored on an audio-only
+  bot. Google Meet, Teams and Zoom accept both; WhatsApp accepts only
+  grid_view, and other platforms reject video_layout.
+- Per-participant video: never set video_separate_streams unless the user asks
+  for per-speaker video streams, since it multiplies storage and processing per
+  participant. Per-participant audio (audio_separate_streams) is unaffected.
 - Lifecycle: current events guide uses bot_event and distinct terminal events;
   older examples use event. Normalize with bot_event first, event fallback.
 - Guides contain fields missing from schema: deduplication_key, google_meet,

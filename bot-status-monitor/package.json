@@ -1,0 +1,25 @@
+{
+  "name": "@meetstream-labs/bot-status-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Live terminal timeline of a MeetStream bot lifecycle, built from GET /bots/{id}/status and /detail.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "explain": "node index.js --explain"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "lifecycle",
+    "monitoring"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
