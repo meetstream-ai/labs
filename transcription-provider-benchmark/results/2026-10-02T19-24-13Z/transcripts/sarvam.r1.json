@@ -1,0 +1,255 @@
+[
+  {
+    "speaker": "Benchmark Speaker",
+    "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+    "transcript": "The little girl had been asleep, but she heard the raps and opened the door. The king is flooded with disgrace and your friends are asking for you. I begged Rigado long ago to send him away, but he would not do so. I also offered to help your brother to escape, but he would not go. He eats and sleeps very steadily, replied the new king. I hope it doesn't work too hard, said Shaggy. He doesn't work at all. In fact, there's nothing he can do in these dominions as well as our gnomes, whose numbers are so great that it worries us to keep them all busy. Not exactly, return Calico. Where is my brother now? inquired Shaggy in the metal forest. Where is that? The middle forest is in the great domed cavern, the largest in all our dominions, replied Calico. Kalgo hesitated. However, if we look sharp, we may be able to discover one of these secret ways. Oh no, I'm quite sure he didn't. That's funny, remarked Betsy thoughtfully. I don't believe Anne knew any magic or she'd have worked it before. I do not know, confessed Shaggy. true, agreed Calico. Calico went to the big gong and pounded on it just as Brigado used to do, but no one answered the summons. Having returned to the royal cavern, Calico first pounded the gong and then sat in the throne, wearing Rigido's discarded ruby crown and holding in his hand the scepter which Rigido had so often thrown at his head. A man said to the universe, Sir, I exist.",
+    "start_time": 7.87,
+    "end_time": 128.93,
+    "words": [
+      {
+        "word": "The little girl had been asleep, but she heard the raps and opened the door.",
+        "punctuated_word": "The little girl had been asleep, but she heard the raps and opened the door.",
+        "start": 7.87,
+        "end": 11.87,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "The king is flooded with disgrace and your friends are asking for you.",
+        "punctuated_word": "The king is flooded with disgrace and your friends are asking for you.",
+        "start": 13.41,
+        "end": 16.83,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "I begged Rigado long ago to send him away, but he would not do so.",
+        "punctuated_word": "I begged Rigado long ago to send him away, but he would not do so.",
+        "start": 18.39,
+        "end": 22.31,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "I also offered to help your brother to escape, but he would not go.",
+        "punctuated_word": "I also offered to help your brother to escape, but he would not go.",
+        "start": 23.79,
+        "end": 27.09,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "He eats and sleeps very steadily, replied the new king.",
+        "punctuated_word": "He eats and sleeps very steadily, replied the new king.",
+        "start": 28.79,
+        "end": 31.97,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "I hope it doesn't work too hard, said Shaggy.",
+        "punctuated_word": "I hope it doesn't work too hard, said Shaggy.",
+        "start": 33.61,
+        "end": 36.33,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "He doesn't work at all.",
+        "punctuated_word": "He doesn't work at all.",
+        "start": 38.05,
+        "end": 39.13,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "In fact, there's nothing he can do in these dominions as well as our gnomes, whose numbers are so great that it worries us to keep them all busy.",
+        "punctuated_word": "In fact, there's nothing he can do in these dominions as well as our gnomes, whose numbers are so great that it worries us to keep them all busy.",
+        "start": 40.51,
+        "end": 48.71,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Not exactly, return Calico.",
+        "punctuated_word": "Not exactly, return Calico.",
+        "start": 50.45,
+        "end": 52.69,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Where is my brother now? inquired Shaggy in the metal forest.",
+        "punctuated_word": "Where is my brother now? inquired Shaggy in the metal forest.",
+        "start": 54.35,
+        "end": 59.89,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Where is that?",
+        "punctuated_word": "Where is that?",
+        "start": 61.53,
+        "end": 62.27,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "The middle forest is in the great domed cavern, the largest in all our dominions, replied Calico.",
+        "punctuated_word": "The middle forest is in the great domed cavern, the largest in all our dominions, replied Calico.",
+        "start": 64.01,
+        "end": 70.41,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Kalgo hesitated.",
+        "punctuated_word": "Kalgo hesitated.",
+        "start": 72.01,
+        "end": 73.23,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "However, if we look sharp, we may be able to discover one of these secret ways.",
+        "punctuated_word": "However, if we look sharp, we may be able to discover one of these secret ways.",
+        "start": 75.13,
+        "end": 80.85,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Oh no, I'm quite sure he didn't.",
+        "punctuated_word": "Oh no, I'm quite sure he didn't.",
+        "start": 82.45,
+        "end": 83.97,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "That's funny, remarked Betsy thoughtfully.",
+        "punctuated_word": "That's funny, remarked Betsy thoughtfully.",
+        "start": 85.63,
+        "end": 88.11,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "I don't believe Anne knew any magic or she'd have worked it before.",
+        "punctuated_word": "I don't believe Anne knew any magic or she'd have worked it before.",
+        "start": 89.75,
+        "end": 93.37,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "I do not know, confessed Shaggy.",
+        "punctuated_word": "I do not know, confessed Shaggy.",
+        "start": 95.11,
+        "end": 96.97,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "true, agreed Calico.",
+        "punctuated_word": "true, agreed Calico.",
+        "start": 98.45,
+        "end": 100.35,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Calico went to the big gong and pounded on it just as Brigado used to do, but no one answered the summons.",
+        "punctuated_word": "Calico went to the big gong and pounded on it just as Brigado used to do, but no one answered the summons.",
+        "start": 101.85,
+        "end": 108.25,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Having returned to the royal cavern, Calico first pounded the gong and then sat in the throne, wearing Rigido's discarded ruby crown and holding in his hand the scepter which Rigido had so often thrown at his head.",
+        "punctuated_word": "Having returned to the royal cavern, Calico first pounded the gong and then sat in the throne, wearing Rigido's discarded ruby crown and holding in his hand the scepter which Rigido had so often thrown at his head.",
+        "start": 110.11,
+        "end": 123.51,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "A man said to the universe, Sir, I exist.",
+        "punctuated_word": "A man said to the universe, Sir, I exist.",
+        "start": 125.13,
+        "end": 128.93,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/118",
+        "speaker_resolution": "phase1_global_one_to_one"
+      }
+    ],
+    "absolute_start_time": "1970-01-01T00:00:07.870000",
+    "absolute_end_time": "1970-01-01T00:02:08.930000"
+  }
+]

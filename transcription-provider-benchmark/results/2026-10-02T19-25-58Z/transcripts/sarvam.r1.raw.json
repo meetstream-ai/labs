@@ -1,0 +1,56 @@
+{
+  "request_id": "20261002_d90147da-83f4-4653-8d6c-106581552aad",
+  "transcript": "Hi, this is a short test of the transcription benchmark. I am going to read a few sentences at a normal speaking pace. Our team meets every Tuesday at 10:30 to review the support queue. Last week we closed 112 tickets and the average response time dropped to 3 hours. The biggest issue was a login problem on the Android app. It affected about 6% of users in India and Singapore. Next sprint, we will focus on the search feature and the new billing page. Ananya is reading the design work and Rahul will handle the database changes. If everything goes well, we should be ready for testing by the 21st. This is the end of the test. Thank you.",
+  "timestamps": {
+    "words": [
+      "Hi, this is a short test of the transcription benchmark. I am going to read a few sentences at a normal speaking pace. Our team meets every Tuesday at 10:30 to review the support queue. Last week we closed 112 tickets and the average response time dropped to 3 hours.",
+      "The biggest issue was a login problem on the Android app. It affected about 6% of users in India and Singapore. Next sprint, we will focus on the search feature and the new billing page.",
+      "Ananya is reading the design work and Rahul will handle the database changes. If everything goes well, we should be ready for testing by the 21st.",
+      "This is the end of the test. Thank you."
+    ],
+    "start_time_seconds": [
+      4.71,
+      24.39,
+      39.83,
+      50.99
+    ],
+    "end_time_seconds": [
+      24.17,
+      38.95,
+      49.53,
+      53.11
+    ]
+  },
+  "diarized_transcript": {
+    "entries": [
+      {
+        "transcript": "Hi, this is a short test of the transcription benchmark. I am going to read a few sentences at a normal speaking pace. Our team meets every Tuesday at 10:30 to review the support queue. Last week we closed 112 tickets and the average response time dropped to 3 hours.",
+        "start_time_seconds": 4.71,
+        "end_time_seconds": 24.17,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "The biggest issue was a login problem on the Android app. It affected about 6% of users in India and Singapore. Next sprint, we will focus on the search feature and the new billing page.",
+        "start_time_seconds": 24.39,
+        "end_time_seconds": 38.95,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "Ananya is reading the design work and Rahul will handle the database changes. If everything goes well, we should be ready for testing by the 21st.",
+        "start_time_seconds": 39.83,
+        "end_time_seconds": 49.53,
+        "speaker_id": "1"
+      },
+      {
+        "transcript": "This is the end of the test. Thank you.",
+        "start_time_seconds": 50.99,
+        "end_time_seconds": 53.11,
+        "speaker_id": "1"
+      }
+    ]
+  },
+  "language_code": "en-IN",
+  "language_probability": null,
+  "audio_hash": "32ca25efae40ef5355e7b08a5c601867",
+  "audio_mime": "audio/wav"
+}

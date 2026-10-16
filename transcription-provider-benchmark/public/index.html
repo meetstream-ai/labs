@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transcriber Benchmark</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+    <nav class="side" aria-label="Main">
+      <div class="brand">
+        <img src="favicon.png" alt="" width="22" height="22">
+        <div><h1>Transcriber Benchmark</h1><span class="brand-sub">by MeetStream Labs</span></div>
+      </div>
+      <ul class="nav">
+        <li><button type="button" class="nav-item" id="newRun" data-view="setupView">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>New benchmark</button></li>
+        <li><button type="button" class="nav-item" id="navProviders" data-view="providersView">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h7"/></svg>Providers</button></li>
+        <li><button type="button" class="nav-item" id="navSettings" data-view="settingsView">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v2M8 12.2v2M14.2 8h-2M3.8 8h-2M12.4 3.6l-1.4 1.4M5 11l-1.4 1.4M12.4 12.4L11 11M5 5L3.6 3.6"/></svg>Settings<span class="nav-dot" id="keyDot" hidden title="MeetStream API key needed"></span></button></li>
+      </ul>
+      <h2 class="side-title">Runs <span class="count" id="runCount"></span></h2>
+      <ul id="runList" class="run-list"><li class="muted">Loading…</li></ul>
+    </nav>
+
+    <main id="main">
+      <!-- New run -->
+      <section id="setupView" class="view">
+        <div>
+          <h2 class="view-title">New benchmark</h2>
+          <p class="lede">Send the same audio to every transcription provider and compare accuracy, turnaround and cost side by side.</p>
+        </div>
+
+        <details class="card setup-card" id="setupCard" open>
+          <summary><h3><span class="step">!</span>Before you start: connect the providers in MeetStream</h3></summary>
+          <p class="hint">MeetStream runs every provider for you, but it needs each one's key. Do this once per MeetStream account.</p>
+          <ol class="setup-steps">
+            <li>Open the <a href="https://app.meetstream.ai" target="_blank" rel="noopener">MeetStream dashboard</a>.</li>
+            <li>Go to <strong>Integrations → Transcription</strong>.</li>
+            <li>Connect <strong>Deepgram</strong>, <strong>AssemblyAI</strong>, <strong>Sarvam</strong> and <strong>JigsawStack</strong> with your key for each.</li>
+            <li><strong>Mia Transcribe</strong> is MeetStream's own engine and needs nothing.</li>
+          </ol>
+          <p class="hint">A provider you haven't connected still appears in the results, marked "not run" with MeetStream's reason. Untick it below if you don't want it.</p>
+        </details>
+
+        <p class="notice" id="keysNotice" hidden>
+          <span id="keysNoticeText"></span>
+          <button class="secondary" type="button" id="keysNoticeButton">Open Settings</button>
+        </p>
+
+        <div class="card">
+          <h3><span class="step">1</span>Where the audio comes from</h3>
+          <div class="choices" role="radiogroup" aria-label="Audio source">
+            <label class="choice"><input type="radio" name="mode" value="existing" checked>
+              <strong>A recording that already exists</strong>
+              <span>Transcribe a bot's finished recording again with every provider.</span></label>
+            <label class="choice"><input type="radio" name="mode" value="two-bot">
+              <strong>Record a meeting: a bot plays a clip</strong>
+              <span>One bot plays the audio into the call, another records it. Best for accuracy.</span></label>
+            <label class="choice"><input type="radio" name="mode" value="recorder">
+              <strong>Record a meeting: people talk</strong>
+              <span>One bot records whatever is said until you stop it.</span></label>
+          </div>
+
+          <div class="mode-fields" data-mode="existing">
+            <label class="field">Bot ID
+              <div class="row">
+                <input id="botId" placeholder="e.g. 88ba4098-3ab4-4c0c-b56c-3e5416f0f782" spellcheck="false">
+                <button class="secondary" id="loadBots" type="button">Recent bots</button>
+              </div>
+            </label>
+            <select id="botPicker" hidden aria-label="Recent bots"></select>
+            <p class="notice" id="botInfo" hidden></p>
+            <p class="hint">A provider that has already transcribed this bot can't run on it again. The run then scores that earlier transcript, without a turnaround time.</p>
+          </div>
+
+          <div class="mode-fields" data-mode="two-bot" hidden>
+            <label class="field">Meeting link
+              <input class="meetingLink" placeholder="https://meet.google.com/abc-defg-hij">
+            </label>
+            <fieldset class="field">
+              <legend>Audio to play</legend>
+              <label class="inline"><input type="radio" name="audio" value="sample" checked> Sample clip (3 min of LibriSpeech, exact transcript)</label>
+              <label class="inline"><input type="radio" name="audio" value="script"> Type what the bot says</label>
+              <label class="inline"><input type="radio" name="audio" value="upload"> My own audio file
+                <input id="audioFile" type="file" accept="audio/*,video/*"></label>
+            </fieldset>
+            <div id="scriptBox" class="field" hidden>
+              <label for="scriptText">What the bot says</label>
+              <textarea id="scriptText" rows="7" placeholder="Type the words the speaker bot should say in the meeting…"></textarea>
+              <p class="hint" id="scriptHint"></p>
+            </div>
+            <p class="hint">Admit both bots when they reach the lobby, and keep everyone muted while the clip plays.</p>
+          </div>
+
+          <div class="mode-fields" data-mode="recorder" hidden>
+            <label class="field">Meeting link
+              <input class="meetingLink" placeholder="https://meet.google.com/abc-defg-hij">
+            </label>
+            <div class="row">
+              <label class="field grow">Bot name
+                <input id="botName" value="Benchmark Recorder">
+              </label>
+              <label class="field">Stop after (minutes)
+                <input id="maxMinutes" type="number" min="1" max="240" value="30">
+              </label>
+            </div>
+            <p class="hint">Admit the bot, then talk. Press <em>Stop recording</em> when you're done (or end the meeting).</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><span class="step">2</span>What was actually said</h3>
+          <p class="hint">Accuracy (WER) needs a word-for-word transcript. Without one you still get turnaround and cost. Only the options that fit the audio above are shown.</p>
+          <div class="choices compact" role="radiogroup" aria-label="Reference transcript">
+            <label class="choice" data-ref="saved"><input type="radio" name="reference" value="saved">
+              <strong>The one saved with this recording</strong><span id="savedNote">Recorded with this app, so its reference is known.</span></label>
+            <label class="choice" data-ref="script"><input type="radio" name="reference" value="script">
+              <strong>What the bot says</strong><span>Your script, word for word: the exact reference.</span></label>
+            <label class="choice" data-ref="sample"><input type="radio" name="reference" value="sample">
+              <strong>The sample clip's transcript</strong><span id="sampleNote">The exact words of the sample clip.</span></label>
+            <label class="choice" data-ref="text"><input type="radio" name="reference" value="text">
+              <strong>My own transcript</strong><span>Paste it or load a .txt file.</span></label>
+            <label class="choice" data-ref="none"><input type="radio" name="reference" value="none" checked>
+              <strong>None</strong><span>Turnaround and cost only.</span></label>
+          </div>
+          <div id="referenceText" hidden>
+            <textarea id="refText" rows="6" placeholder="Paste exactly what was said…"></textarea>
+            <input id="refFile" type="file" accept=".txt,text/plain">
+          </div>
+          <div id="sampleBox" class="notice" hidden>
+            <span id="sampleStatus">The sample clip hasn't been built yet.</span>
+            <button class="secondary" id="buildSample" type="button">Get sample clip</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><span class="step">3</span>Who transcribes it</h3>
+          <div id="providerList" class="providers"></div>
+          <p class="hint" id="pricesNote"></p>
+        </div>
+
+        <div class="actions">
+          <p class="error" id="setupError" role="alert"></p>
+          <button class="primary" id="runButton" type="button">Run benchmark</button>
+        </div>
+      </section>
+
+      <!-- Live run -->
+      <section id="liveView" class="view" hidden>
+        <div>
+          <span class="label">Live</span>
+          <h2 class="view-title">Running</h2>
+        </div>
+        <ol class="stepper" id="stepper"></ol>
+        <div class="card">
+          <div class="live-head">
+            <div id="botChips" class="chips"></div>
+            <div class="live-actions">
+              <button class="secondary" id="stopRecording" type="button" hidden>Stop recording</button>
+              <button class="ghost danger" id="cancelRun" type="button">Cancel run</button>
+            </div>
+          </div>
+          <p class="live-message" id="liveMessage"></p>
+        </div>
+        <div class="card board-card" id="boardCard" hidden>
+          <div class="card-head">
+            <div><span class="label">Timing board</span><h3>Every provider, same recording, same start</h3></div>
+            <span class="clock" id="boardClock">0.0 s</span>
+          </div>
+          <ol class="board" id="board"></ol>
+        </div>
+        <details class="card log" open>
+          <summary>Log</summary>
+          <pre id="log"></pre>
+        </details>
+      </section>
+
+      <!-- Results -->
+      <section id="resultView" class="view" hidden>
+        <div class="result-head">
+          <div>
+            <span class="label" id="resultKind">Benchmark result</span>
+            <h2 class="view-title" id="resultTitle">Results</h2>
+          </div>
+          <div class="downloads" id="downloads"></div>
+        </div>
+        <dl class="specs" id="specs"></dl>
+
+        <details class="card add-ref" id="addRefCard" hidden>
+          <summary><h3><span class="step">+</span>Add what was said, then score accuracy</h3></summary>
+          <p class="hint">This run has no reference, so it shows speed and cost only. Paste a word-for-word transcript of what was said in the meeting (or load a .txt file) and every provider's transcript is scored against it. The run is marked as scored after the fact.</p>
+          <textarea id="addRefText" rows="6" placeholder="Paste exactly what was said…"></textarea>
+          <div class="add-ref-actions">
+            <input id="addRefFile" type="file" accept=".txt,text/plain">
+            <p class="error" id="addRefError" role="alert"></p>
+            <button class="primary" id="addRefButton" type="button">Score accuracy</button>
+          </div>
+        </details>
+
+        <div class="summary" id="summaryCards"></div>
+
+        <div class="card table-card">
+          <div class="card-head">
+            <div><span class="label">Leaderboard</span><h3 id="boardTitle">Ranked by accuracy</h3></div>
+            <span class="hint" id="rankHint"></span>
+          </div>
+          <div class="table-scroll"><table id="resultTable"></table></div>
+          <p class="hint" id="tableNotes"></p>
+        </div>
+
+        <div class="charts" id="charts"></div>
+        <div id="notes"></div>
+
+        <div class="card-head plain">
+          <div><span class="label">Detail</span><h3>What each provider got wrong</h3></div>
+        </div>
+        <div id="details"></div>
+        <div class="tooltip" id="tooltip" role="status" hidden></div>
+      </section>
+
+      <!-- Providers -->
+      <section id="providersView" class="view" hidden>
+        <div>
+          <h2 class="view-title">Providers</h2>
+          <p class="lede">Every transcription provider MeetStream offers, exactly as this benchmark configures it. Each gets the same recording and the same settings rule: its documented model, English where it documents an English code, defaults otherwise.</p>
+        </div>
+        <div class="provider-cards" id="providerCards"></div>
+        <p class="hint" id="providerFoot"></p>
+      </section>
+
+      <!-- Settings -->
+      <section id="settingsView" class="view" hidden>
+        <div>
+          <h2 class="view-title">Settings</h2>
+          <p class="lede">API keys, where this app keeps its data, and what it is.</p>
+        </div>
+
+        <div class="card settings-card">
+          <h3>API keys</h3>
+          <div class="key-row" id="keyMeetstream">
+            <div class="key-info">
+              <strong>MeetStream API key</strong>
+              <span class="hint">Sends the bots and runs every provider. Find it in the <a href="https://app.meetstream.ai" target="_blank" rel="noopener">MeetStream dashboard</a>.</span>
+              <span class="key-status" data-status></span>
+            </div>
+            <div class="key-edit">
+              <input type="password" autocomplete="off" spellcheck="false" placeholder="Paste a new key" aria-label="MeetStream API key" data-input>
+              <button class="primary small" type="button" data-save>Save</button>
+              <button class="secondary" type="button" data-test>Test connection</button>
+              <button class="ghost danger" type="button" data-clear>Remove</button>
+            </div>
+            <p class="key-result" data-result role="status"></p>
+          </div>
+          <div class="key-row" id="keyNgrok">
+            <div class="key-info">
+              <strong>ngrok authtoken</strong>
+              <span class="hint">Only for <em>Record a meeting: a bot plays a clip</em>. The speaker bot fetches the clip through an ngrok tunnel. Free at <a href="https://dashboard.ngrok.com/get-started/your-authtoken" target="_blank" rel="noopener">dashboard.ngrok.com</a>.</span>
+              <span class="key-status" data-status></span>
+            </div>
+            <div class="key-edit">
+              <input type="password" autocomplete="off" spellcheck="false" placeholder="Paste a new token" aria-label="ngrok authtoken" data-input>
+              <button class="primary small" type="button" data-save>Save</button>
+              <button class="ghost danger" type="button" data-clear>Remove</button>
+            </div>
+            <p class="key-result" data-result role="status"></p>
+          </div>
+          <p class="hint" id="keyStorageNote"></p>
+        </div>
+
+        <div class="card settings-card">
+          <h3>Storage</h3>
+          <div class="storage-path">
+            <code id="dataPath">…</code>
+            <button class="secondary" type="button" id="openDataFolder" hidden>Open folder</button>
+          </div>
+          <div class="storage-bar" id="storageBar" aria-hidden="true"></div>
+          <dl class="storage-list" id="storageList"></dl>
+          <p class="hint">Each run keeps its transcripts and scores (well under 1 MB). Uploaded audio is kept so a run can be traced back to exactly what was played.</p>
+        </div>
+
+        <div class="card settings-card">
+          <h3>About</h3>
+          <dl class="about-list" id="aboutList"></dl>
+          <p class="hint">MeetStream wrote this tool and sells one of the engines it measures (Mia Transcribe). Every number comes from files you can re-score yourself: read the <a href="https://github.com/meetstream-ai/labs/tree/main/transcription-provider-benchmark" target="_blank" rel="noopener">methodology</a>.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

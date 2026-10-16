@@ -1,0 +1,83 @@
+{
+  "success": true,
+  "text": "Hi, this is a short test of the transcription benchmark. I am going to read a few sentences at a normal speaking pace. Our team meets every Tuesday at 10:30 to review the support queue. Last week we closed 112 tickets and the average response time dropped to 3 hours. The biggest issue was a login problem on the Android app which affected about 6% of users in India and Singapore. Next sprint, we will focus on the search feature and the new billing page. Ananya is leading the design work and Rahul will handle the database changes. If everything goes well, we should be ready for testing by the 21st. This is the end of the test. Thank you.",
+  "chunks": [
+    {
+      "timestamp": [
+        4.54,
+        9.31
+      ],
+      "text": "Hi, this is a short test of the transcription benchmark. I am"
+    },
+    {
+      "timestamp": [
+        9.31,
+        14.09
+      ],
+      "text": "going to read a few sentences at a normal speaking pace. Our"
+    },
+    {
+      "timestamp": [
+        14.09,
+        18.86
+      ],
+      "text": "team meets every Tuesday at 10:30 to review the support queue. Last"
+    },
+    {
+      "timestamp": [
+        18.86,
+        23.63
+      ],
+      "text": "week we closed 112 tickets and the average response time dropped to"
+    },
+    {
+      "timestamp": [
+        23.63,
+        28.41
+      ],
+      "text": "3 hours. The biggest issue was a login problem on the Android"
+    },
+    {
+      "timestamp": [
+        28.41,
+        33.18
+      ],
+      "text": "app which affected about 6% of users in India and Singapore."
+    },
+    {
+      "timestamp": [
+        33.54,
+        38.47
+      ],
+      "text": "Next sprint, we will focus on the search feature and the new billing"
+    },
+    {
+      "timestamp": [
+        38.47,
+        43.39
+      ],
+      "text": "page. Ananya is leading the design work and Rahul will handle the database"
+    },
+    {
+      "timestamp": [
+        43.39,
+        48.32
+      ],
+      "text": "changes. If everything goes well, we should be ready for testing by the"
+    },
+    {
+      "timestamp": [
+        48.32,
+        53.24
+      ],
+      "text": "21st. This is the end of the test. Thank you."
+    }
+  ],
+  "_usage": {
+    "input_tokens": 295,
+    "output_tokens": 141,
+    "inference_time_tokens": 801,
+    "total_tokens": 1237
+  },
+  "log_id": "c28d75c3-0fc6-468e-b05e-0ea39e9b1c9c"
+}

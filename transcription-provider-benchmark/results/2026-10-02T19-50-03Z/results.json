@@ -1,0 +1,456 @@
+{
+  "run_id": "2026-10-02T19-50-03Z",
+  "bot_id": "838eb44e-82ec-4381-be0c-ab82c9d4851a",
+  "reference_words": 420,
+  "wer_tie_band": 0.016049922118191104,
+  "billed_audio_seconds": 217.5147,
+  "prices_as_of": "2026-09-28",
+  "clip_seconds": 191.435,
+  "poll_seconds": 1,
+  "normalizer": "src/wer.js normalize() v3, 2026-10-03: + money with a scale word, month-day dates (v2: spelling, contractions, compound spacing; see METHODOLOGY.md)",
+  "providers": [
+    {
+      "provider": "meetstream",
+      "ran": true,
+      "rounds": 1,
+      "succeeded": 1,
+      "failed_rounds": [],
+      "notes": [
+        "returned exactly the same transcript as JigsawStack, so almost certainly the same engine: count them as one result, not two that agree"
+      ],
+      "wer": 0.014285714285714285,
+      "wer_per_round": [
+        0.0143
+      ],
+      "substitutions": 5,
+      "deletions": 1,
+      "insertions": 0,
+      "reference_words": 420,
+      "outside_clip_words": 0,
+      "clip_found": true,
+      "wer_untrimmed": 0.014285714285714285,
+      "turnaround_median_s": 7.28,
+      "turnaround_lower_s": 5.4,
+      "turnaround_min_s": 7.28,
+      "turnaround_max_s": 7.28,
+      "transcribe_request_s": 1.08,
+      "turnaround_comparable": true,
+      "real_time_factor": 0.03346900232490034,
+      "post_call_turnaround_s": null,
+      "errors": [
+        {
+          "op": "D",
+          "ref": "at",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "em",
+          "hyp": "adam"
+        },
+        {
+          "op": "S",
+          "ref": "birket",
+          "hyp": "burkett"
+        },
+        {
+          "op": "S",
+          "ref": "collier",
+          "hyp": "bollier"
+        },
+        {
+          "op": "S",
+          "ref": "the",
+          "hyp": "a"
+        },
+        {
+          "op": "S",
+          "ref": "were",
+          "hyp": "are"
+        }
+      ],
+      "config": {
+        "meetstream": {
+          "language": "auto",
+          "translate": false
+        }
+      },
+      "same_output_as": [
+        "jigsawstack"
+      ],
+      "model_reported": null,
+      "audio_reported": null,
+      "cost_usd": 0.006042075000000001,
+      "cost_per_hour_usd": 0.1,
+      "cost_basis": "$0.10/hr (MeetStream transcription add-on)",
+      "cost_source": "https://www.meetstream.ai/pricing"
+    },
+    {
+      "provider": "jigsawstack",
+      "ran": true,
+      "rounds": 1,
+      "succeeded": 1,
+      "failed_rounds": [],
+      "notes": [
+        "returned exactly the same transcript as Mia Transcribe, so almost certainly the same engine: count them as one result, not two that agree"
+      ],
+      "wer": 0.014285714285714285,
+      "wer_per_round": [
+        0.0143
+      ],
+      "substitutions": 5,
+      "deletions": 1,
+      "insertions": 0,
+      "reference_words": 420,
+      "outside_clip_words": 0,
+      "clip_found": true,
+      "wer_untrimmed": 0.014285714285714285,
+      "turnaround_median_s": 12.48,
+      "turnaround_lower_s": 10.55,
+      "turnaround_min_s": 12.48,
+      "turnaround_max_s": 12.48,
+      "transcribe_request_s": 2.54,
+      "turnaround_comparable": true,
+      "real_time_factor": 0.057375432556972014,
+      "post_call_turnaround_s": null,
+      "errors": [
+        {
+          "op": "D",
+          "ref": "at",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "em",
+          "hyp": "adam"
+        },
+        {
+          "op": "S",
+          "ref": "birket",
+          "hyp": "burkett"
+        },
+        {
+          "op": "S",
+          "ref": "collier",
+          "hyp": "bollier"
+        },
+        {
+          "op": "S",
+          "ref": "the",
+          "hyp": "a"
+        },
+        {
+          "op": "S",
+          "ref": "were",
+          "hyp": "are"
+        }
+      ],
+      "config": {
+        "jigsawstack": {
+          "language": "en",
+          "translate": false
+        }
+      },
+      "same_output_as": [
+        "meetstream"
+      ],
+      "model_reported": null,
+      "audio_reported": null,
+      "cost_usd": 0.0031818600000000003,
+      "cost_per_hour_usd": 0.05266170976030586,
+      "cost_basis": "$0.99 per 1M tokens (from the response's own usage)",
+      "cost_source": "https://jigsawstack.com/pricing"
+    },
+    {
+      "provider": "assemblyai",
+      "ran": true,
+      "rounds": 1,
+      "succeeded": 1,
+      "failed_rounds": [],
+      "notes": [],
+      "wer": 0.02142857142857143,
+      "wer_per_round": [
+        0.0214
+      ],
+      "substitutions": 7,
+      "deletions": 2,
+      "insertions": 0,
+      "reference_words": 420,
+      "outside_clip_words": 1,
+      "clip_found": true,
+      "wer_untrimmed": 0.023809523809523808,
+      "turnaround_median_s": 10.56,
+      "turnaround_lower_s": 9.09,
+      "turnaround_min_s": 10.56,
+      "turnaround_max_s": 10.56,
+      "transcribe_request_s": 1,
+      "turnaround_comparable": true,
+      "real_time_factor": 0.04854844293282247,
+      "post_call_turnaround_s": null,
+      "errors": [
+        {
+          "op": "D",
+          "ref": "at",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "em",
+          "hyp": "atom"
+        },
+        {
+          "op": "S",
+          "ref": "birket",
+          "hyp": "burkett"
+        },
+        {
+          "op": "S",
+          "ref": "the",
+          "hyp": "a"
+        },
+        {
+          "op": "D",
+          "ref": "michael",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "angelo",
+          "hyp": "michelangelo"
+        },
+        {
+          "op": "S",
+          "ref": "mantel",
+          "hyp": "mantle"
+        },
+        {
+          "op": "S",
+          "ref": "were",
+          "hyp": "are"
+        },
+        {
+          "op": "S",
+          "ref": "while",
+          "hyp": "and"
+        }
+      ],
+      "config": {
+        "assemblyai": {
+          "speech_models": [
+            "universal-2"
+          ],
+          "language_code": "en_us"
+        }
+      },
+      "model_reported": "universal-2 (assemblyai_default, assemblyai_default)",
+      "audio_reported": "218 s",
+      "cost_usd": 0.010271527499999999,
+      "cost_per_hour_usd": 0.16999999999999998,
+      "cost_basis": "$0.15/hr Universal-2 + $0.02/hr speaker labels",
+      "cost_source": "https://www.assemblyai.com/pricing"
+    },
+    {
+      "provider": "deepgram",
+      "ran": true,
+      "rounds": 1,
+      "succeeded": 1,
+      "failed_rounds": [],
+      "notes": [],
+      "wer": 0.023809523809523808,
+      "wer_per_round": [
+        0.0238
+      ],
+      "substitutions": 7,
+      "deletions": 3,
+      "insertions": 0,
+      "reference_words": 420,
+      "outside_clip_words": 0,
+      "clip_found": true,
+      "wer_untrimmed": 0.023809523809523808,
+      "turnaround_median_s": 28.29,
+      "turnaround_lower_s": 26.07,
+      "turnaround_min_s": 28.29,
+      "turnaround_max_s": 28.29,
+      "transcribe_request_s": 1.31,
+      "turnaround_comparable": true,
+      "real_time_factor": 0.13006017524332839,
+      "post_call_turnaround_s": null,
+      "errors": [
+        {
+          "op": "D",
+          "ref": "at",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "em",
+          "hyp": "atom"
+        },
+        {
+          "op": "S",
+          "ref": "idylls",
+          "hyp": "idols"
+        },
+        {
+          "op": "S",
+          "ref": "birket",
+          "hyp": "burkitt"
+        },
+        {
+          "op": "D",
+          "ref": "collier",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "the",
+          "hyp": "a"
+        },
+        {
+          "op": "D",
+          "ref": "michael",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "angelo",
+          "hyp": "michelangelo"
+        },
+        {
+          "op": "S",
+          "ref": "mantel",
+          "hyp": "mantle"
+        },
+        {
+          "op": "S",
+          "ref": "were",
+          "hyp": "are"
+        }
+      ],
+      "config": {
+        "deepgram": {
+          "model": "nova-3",
+          "language": "en"
+        }
+      },
+      "model_reported": "general-nova-3 2025-07-31.0",
+      "audio_reported": "217.5 s, 1 channel",
+      "cost_usd": 0.0155885535,
+      "cost_per_hour_usd": 0.258,
+      "cost_basis": "$0.0043/min (Nova-3 pre-recorded)",
+      "cost_source": "https://deepgram.com/pricing"
+    },
+    {
+      "provider": "sarvam",
+      "ran": true,
+      "rounds": 1,
+      "succeeded": 1,
+      "failed_rounds": [],
+      "notes": [],
+      "wer": 0.03333333333333333,
+      "wer_per_round": [
+        0.0333
+      ],
+      "substitutions": 10,
+      "deletions": 4,
+      "insertions": 0,
+      "reference_words": 420,
+      "outside_clip_words": 0,
+      "clip_found": true,
+      "wer_untrimmed": 0.03333333333333333,
+      "turnaround_median_s": 15.59,
+      "turnaround_lower_s": 14,
+      "turnaround_min_s": 15.59,
+      "turnaround_max_s": 15.59,
+      "transcribe_request_s": 0.69,
+      "turnaround_comparable": true,
+      "real_time_factor": 0.07167331679192257,
+      "post_call_turnaround_s": null,
+      "errors": [
+        {
+          "op": "S",
+          "ref": "leighton's",
+          "hyp": "layton's"
+        },
+        {
+          "op": "S",
+          "ref": "linnell's",
+          "hyp": "linell's"
+        },
+        {
+          "op": "D",
+          "ref": "at",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "em",
+          "hyp": "adam"
+        },
+        {
+          "op": "S",
+          "ref": "birket",
+          "hyp": "burkett"
+        },
+        {
+          "op": "D",
+          "ref": "collier",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "in",
+          "hyp": "an"
+        },
+        {
+          "op": "S",
+          "ref": "quilter",
+          "hyp": "krilter"
+        },
+        {
+          "op": "D",
+          "ref": "finish",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "in",
+          "hyp": "finishing"
+        },
+        {
+          "op": "S",
+          "ref": "the",
+          "hyp": "a"
+        },
+        {
+          "op": "D",
+          "ref": "michael",
+          "hyp": null
+        },
+        {
+          "op": "S",
+          "ref": "angelo",
+          "hyp": "michelangelo"
+        },
+        {
+          "op": "S",
+          "ref": "felicitous",
+          "hyp": "felicitates"
+        }
+      ],
+      "config": {
+        "sarvam": {
+          "model": "saaras:v3",
+          "mode": "transcribe",
+          "language_code": "en-IN"
+        }
+      },
+      "model_reported": null,
+      "audio_reported": "audio/wav, hash 82dbb8cadf7e",
+      "cost_usd": 0.028275101393510818,
+      "cost_per_hour_usd": 0.46797004991680535,
+      "cost_basis": "₹45/hr batch with diarization, at ₹96.16/$",
+      "cost_source": "https://www.sarvam.ai/api-pricing"
+    }
+  ]
+}
