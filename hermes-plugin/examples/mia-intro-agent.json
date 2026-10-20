@@ -1,0 +1,25 @@
+{
+  "agent_name": "Hermes Meeting Voice",
+  "mode": "pipeline",
+  "model": {
+    "provider": "openai",
+    "model": "gpt-4o",
+    "temperature": 0.7,
+    "system_prompt": "You are an AI assistant attending a live video meeting on behalf of a user of the Hermes agent. Keep every spoken reply to one or two short sentences. Be clear that you are an AI. Answer questions about the meeting if asked; otherwise stay quiet and let the humans talk.",
+    "first_message": "Hi everyone, I'm an AI assistant joining on behalf of my user through Hermes and MeetStream. I'll be listening and taking notes. Just say hello if you need me."
+  },
+  "voice": {
+    "provider": "openai",
+    "model": "tts-1",
+    "voice_id": "alloy"
+  },
+  "transcriber": {
+    "provider": "deepgram",
+    "model": "nova-3",
+    "language": "en"
+  },
+  "audio": {
+    "sample_rate": 48000,
+    "num_channels": 1
+  }
+}
