@@ -1,0 +1,7 @@
+Good morning everyone, and thanks for joining the quarterly planning review. Let's start with the numbers. Revenue for the third quarter came in at four point two million dollars, up eighteen percent from last year. The enterprise team closed twenty three new accounts, including two hospitals in Chicago and a logistics company in Rotterdam.
+
+Priya will walk us through the product roadmap after this. The short version is that the mobile app ships on November fourteenth, and the API migration is about two weeks behind schedule. We have moved three engineers from the payments team to help, so we expect to recover most of that time by the end of the month.
+
+On hiring, we have nine open roles. Four are in customer support, three in engineering, and two in finance. Please send referrals to Marcus by Friday.
+
+Finally, a reminder that the office will be closed on Monday for maintenance. If you need access to the lab, talk to facilities before Thursday. Any questions before we move on?

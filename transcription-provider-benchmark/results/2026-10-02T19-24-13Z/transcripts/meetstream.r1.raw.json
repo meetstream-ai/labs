@@ -1,0 +1,188 @@
+{
+  "success": true,
+  "text": "the little girl had been asleep but she heard the raps and opened the door the king is fled in disgrace and your friends are asking for you i begged ruggedo long ago to send him away but he would not do so i also offered to help your brother to escape but he would not go he eats and sleeps very steadily replied the new king i hope he doesn't work too hard said shaggy he doesn't work at all in fact there is nothing he can do in these dominions as well as our gnomes whose numbers are so great that it worries us to keep them all busy. Not exactly, returned Calico. Where is my brother now? inquired Shaggy. In the metal forest. Where is that? The metal forest is in the great domed cavern, the largest in all our dominions, replied Calico. Calico hesitated. However, if we look sharp, we may be able to discover one of these secret ways. Oh, no, I'm quite sure he didn't. that's funny remarked betsy thoughtfully i don't believe ann knew any magic or she'd have worked it before i do not know confessed shaggy true agreed calico calico went to the big gong and pounded on it just as ruggedo used to do but no one answered the summons having returned to the royal cavern kalico first pounded the gong and then sat in the throne wearing ruggedo's discarded ruby crown and holding in his hand the sceptre which ruggedo had so often thrown at his head a man said to the universe sir i exist",
+  "chunks": [
+    {
+      "timestamp": [
+        7.62,
+        12.28
+      ],
+      "text": "the little girl had been asleep but she heard the raps and opened"
+    },
+    {
+      "timestamp": [
+        12.28,
+        16.94
+      ],
+      "text": "the door the king is fled in disgrace and your friends are asking"
+    },
+    {
+      "timestamp": [
+        16.94,
+        21.6
+      ],
+      "text": "for you i begged ruggedo long ago to send him away but he"
+    },
+    {
+      "timestamp": [
+        21.6,
+        26.26
+      ],
+      "text": "would not do so i also offered to help your brother to escape"
+    },
+    {
+      "timestamp": [
+        26.26,
+        30.92
+      ],
+      "text": "but he would not go he eats and sleeps very steadily replied the"
+    },
+    {
+      "timestamp": [
+        30.92,
+        35.58
+      ],
+      "text": "new king i hope he doesn't work too hard said shaggy he doesn't"
+    },
+    {
+      "timestamp": [
+        35.58,
+        40.24
+      ],
+      "text": "work at all in fact there is nothing he can do in these"
+    },
+    {
+      "timestamp": [
+        40.24,
+        44.9
+      ],
+      "text": "dominions as well as our gnomes"
+    },
+    {
+      "timestamp": [
+        45.24,
+        50.1
+      ],
+      "text": "whose numbers are so great that it worries us to"
+    },
+    {
+      "timestamp": [
+        50.1,
+        54.96
+      ],
+      "text": "keep them all busy. Not exactly, returned Calico. Where is"
+    },
+    {
+      "timestamp": [
+        54.96,
+        59.82
+      ],
+      "text": "my brother now? inquired Shaggy. In the metal forest. Where"
+    },
+    {
+      "timestamp": [
+        59.82,
+        64.68
+      ],
+      "text": "is that? The metal forest is in the great domed"
+    },
+    {
+      "timestamp": [
+        64.68,
+        69.54
+      ],
+      "text": "cavern, the largest in all our dominions, replied Calico. Calico"
+    },
+    {
+      "timestamp": [
+        69.54,
+        74.4
+      ],
+      "text": "hesitated. However, if we look sharp, we may be able"
+    },
+    {
+      "timestamp": [
+        74.4,
+        79.26
+      ],
+      "text": "to discover one of these secret ways. Oh, no, I'm"
+    },
+    {
+      "timestamp": [
+        79.26,
+        84.12
+      ],
+      "text": "quite sure he didn't."
+    },
+    {
+      "timestamp": [
+        85.4,
+        89.99
+      ],
+      "text": "that's funny remarked betsy thoughtfully i don't believe ann knew"
+    },
+    {
+      "timestamp": [
+        89.99,
+        94.58
+      ],
+      "text": "any magic or she'd have worked it before i do"
+    },
+    {
+      "timestamp": [
+        94.58,
+        99.16
+      ],
+      "text": "not know confessed shaggy true agreed calico calico went to"
+    },
+    {
+      "timestamp": [
+        99.16,
+        103.75
+      ],
+      "text": "the big gong and pounded on it just as ruggedo"
+    },
+    {
+      "timestamp": [
+        103.75,
+        108.34
+      ],
+      "text": "used to do but no one answered the summons"
+    },
+    {
+      "timestamp": [
+        109.9,
+        114.68
+      ],
+      "text": "having returned to the royal cavern kalico first pounded the gong and"
+    },
+    {
+      "timestamp": [
+        114.68,
+        119.46
+      ],
+      "text": "then sat in the throne wearing ruggedo's discarded ruby crown and holding"
+    },
+    {
+      "timestamp": [
+        119.46,
+        124.24
+      ],
+      "text": "in his hand the sceptre which ruggedo had so often thrown at"
+    },
+    {
+      "timestamp": [
+        124.24,
+        129.02
+      ],
+      "text": "his head a man said to the universe sir i exist"
+    }
+  ],
+  "_usage": {
+    "input_tokens": 295,
+    "output_tokens": 312,
+    "inference_time_tokens": 831,
+    "total_tokens": 1438
+  },
+  "log_id": "b3610bd4-26d8-47d5-a547-b1d8152d0da9"
+}

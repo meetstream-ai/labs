@@ -1,0 +1,57 @@
+[
+  {
+    "speaker": "Thalha Ahamed",
+    "speaker_id": "spaces/3rabYKIOtTUB/devices/108",
+    "transcript": "Hi, this is a short test of the transcription benchmark. I am going to read a few sentences at a normal speaking pace. Our team meets every Tuesday at 10:30 to review the support queue. Last week we closed 112 tickets and the average response time dropped to 3 hours. The biggest issue was a login problem on the Android app. It affected about 6% of users in India and Singapore. Next sprint, we will focus on the search feature and the new billing page. Ananya is reading the design work and Rahul will handle the database changes. If everything goes well, we should be ready for testing by the 21st. This is the end of the test. Thank you.",
+    "start_time": 4.71,
+    "end_time": 53.11,
+    "words": [
+      {
+        "word": "Hi, this is a short test of the transcription benchmark. I am going to read a few sentences at a normal speaking pace. Our team meets every Tuesday at 10:30 to review the support queue. Last week we closed 112 tickets and the average response time dropped to 3 hours.",
+        "punctuated_word": "Hi, this is a short test of the transcription benchmark. I am going to read a few sentences at a normal speaking pace. Our team meets every Tuesday at 10:30 to review the support queue. Last week we closed 112 tickets and the average response time dropped to 3 hours.",
+        "start": 4.71,
+        "end": 24.17,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/108",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "The biggest issue was a login problem on the Android app. It affected about 6% of users in India and Singapore. Next sprint, we will focus on the search feature and the new billing page.",
+        "punctuated_word": "The biggest issue was a login problem on the Android app. It affected about 6% of users in India and Singapore. Next sprint, we will focus on the search feature and the new billing page.",
+        "start": 24.39,
+        "end": 38.95,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/108",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "Ananya is reading the design work and Rahul will handle the database changes. If everything goes well, we should be ready for testing by the 21st.",
+        "punctuated_word": "Ananya is reading the design work and Rahul will handle the database changes. If everything goes well, we should be ready for testing by the 21st.",
+        "start": 39.83,
+        "end": 49.53,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/108",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "This is the end of the test. Thank you.",
+        "punctuated_word": "This is the end of the test. Thank you.",
+        "start": 50.99,
+        "end": 53.11,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/108",
+        "speaker_resolution": "phase1_global_one_to_one"
+      }
+    ],
+    "absolute_start_time": "1970-01-01T00:00:04.710000",
+    "absolute_end_time": "1970-01-01T00:00:53.110000"
+  }
+]

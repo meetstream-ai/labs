@@ -1,0 +1,54 @@
+== 2026-09-28T18-08-58Z
+| meetstream | 2.1% | 6 | 2 | 1 |
+| jigsawstack | 2.1% | 6 | 2 | 1 |
+| assemblyai | 2.6% | 8 | 2 | 1 |
+| deepgram | 3.5% | 12 | 3 | 0 |
+| sarvam | 4.9% | 15 | 5 | 1 |
+== 2026-10-02T19-10-28Z
+| assemblyai | 2.4% | 7 | 3 | 0 |
+| meetstream | 2.8% | 9 | 3 | 0 |
+| jigsawstack | 2.8% | 9 | 3 | 0 |
+| deepgram | 3.8% | 11 | 4 | 1 |
+| sarvam | 4.9% | 15 | 5 | 1 |
+== 2026-10-02T19-14-43Z
+| assemblyai | 2.1% | 7 | 2 | 0 |
+| meetstream | 2.8% | 10 | 2 | 0 |
+| jigsawstack | 2.8% | 10 | 2 | 0 |
+| deepgram | 4.0% | 12 | 4 | 1 |
+| sarvam | 6.1% | 18 | 5 | 3 |
+== 2026-10-02T19-18-58Z
+| meetstream | 1.9% | 6 | 2 | 0 |
+| assemblyai | 1.9% | 6 | 2 | 0 |
+| jigsawstack | 1.9% | 6 | 2 | 0 |
+| deepgram | 3.1% | 10 | 3 | 0 |
+| sarvam | 4.7% | 14 | 5 | 1 |
+== 2026-10-02T19-21-07Z
+| assemblyai | 0.0% | 0 | 0 | 0 |
+| sarvam | 0.0% | 0 | 0 | 0 |
+| meetstream | 0.6% | 1 | 0 | 0 |
+| deepgram | 0.6% | 1 | 0 | 0 |
+| jigsawstack | 0.6% | 1 | 0 | 0 |
+== 2026-10-02T19-24-13Z
+| meetstream | 2.9% | 8 | 0 | 0 |
+| assemblyai | 2.9% | 8 | 0 | 0 |
+| jigsawstack | 3.6% | 10 | 0 | 0 |
+| deepgram | 5.1% | 13 | 1 | 0 |
+| sarvam | 6.5% | 18 | 0 | 0 |
+== 2026-10-02T19-25-58Z
+| meetstream | 1.7% | 1 | 0 | 1 |
+| assemblyai | 1.7% | 1 | 0 | 1 |
+| jigsawstack | 1.7% | 1 | 0 | 1 |
+| deepgram | 3.3% | 2 | 1 | 1 |
+| sarvam | 3.3% | 3 | 0 | 1 |
+== 2026-10-02T19-50-03Z
+| meetstream | 1.9% | 6 | 2 | 0 |
+| jigsawstack | 1.9% | 6 | 2 | 0 |
+| assemblyai | 2.1% | 7 | 2 | 0 |
+| deepgram | 2.4% | 7 | 3 | 0 |
+| sarvam | 4.2% | 12 | 6 | 0 |
+== 2026-10-02T20-42-29Z
+| meetstream | 1.2% | 4 | 1 | 0 |
+| jigsawstack | 1.2% | 4 | 1 | 0 |
+| assemblyai | 2.1% | 6 | 3 | 0 |
+| deepgram | 2.4% | 7 | 3 | 0 |
+| sarvam | 4.0% | 12 | 4 | 1 |

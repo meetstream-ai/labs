@@ -1,0 +1,127 @@
+[
+  {
+    "participant": {
+      "id": 100,
+      "name": "Thalha Ahamed",
+      "platform": "desktop",
+      "extra_data": {
+        "google_meet": {
+          "static_participant_id": "xLonsqdfjSTmL-ij1rlr1HQ80PDLzfas1vcQjj-m4Wg="
+        }
+      }
+    },
+    "words": [
+      {
+        "text": "Hi, this is a short test of the transcription benchmark. I am",
+        "start_timestamp": {
+          "relative": 4.54,
+          "absolute": 4.54
+        },
+        "end_timestamp": {
+          "relative": 9.31,
+          "absolute": 9.31
+        }
+      },
+      {
+        "text": "going to read a few sentences at a normal speaking pace. Our",
+        "start_timestamp": {
+          "relative": 9.31,
+          "absolute": 9.31
+        },
+        "end_timestamp": {
+          "relative": 14.09,
+          "absolute": 14.09
+        }
+      },
+      {
+        "text": "team meets every Tuesday at 10:30 to review the support queue. Last",
+        "start_timestamp": {
+          "relative": 14.09,
+          "absolute": 14.09
+        },
+        "end_timestamp": {
+          "relative": 18.86,
+          "absolute": 18.86
+        }
+      },
+      {
+        "text": "week we closed 112 tickets and the average response time dropped to",
+        "start_timestamp": {
+          "relative": 18.86,
+          "absolute": 18.86
+        },
+        "end_timestamp": {
+          "relative": 23.63,
+          "absolute": 23.63
+        }
+      },
+      {
+        "text": "3 hours. The biggest issue was a login problem on the Android",
+        "start_timestamp": {
+          "relative": 23.63,
+          "absolute": 23.63
+        },
+        "end_timestamp": {
+          "relative": 28.41,
+          "absolute": 28.41
+        }
+      },
+      {
+        "text": "app which affected about 6% of users in India and Singapore.",
+        "start_timestamp": {
+          "relative": 28.41,
+          "absolute": 28.41
+        },
+        "end_timestamp": {
+          "relative": 33.18,
+          "absolute": 33.18
+        }
+      },
+      {
+        "text": "Next sprint, we will focus on the search feature and the new billing",
+        "start_timestamp": {
+          "relative": 33.54,
+          "absolute": 33.54
+        },
+        "end_timestamp": {
+          "relative": 38.47,
+          "absolute": 38.47
+        }
+      },
+      {
+        "text": "page. Ananya is leading the design work and Rahul will handle the database",
+        "start_timestamp": {
+          "relative": 38.47,
+          "absolute": 38.47
+        },
+        "end_timestamp": {
+          "relative": 43.39,
+          "absolute": 43.39
+        }
+      },
+      {
+        "text": "changes. If everything goes well, we should be ready for testing by the",
+        "start_timestamp": {
+          "relative": 43.39,
+          "absolute": 43.39
+        },
+        "end_timestamp": {
+          "relative": 48.32,
+          "absolute": 48.32
+        }
+      },
+      {
+        "text": "21st. This is the end of the test. Thank you.",
+        "start_timestamp": {
+          "relative": 48.32,
+          "absolute": 48.32
+        },
+        "end_timestamp": {
+          "relative": 53.24,
+          "absolute": 53.24
+        }
+      }
+    ],
+    "language_code": "en"
+  }
+]
