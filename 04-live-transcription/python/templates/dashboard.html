@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MeetStream Live Transcription Agent</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark"></span> meetstream</div>
+      <div class="nav-section-label">agent</div>
+      <nav>
+        <a href="#" class="nav-item active" data-tab="deploy">Deploy Agent</a>
+        <a href="#" class="nav-item" data-tab="session">Session</a>
+        <a href="#" class="nav-item" data-tab="logs">Live Logs</a>
+        <a href="#" class="nav-item" data-tab="files">Output Files</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <section id="tab-deploy" class="tab active">
+        <h1>Deploy Agent</h1>
+        <p class="subtitle">Paste an API key and meeting link, deploy the agent, and watch live transcription arrive in real time.</p>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">status</div>
+            <div class="stat-value" id="stat-status">Idle</div>
+            <div class="stat-sub" id="stat-status-sub">No agent deployed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">elapsed</div>
+            <div class="stat-value" id="stat-elapsed">0:00</div>
+            <div class="stat-sub">Time since deploy</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">sentences received</div>
+            <div class="stat-value" id="stat-sentences">0</div>
+            <div class="stat-sub">Final sentences captured</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">transcripts saved</div>
+            <div class="stat-value" id="stat-saved">0</div>
+            <div class="stat-sub">Checkpoint files written</div>
+          </div>
+        </div>
+
+        <div class="panel-row">
+          <div class="panel deploy-panel">
+            <label for="api-key">MeetStream API key</label>
+            <div class="input-with-btn">
+              <input type="password" id="api-key" placeholder="ms_xxxxxxxxxxxxxxxxx" autocomplete="off" />
+              <button type="button" id="toggle-key">show</button>
+            </div>
+            <label for="meeting-link">Meeting link</label>
+            <input type="text" id="meeting-link" placeholder="https://meet.google.com/xxx-xxxx-xxx" autocomplete="off" />
+            <div class="deploy-row">
+              <button type="button" id="deploy-btn" class="primary-btn">Deploy Agent</button>
+              <span class="status-pill" id="status-pill">Idle</span>
+            </div>
+            <div id="deploy-error" class="error-banner hidden"></div>
+          </div>
+
+          <div class="panel files-panel">
+            <div class="panel-header">
+              <span>Output Files</span>
+              <button type="button" id="refresh-files-inline" class="link-btn">refresh</button>
+            </div>
+            <div id="files-list-inline" class="files-list">
+              <p class="empty">No transcripts yet. Deploy an agent and let it capture some sentences.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><span>Current session</span></div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Bot ID</th>
+                <th>Platform</th>
+                <th>Meeting Link</th>
+                <th>Start Time</th>
+                <th>Duration</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="session-body-inline">
+              <tr><td colspan="6" class="empty-row">&mdash;</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span>Live logs</span>
+            <button type="button" id="clear-logs-inline" class="link-btn">clear</button>
+          </div>
+          <div id="logs-box-inline" class="logs-box"></div>
+        </div>
+      </section>
+
+      <section id="tab-session" class="tab">
+        <h1>Session</h1>
+        <p class="subtitle">Details for the most recently deployed bot.</p>
+        <div class="panel">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Bot ID</th>
+                <th>Platform</th>
+                <th>Meeting Link</th>
+                <th>Start Time</th>
+                <th>Duration</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="session-body-full">
+              <tr><td colspan="6" class="empty-row">&mdash;</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-logs" class="tab">
+        <h1>Live Logs</h1>
+        <p class="subtitle">Full log of deploy events, received sentences, and checkpoint saves.</p>
+        <div class="panel">
+          <div class="panel-header">
+            <span>Live logs</span>
+            <button type="button" id="clear-logs-full" class="link-btn">clear</button>
+          </div>
+          <div id="logs-box-full" class="logs-box logs-box-tall"></div>
+        </div>
+      </section>
+
+      <section id="tab-files" class="tab">
+        <h1>Output Files</h1>
+        <p class="subtitle">Transcript checkpoints saved to the transcripts/ folder.</p>
+        <div class="panel">
+          <div class="panel-header">
+            <span>Saved transcripts</span>
+            <button type="button" id="refresh-files-full" class="link-btn">refresh</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Filename</th>
+                <th>Bot ID</th>
+                <th>Sentences</th>
+                <th>Saved At</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="files-body-full">
+              <tr><td colspan="5" class="empty-row">No transcripts saved yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>
