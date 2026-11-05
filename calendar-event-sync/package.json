@@ -1,0 +1,24 @@
+{
+  "name": "@meetstream-labs/calendar-event-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sync upcoming calendar events from MeetStream, detect which have a joinable meeting link, and print a schedule table.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "calendar",
+    "events",
+    "sync"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

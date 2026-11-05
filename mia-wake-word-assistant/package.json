@@ -1,0 +1,25 @@
+{
+  "name": "@meetstream-labs/mia-wake-word-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A wake-word-gated MIA meeting assistant that stays silent until someone addresses it by name.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "mia",
+    "wake-word",
+    "meeting-assistant",
+    "voice-agent"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "mia-hermes-bridge",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Reference bridge connecting MeetStream MIA meeting transport to a self-hosted Hermes Agent runtime",
+  "type": "module",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "setup": "node --import tsx scripts/setup.ts",
+    "doctor": "node --import tsx scripts/doctor.ts",
+    "dev": "node --import tsx src/server.ts",
+    "launch": "node --import tsx scripts/launch.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node --import tsx scripts/run.ts",
+    "start:server": "node dist/src/server.js",
+    "test": "node --import tsx --test test/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "verify:postman": "node --import tsx scripts/verify-postman.ts",
+    "check": "npm run typecheck && npm test && npm run build"
+  },
+  "dependencies": {
+    "@fastify/websocket": "^11.2.0",
+    "@ngrok/ngrok": "^1.5.2",
+    "fastify": "^5.6.2",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.7",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

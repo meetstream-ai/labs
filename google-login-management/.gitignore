@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.local
+
+# Never commit SAML key material or request payloads containing it.
+certs/
+*.pem
+*.key
+payload*.json
+
+output/
+.DS_Store

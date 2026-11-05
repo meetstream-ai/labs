@@ -1,0 +1,27 @@
+{
+  "name": "@meetstream-labs/bulk-bot-operations",
+  "version": "1.0.0",
+  "description": "Run many MeetStream bots concurrently: bounded queue, deterministic per-job Idempotency-Key, live progress, aggregated report.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "simulate": "node index.js --simulate",
+    "dry-run": "node index.js --dry-run --file ./jobs.example.json"
+  },
+  "keywords": [
+    "meetstream",
+    "bulk",
+    "concurrency",
+    "queue",
+    "idempotency",
+    "batch"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

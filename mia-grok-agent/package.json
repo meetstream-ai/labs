@@ -1,0 +1,31 @@
+{
+  "name": "@meetstream-labs/mia-grok-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Send Grok (xAI) into a meeting as a speaking MIA realtime agent, then check the recording.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "check": "node index.js --check",
+    "dry-run": "node index.js --dry-run",
+    "demo": "node index.js --demo",
+    "verify": "node index.js --verify",
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "meetstream",
+    "mia",
+    "voice-agent",
+    "meeting-bot",
+    "realtime",
+    "xai"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

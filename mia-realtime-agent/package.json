@@ -1,0 +1,25 @@
+{
+  "name": "@meetstream-labs/mia-realtime-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Create a realtime-mode MIA (single speech-to-speech model) and send it into a meeting for low-latency replies.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "mia",
+    "realtime",
+    "voice-agent",
+    "meeting-bot"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@meetstream-labs/speaker-diarization",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Deepgram diarization on MeetStream: run a bot with diarize:true, then post-process the transcript into per-speaker turns with talk-time stats.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "diarization",
+    "speaker-labels",
+    "deepgram",
+    "transcription"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

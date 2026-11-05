@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq shellcheck
+
+      - name: Shellcheck all Bash entry points
+        run: |
+          shellcheck -x install.sh setup-macos.command tests/run_tests.sh
+          (cd scripts && shellcheck -x *.sh)
+
+      - name: Compile-check mock server
+        run: python3 -m py_compile tests/mock_server.py
+
+      - name: Run offline test suite (mock MeetStream API)
+        run: bash tests/run_tests.sh

@@ -22,14 +22,17 @@ import {
  * (MeetStream's `bot.stopped` webhook), or because you press Ctrl+C
  * locally.
  *
- * Real MeetStream webhook events (per https://docs.meetstream.ai) are:
+ * Webhook events this app acts on (the full lifecycle is bot.joining ->
+ * bot.in_waiting_room -> bot.inmeeting -> bot.recording -> bot.leaving ->
+ * bot.stopped -> audio.processed / manifest.completed -> video.processed ->
+ * bot.done, with the stop reason in `bot_event`):
  *   bot.joining, bot.inmeeting, bot.stopped,
  *   audio.processed, video.processed, transcription.processed, data_deletion
  *
  * After `bot.stopped`, per-participant media isn't necessarily ready yet -
  * MeetStream needs a short window to process it. Rather than depend
- * entirely on `video.processed` arriving (webhook delivery is explicitly
- * documented as best-effort, non-retried on failure), this app also does a
+ * entirely on `video.processed` arriving (webhook deliveries are not
+ * retried), this app also does a
  * bounded, interval-based check of `get_recording_streams` until the media
  * is actually available.
  */
@@ -100,7 +103,12 @@ async function main() {
   state.tunnelListener = listener;
 
   const callbackUrl = `${url}/webhook`;
-  const bot = await client.createBot({ meetingLink, botName, callbackUrl });
+  const bot = await client.createBot({
+    meetingLink,
+    botName,
+    callbackUrl,
+    videoLayout: process.env.VIDEO_LAYOUT,
+  });
   state.botId = bot.bot_id;
 
   logger.info('Bot is heading into the meeting...');
@@ -117,6 +125,24 @@ async function main() {
       await finalizeMeeting({ alreadyLeft: false });
     }
   }, maxWaitMinutes * 60 * 1000);
+}
+
+/**
+ * Why the bot stopped: `bot_event` on a `bot.stopped` delivery
+ * (bot.stopped | bot.kicked | bot.notallowed | bot.denied | bot.failed).
+ * Falls back to `bot_status`, compared case-insensitively, only when
+ * `bot_event` is missing.
+ *
+ * @param {object} payload
+ * @returns {string}
+ */
+function stopReason(payload) {
+  if (payload?.bot_event) return payload.bot_event;
+  const status = String(payload?.bot_status ?? '').toLowerCase();
+  if (status === 'notallowed') return 'bot.notallowed';
+  if (status === 'denied') return 'bot.denied';
+  if (status === 'error' || status === 'failed') return 'bot.failed';
+  return 'bot.stopped';
 }
 
 /**
@@ -138,14 +164,17 @@ async function handleWebhookEvent({ eventType, payload }) {
 
     // Terminal lifecycle event - covers the bot leaving on its own,
     // being kicked/removed by a host, timing out in a waiting room, or
-    // erroring out. bot_status distinguishes which.
+    // erroring out. bot_event carries the reason (bot_status can't tell a
+    // kick from a clean exit, and its failure casing varies).
     case 'bot.stopped': {
       state.botStopped = true;
-      const botStatus = payload.bot_status ?? 'Unknown';
-      if (botStatus === 'Stopped') {
-        logger.info('Bot left the meeting (left on its own, or was removed).');
+      const reason = stopReason(payload);
+      if (reason === 'bot.stopped') {
+        logger.info('Bot left the meeting.');
+      } else if (reason === 'bot.kicked') {
+        logger.info('Bot was removed from the meeting by a participant.');
       } else {
-        logger.error(`Bot stopped abnormally (${botStatus}): ${payload.message ?? ''}`);
+        logger.error(`Bot stopped abnormally (${reason}): ${payload.message ?? ''}`);
       }
       await finalizeMeeting({ alreadyLeft: true });
       break;

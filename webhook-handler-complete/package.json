@@ -1,0 +1,27 @@
+{
+  "name": "@meetstream-labs/webhook-handler-complete",
+  "version": "1.0.0",
+  "description": "Reference MeetStream webhook receiver: every documented event, idempotent delivery handling, correct status_code interpretation.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "simulate": "node index.js --simulate",
+    "create-bot": "node index.js --create-bot"
+  },
+  "keywords": [
+    "meetstream",
+    "webhook",
+    "meeting-bot",
+    "idempotency",
+    "lifecycle"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

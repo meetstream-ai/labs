@@ -1,15 +1,15 @@
 /**
- * MeetStream Labs — Real-Time Transcription (WebSocket)
+ * MeetStream Labs - Real-Time Transcription (WebSocket)
  * ws-server.js
  *
  * Receives live transcription events from MeetStream over a persistent
  * WebSocket connection. Use this when you need a long-lived stream you
- * can listen to, buffer, and reprocess — unlike one-shot webhook POSTs.
+ * can listen to, buffer, and reprocess - unlike one-shot webhook POSTs.
  *
  * Endpoints:
- *   WS   /ws                 — MeetStream streams transcription events here
- *   GET  /health             — health check
- *   GET  /sessions/:botId    — view committed transcript for a session
+ *   WS   /ws                 - MeetStream streams transcription events here
+ *   GET  /health             - health check
+ *   GET  /sessions/:botId    - view committed transcript for a session
  *
  * Usage:
  *   node ws-server.js

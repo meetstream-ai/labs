@@ -1,0 +1,24 @@
+{
+  "name": "@meetstream-labs/speaker-timeline-analytics",
+  "version": "1.0.0",
+  "description": "Turn a MeetStream speaker timeline into talk-time, turn-taking and overlap metrics with an ASCII bar chart.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "meetstream",
+    "meeting-bot",
+    "speaker-timeline",
+    "talk-time",
+    "conversation-analytics"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}

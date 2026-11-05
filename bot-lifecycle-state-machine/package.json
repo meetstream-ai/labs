@@ -1,0 +1,27 @@
+{
+  "name": "@meetstream-labs/bot-lifecycle-state-machine",
+  "version": "1.0.0",
+  "description": "Model the MeetStream bot lifecycle as an explicit webhook-driven state machine, persisted to JSON, with stuck and abandoned bot detection.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "replay": "node index.js --replay",
+    "report": "node index.js --report"
+  },
+  "keywords": [
+    "meetstream",
+    "state-machine",
+    "webhook",
+    "lifecycle",
+    "monitoring"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

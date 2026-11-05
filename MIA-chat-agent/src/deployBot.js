@@ -6,6 +6,11 @@ const WAKE_WORDS = [
   'hey bud', 'okay bud', 'ok bud'
 ];
 const WAKE_WORD_TIMEOUT_SECONDS = 8;
+// Bot removal is capped: at most REMOVAL_MAX_ATTEMPTS rounds, each waiting
+// REMOVAL_WAIT_MS for the bot.stopped webhook (18 x 5 s = 90 s), then give up.
+const REMOVAL_MAX_ATTEMPTS = 18;
+const REMOVAL_WAIT_MS = 5000;
+const REMOVAL_TIMEOUT_SECONDS = (REMOVAL_MAX_ATTEMPTS * REMOVAL_WAIT_MS) / 1000;
 const WAKE_WORD_SYSTEM_PROMPT = `You are MIA, a concise meeting assistant in a live meeting. Respond in meeting chat whenever the user directly addresses you with ${WAKE_WORDS.join(', ')}. Treat punctuation and the words bot and bought as equivalent. The activation phrase and question may arrive together or in consecutive turns. Answer briefly in plain text. When asked to summarize, summarize the meeting context available in this session, including decisions and action items. Ignore conversation not addressed to you. Never guess.`;
 const ACTIVE_SYSTEM_PROMPT = 'You are MIA, a concise meeting assistant in a live meeting. The MeetStream wake-word gate has already activated you, so answer the current request briefly in meeting chat. When asked to summarize, summarize the meeting context available in this session, including decisions and action items. Never guess.';
 const BYPASS_SYSTEM_PROMPT = 'You are MIA, a concise meeting assistant in a live meeting. Diagnostic bypass mode is active: respond in meeting chat to every final transcript without requiring a wake word. Answer briefly in plain text. When asked to summarize, summarize the meeting context available in this session, including decisions and action items. Never guess.';
@@ -119,6 +124,9 @@ export async function deployBot({ apiKey, agentConfigId, meetingLink, callbackUr
     meeting_link: meetingLink,
     bot_name: 'Meeting Summary Bot',
     bot_message: "Hi, I'm MIA Chat Bot. Ask me a question or ask me to summarize the meeting.",
+    // Audio only. `false` is sent explicitly because the REST API treats an
+    // omitted `video_required` as true. Video is opt-in, and when it is on
+    // the payload must also carry recording_config.video_layout: "speaker_view".
     video_required: false,
     agent_config_id: agentConfigId
   };
@@ -148,7 +156,7 @@ export async function removeBot(apiKey, botId, waitForTerminal) {
   const headers = { Authorization: `Token ${apiKey}` };
   const baseUrl = `https://api.meetstream.ai/api/v1/bots/${encodeURIComponent(botId)}`;
 
-  for (let attempt = 0; attempt < 18; attempt++) {
+  for (let attempt = 1; attempt <= REMOVAL_MAX_ATTEMPTS; attempt++) {
     const response = await fetch(`${baseUrl}/remove_bot`, {
       method: 'GET',
       headers
@@ -159,7 +167,7 @@ export async function removeBot(apiKey, botId, waitForTerminal) {
     }
 
     try {
-      await waitForTerminal(botId, 5000);
+      await waitForTerminal(botId, REMOVAL_WAIT_MS);
       return;
     } catch {
       const statusResponse = await fetch(`${baseUrl}/detail`, { headers }).catch(() => null);
@@ -168,9 +176,13 @@ export async function removeBot(apiKey, botId, waitForTerminal) {
         : null;
       const timeline = details?.StatusTimeline || {};
       if (timeline.Stopped?.status || timeline.Kicked?.status ||
-          ['Stopped', 'MediaProcessing', 'Done', 'MediaExpired'].includes(details?.Status)) return;
+          ['stopped', 'mediaprocessing', 'done', 'mediaexpired', 'failed', 'error', 'notallowed', 'denied']
+            .includes(String(details?.Status ?? '').toLowerCase())) return;
+      if (attempt < REMOVAL_MAX_ATTEMPTS) {
+        console.log(`⏳ Still waiting for MeetStream to confirm removal (attempt ${attempt}/${REMOVAL_MAX_ATTEMPTS})`);
+      }
     }
   }
 
-  throw new Error('MeetStream did not confirm bot removal after 90 seconds.');
+  throw new Error(`MeetStream did not confirm bot removal after ${REMOVAL_TIMEOUT_SECONDS} seconds (${REMOVAL_MAX_ATTEMPTS} attempts). Remove the bot from the dashboard or the meeting.`);
 }

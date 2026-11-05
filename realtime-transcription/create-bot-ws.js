@@ -1,5 +1,5 @@
 /**
- * MeetStream Labs — Real-Time Transcription (WebSocket)
+ * MeetStream Labs - Real-Time Transcription (WebSocket)
  * create-bot-ws.js
  *
  * Creates a MeetStream bot with live transcription delivered over WebSocket
@@ -25,7 +25,8 @@ if (!API_KEY || !WEBSOCKET_URL || !MEETING_URL) {
   process.exit(1);
 }
 
-const PROVIDER = "deepgram";
+// PROVIDER=deepgram (default) or PROVIDER=assemblyai. Both are *_streaming providers.
+const PROVIDER = (process.env.PROVIDER || "deepgram").trim();
 
 const providers = {
   deepgram: {
@@ -66,6 +67,13 @@ if (!providers[PROVIDER]) {
 const payload = {
   meeting_link: MEETING_URL,
   bot_name: "MeetStream Transcription Bot (WebSocket)",
+
+  // Audio only. `false` is sent explicitly because the REST API treats an
+  // omitted `video_required` as true, so leaving it out would silently record
+  // video. Live transcription needs no video at all. If you do turn it on,
+  // also send recording_config.video_layout: "speaker_view", since the API
+  // default is grid_view.
+  video_required: false,
 
   live_transcription_required: {
     websocket_url: `${WEBSOCKET_URL}/ws`,

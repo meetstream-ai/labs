@@ -2,7 +2,7 @@
  * Provider Interface
  * ─────────────────────────────────────────────────────────────────────────────
  * Every external application plugs in by exporting an object matching this
- * shape. The bridge (bridge.js) only ever talks to this interface — it has
+ * shape. The bridge (bridge.js) only ever talks to this interface - it has
  * no idea whether it's forwarding audio to Deepgram, AssemblyAI, a custom
  * in-house model, or just printing it to a file. Swapping providers means
  * writing one new file here and changing one line in .env. Nothing else
@@ -14,7 +14,7 @@
  *     name: "human readable name",
  *
  *     // Called once when the bridge starts. Open your connection, auth, etc.
- *     // `onResult(text, isFinal, meta)` — call this whenever you have output
+ *     // `onResult(text, isFinal, meta)` - call this whenever you have output
  *     //   to surface (a transcript line, a detection, a score, anything).
  *     //   The bridge handles printing it; you just call the callback.
  *     async connect(onResult) {},

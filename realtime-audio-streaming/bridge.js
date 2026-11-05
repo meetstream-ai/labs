@@ -5,7 +5,7 @@
  * Generic external-application bridge.
  *
  * Connects to YOUR live /stream WebSocket (where MeetStream audio is being
- * broadcast) and forwards every frame to whichever provider is configured —
+ * broadcast) and forwards every frame to whichever provider is configured -
  * Deepgram, AssemblyAI, your own in-house service, or anything else that
  * implements the provider interface in src/providers/provider-interface.js.
  *
@@ -16,7 +16,7 @@
  *   2. Add that provider's API key to .env (see its file for the exact name)
  *   3. Run:  node bridge.js
  *
- * No code changes needed to switch providers — this file never imports a
+ * No code changes needed to switch providers - this file never imports a
  * specific provider directly; it loads whichever one .env points to.
  *
  * ── Adding a brand-new external application ──────────────────────────────
@@ -26,8 +26,8 @@
  *   2. Set STT_PROVIDER=your-app in .env
  *   3. Run:  node bridge.js
  *
- * That's the entire integration surface. The rest of this file — reading
- * /stream, parsing frames, printing results, reconnect/shutdown handling —
+ * That's the entire integration surface. The rest of this file - reading
+ * /stream, parsing frames, printing results, reconnect/shutdown handling -
  * is shared infrastructure that every provider gets for free.
  */
 
@@ -38,7 +38,7 @@ import chalk from "chalk";
 const LOCAL_STREAM_URL = process.env.STREAM_URL || "ws://localhost:3000/stream";
 const PROVIDER_NAME = process.env.STT_PROVIDER || "console";
 
-console.log(chalk.bold.cyan("\nMeetStream Labs — External Application Bridge\n"));
+console.log(chalk.bold.cyan("\nMeetStream Labs - External Application Bridge\n"));
 console.log(chalk.dim(`Local stream : ${LOCAL_STREAM_URL}`));
 console.log(chalk.dim(`Provider     : ${PROVIDER_NAME}\n`));
 
@@ -61,7 +61,7 @@ let framesForwarded = 0;
 let bytesForwarded = 0;
 let shuttingDown = false;
 
-// ── 2. Result callback — every provider calls this with whatever it produces ──
+// ── 2. Result callback - every provider calls this with whatever it produces ──
 function onResult(text, isFinal, meta = {}) {
   const tag = isFinal ? chalk.green("✔ FINAL") : chalk.dim("… interim");
   const extra = meta.confidence ? chalk.dim(` [${meta.confidence.toFixed?.(2) ?? meta.confidence}]`) : "";
@@ -94,7 +94,7 @@ function connectToLocalStream() {
   localSocket.on("message", (raw) => {
     const buf = Buffer.isBuffer(raw) ? raw : Buffer.from(raw);
 
-    // Text frame = server handshake JSON ({ type: "ready", ... }) — ignore
+    // Text frame = server handshake JSON ({ type: "ready", ... }) - ignore
     if (buf[0] === 0x7b) return;
 
     // Binary frame: [1B name_len][name][4B pcm_len LE][pcm]

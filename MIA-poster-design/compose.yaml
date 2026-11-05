@@ -1,0 +1,11 @@
+services:
+  mia-poster:
+    build: .
+    env_file: .env
+    environment:
+      ADAPTER_ONLY: "${ADAPTER_ONLY:-false}"
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    volumes:
+      - "${MCP_AUTH_DIR:-${USERPROFILE}/.mcp-auth}:/root/.mcp-auth"
+    stop_grace_period: 120s
