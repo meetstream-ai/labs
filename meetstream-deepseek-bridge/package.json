@@ -1,0 +1,30 @@
+{
+  "name": "meetstream-deepseek-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Community meeting-to-engineering bridge for DeepSeek Harness and MeetStream MIA",
+  "type": "module",
+  "engines": {
+    "node": ">=24.9.0"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/cli.js start",
+    "stop": "node --env-file-if-exists=.env src/cli.js stop",
+    "doctor": "node --env-file-if-exists=.env src/cli.js doctor",
+    "test": "node --test",
+    "demo": "node scripts/demo.js",
+    "check": "node --check src/cli.js && node --check src/server.js && node --check src/bridge.js && node --check src/harness.js && node --check src/setup.js && node --check src/tunnel.js && node --check scripts/bootstrap.js",
+    "format": "prettier --write src test scripts",
+    "format:check": "prettier --check src test scripts",
+    "test:api-key": "node --env-file-if-exists=.env scripts/api-key-acceptance.js",
+    "test:sandbox": "node --env-file-if-exists=.env scripts/harness-contract.js",
+    "prestart": "node scripts/bootstrap.js"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "3.6.2"
+  }
+}

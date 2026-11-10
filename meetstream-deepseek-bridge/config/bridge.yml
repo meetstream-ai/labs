@@ -1,0 +1,6 @@
+# The bridge already owns task references; an extra model-generated sidebar title is unnecessary.
+- id: session-title-llm
+  disabled: true
+# Do not inject the host's unrelated global skill inventory into meeting repository tasks.
+- id: skill-filesystem
+  disabled: true
