@@ -1,0 +1,35 @@
+{
+  "agent_name": "MIA Avatar Agent",
+  "mode": "realtime",
+  "model": {
+    "provider": "openai",
+    "model": "gpt-realtime-mini",
+    "system_prompt": "You are a helpful AI meeting assistant. Keep responses concise and natural. Listen actively and provide value to the conversation.",
+    "first_message": "Hey there! I am your AI assistant, ready to help with your meeting.",
+    "temperature": 0.8,
+    "voice": "coral",
+    "modalities": ["text", "audio"],
+    "max_response_output_tokens": 200
+  },
+  "voice": null,
+  "transcriber": null,
+  "agent": {
+    "tools": [],
+    "preemptive_generation": false,
+    "user_away_timeout": 15,
+    "interruptions": { "min_duration_seconds": 0.5, "word_threshold": 0 },
+    "false_interruption_timeout": 2,
+    "vad_type": "server_vad",
+    "enable_interruptions": true,
+    "resume_false_interruption": true,
+    "tools_enabled": false,
+    "vad_threshold": 0.5,
+    "vad_prefix_padding_ms": 0,
+    "vad_silence_duration_ms": 200
+  },
+  "audio": {
+    "sample_rate": 24000,
+    "num_channels": 1
+  },
+  "wake_word": null
+}
