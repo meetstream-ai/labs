@@ -1,0 +1,82 @@
+# Builds the Transcriber Benchmark desktop app for Windows, macOS and Linux.
+#
+# Each installer is built on its own OS (and, for macOS, its own chip), because
+# @ngrok/ngrok installs a native binary for the machine that runs `npm ci`; a
+# cross-build would bundle the wrong one.
+#
+# Run it from the Actions tab (workflow_dispatch), or push a tag like
+# transcriber-benchmark-v1.0.0. The installers are attached to the run as
+# artifacts. They are unsigned: Windows SmartScreen and macOS Gatekeeper will
+# ask the user to confirm the first launch.
+name: Transcriber Benchmark desktop app
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["transcriber-benchmark-v*"]
+
+defaults:
+  run:
+    working-directory: transcription-provider-benchmark
+
+jobs:
+  # Lint and the test suite first: no installer is built from code that fails them.
+  check:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: transcription-provider-benchmark/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+  build:
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: windows-x64, os: windows-latest, cmd: "node build/dist.js --win --x64 --publish never", files: "transcription-provider-benchmark/dist/*.exe" }
+          - { name: macos-arm64, os: macos-15, cmd: "node build/dist.js --mac --arm64 --publish never", files: "transcription-provider-benchmark/dist/*.dmg" }
+          - { name: macos-x64, os: macos-15-intel, cmd: "node build/dist.js --mac --x64 --publish never", files: "transcription-provider-benchmark/dist/*.dmg" }
+          - { name: linux-x64, os: ubuntu-22.04, cmd: "node build/dist.js --linux --x64 --publish never", files: "transcription-provider-benchmark/dist/*.AppImage\ntranscription-provider-benchmark/dist/*.deb" }
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false" # no signing certificate configured
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: transcription-provider-benchmark/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: ${{ matrix.cmd }}
+
+      # Linux: launch the packaged app on a virtual display and check its
+      # server answers, the bundled run is there and the sample clip it ships with
+      # is byte-identical to the pinned one.
+      - name: Smoke test (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb >/dev/null
+          BIN=dist/linux-unpacked/transcriber-benchmark
+          xvfb-run -a "$BIN" --no-sandbox --user-data-dir=/tmp/tpb > /tmp/app.log 2>&1 &
+          for _ in $(seq 1 40); do PORT=$(grep -o '127.0.0.1:[0-9]*' /tmp/app.log | head -1 | cut -d: -f2 || true); [ -n "$PORT" ] && break; sleep 1; done
+          test -n "$PORT" || { cat /tmp/app.log; exit 1; }
+          curl -sf http://127.0.0.1:$PORT/api/status
+          curl -sf http://127.0.0.1:$PORT/api/runs | grep -q 2026-09-28T18-08-58Z
+          curl -sf -X POST --max-time 240 http://127.0.0.1:$PORT/api/sample | grep -q '"ready":true'
+          echo "f2d2ec68f98c7e87ed55965b8f07380f584d2405ab714991fb6d820e611f1aa8  /tmp/tpb/sample/clip.wav" | sha256sum -c -
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: transcriber-benchmark-${{ matrix.name }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error

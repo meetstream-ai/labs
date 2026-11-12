@@ -1,0 +1,130 @@
+{
+  "name": "meetstream-transcription-provider-benchmark",
+  "version": "1.0.3",
+  "description": "Runs one meeting recording through every MeetStream transcription provider and tabulates word error rate and turnaround time.",
+  "main": "desktop/main.js",
+  "scripts": {
+    "fetch-sample": "node scripts/fetch-sample.js",
+    "record": "node index.js record",
+    "benchmark": "node index.js benchmark",
+    "score": "node index.js score",
+    "fetch-raw": "node index.js fetch-raw",
+    "report-pdf": "electron scripts/report-pdf.js",
+    "ui": "node server.js",
+    "test": "node --test",
+    "lint": "eslint .",
+    "desktop": "electron .",
+    "dist": "node build/dist.js",
+    "dist:win": "node build/dist.js --win",
+    "dist:mac": "node build/dist.js --mac",
+    "dist:linux": "node build/dist.js --linux"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "meetstream",
+    "transcription",
+    "benchmark",
+    "wer",
+    "deepgram",
+    "assemblyai",
+    "sarvam",
+    "jigsawstack"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@ngrok/ngrok": "^1.7.0",
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.22.3",
+    "ffmpeg-static": "^5.2.0",
+    "hyparquet": "^1.17.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "eslint": "^9.39.5",
+    "globals": "^15.15.0",
+    "marked": "^14.1.4"
+  },
+  "productName": "Transcriber Benchmark",
+  "author": {
+    "name": "MeetStream Labs",
+    "url": "https://meetstream.ai"
+  },
+  "homepage": "https://github.com/meetstream-ai/labs/tree/main/transcription-provider-benchmark",
+  "build": {
+    "appId": "ai.meetstream.transcriber-benchmark",
+    "productName": "Transcriber Benchmark",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "package.json",
+      "index.js",
+      "build-info.json",
+      "server.js",
+      "src/**",
+      "scripts/fetch-sample.js",
+      "public/**",
+      "desktop/**",
+      "sample/reference.txt",
+      "sample/manifest.json",
+      "sample/clip.wav",
+      "results/2026-09-28T18-08-58Z/**",
+      "!node_modules/ffmpeg-static/**",
+      "!**/*.map"
+    ],
+    "electronLanguages": [
+      "en-US"
+    ],
+    "compression": "maximum",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Transcriber-Benchmark-${version}-Windows.${ext}",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "shortcutName": "Transcriber Benchmark"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.developer-tools",
+      "artifactName": "Transcriber-Benchmark-${version}-Mac-${arch}.${ext}",
+      "icon": "build/icon.icns"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Development",
+      "synopsis": "Compare transcription providers on the same audio",
+      "maintainer": "MeetStream Labs",
+      "artifactName": "Transcriber-Benchmark-${version}-Linux-${arch}.${ext}",
+      "icon": "build/icon.png",
+      "syncDesktopName": true,
+      "executableName": "transcriber-benchmark"
+    }
+  },
+  "desktopName": "transcriber-benchmark.desktop"
+}

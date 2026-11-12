@@ -1,0 +1,7 @@
+Hi, this is a short test of the transcription benchmark. I am going to read a few sentences at a normal speaking pace.
+
+Our team meets every Tuesday at ten thirty to review the support queue. Last week we closed one hundred and twelve tickets, and the average response time dropped to three hours. The biggest issue was a login problem on the Android app, which affected about six percent of users in India and Singapore.
+
+Next sprint, we will focus on the search feature and the new billing page. Ananya is leading the design work, and Rahul will handle the database changes. If everything goes well, we should be ready for testing by the twenty first.
+
+That is the end of the test. Thank you.

@@ -1,0 +1,46 @@
+[
+  {
+    "speaker": "Benchmark Speaker",
+    "speaker_id": "spaces/3rabYKIOtTUB/devices/115",
+    "transcript": "Good morning everyone, and thanks for joining the quarterly planning review. Let's start with the numbers. Revenue for the third quarter came in at $4.2 million, up 18% from last year. The enterprise team closed 23 new accounts, including two hospitals in Chicago and a logistics company in Rotterdam. Priya will walk us through the product roadmap after this. The short version is that the mobile app ships on November 14th. And the API migration is about two weeks behind schedule. We have moved three engineers from the payments team to help, so we expect to recover most of that time by the end of the month. On hiring, we have nine open roles. Four are in customer support, three in engineering, and two in finance. Please send referrals to Marcus by Friday. Finally, a reminder that the office will be closed on Monday for maintenance. If you need access to the lab, talk to facilities before Thursday. Any questions before we move on?",
+    "start_time": 8.69,
+    "end_time": 75.37,
+    "words": [
+      {
+        "word": "Good morning everyone, and thanks for joining the quarterly planning review. Let's start with the numbers. Revenue for the third quarter came in at $4.2 million, up 18% from last year. The enterprise team closed 23 new accounts, including two hospitals in Chicago and a logistics company in Rotterdam. Priya will walk us through the product roadmap after this. The short version is that the mobile app ships on November 14th.",
+        "punctuated_word": "Good morning everyone, and thanks for joining the quarterly planning review. Let's start with the numbers. Revenue for the third quarter came in at $4.2 million, up 18% from last year. The enterprise team closed 23 new accounts, including two hospitals in Chicago and a logistics company in Rotterdam. Priya will walk us through the product roadmap after this. The short version is that the mobile app ships on November 14th.",
+        "start": 8.69,
+        "end": 38.69,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/115",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "And the API migration is about two weeks behind schedule. We have moved three engineers from the payments team to help, so we expect to recover most of that time by the end of the month. On hiring, we have nine open roles. Four are in customer support, three in engineering, and two in finance. Please send referrals to Marcus by Friday. Finally, a reminder that the office will be closed on Monday for maintenance.",
+        "punctuated_word": "And the API migration is about two weeks behind schedule. We have moved three engineers from the payments team to help, so we expect to recover most of that time by the end of the month. On hiring, we have nine open roles. Four are in customer support, three in engineering, and two in finance. Please send referrals to Marcus by Friday. Finally, a reminder that the office will be closed on Monday for maintenance.",
+        "start": 38.69,
+        "end": 68.69,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/115",
+        "speaker_resolution": "phase1_global_one_to_one"
+      },
+      {
+        "word": "If you need access to the lab, talk to facilities before Thursday. Any questions before we move on?",
+        "punctuated_word": "If you need access to the lab, talk to facilities before Thursday. Any questions before we move on?",
+        "start": 68.69,
+        "end": 75.37,
+        "speaker": "1",
+        "_provider_speaker": "1",
+        "_dg_cluster": "1",
+        "speaker_id": "spaces/3rabYKIOtTUB/devices/115",
+        "speaker_resolution": "phase1_global_one_to_one"
+      }
+    ],
+    "absolute_start_time": "1970-01-01T00:00:08.690000",
+    "absolute_end_time": "1970-01-01T00:01:15.370000"
+  }
+]

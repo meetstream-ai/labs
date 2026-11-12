@@ -1,0 +1,118 @@
+{
+  "success": true,
+  "text": "Good morning everyone, and thanks for joining the quarterly planning review. Let's start with the numbers. Revenue for the third quarter came in at $4.2 million, up 18% from last year. The enterprise team closed 23 new accounts, including two hospitals in Chicago and a logistics company in Rotterdam. Priya will walk us through the product roadmap after this. The short version is that the mobile app ships on November 14, and the API migration is about two weeks behind schedule. We have moved three engineers from the payments team to help, so we expect to recover most of that time by the end of the month. On hiring, we have nine open roles. Four are in customer support, three in engineering, and two in finance. Please send referrals to Marcus by Friday. Finally, a reminder that the office will be closed on Monday for maintenance. If you need access to the lab, talk to facilities before Thursday. Any questions before we move on?",
+  "chunks": [
+    {
+      "timestamp": [
+        8.52,
+        12.82
+      ],
+      "text": "Good morning everyone, and thanks for joining the quarterly planning"
+    },
+    {
+      "timestamp": [
+        12.82,
+        17.11
+      ],
+      "text": "review. Let's start with the numbers. Revenue for the third"
+    },
+    {
+      "timestamp": [
+        17.11,
+        21.41
+      ],
+      "text": "quarter came in at $4.2 million, up 18% from last"
+    },
+    {
+      "timestamp": [
+        21.41,
+        25.71
+      ],
+      "text": "year. The enterprise team closed 23 new accounts, including two"
+    },
+    {
+      "timestamp": [
+        25.71,
+        30
+      ],
+      "text": "hospitals in Chicago and a logistics company in Rotterdam. Priya"
+    },
+    {
+      "timestamp": [
+        30,
+        34.3
+      ],
+      "text": "will walk us through the product roadmap after this."
+    },
+    {
+      "timestamp": [
+        34.78,
+        39.43
+      ],
+      "text": "The short version is that the mobile app ships on November 14, and"
+    },
+    {
+      "timestamp": [
+        39.43,
+        44.07
+      ],
+      "text": "the API migration is about two weeks behind schedule. We have moved three"
+    },
+    {
+      "timestamp": [
+        44.07,
+        48.72
+      ],
+      "text": "engineers from the payments team to help, so we expect to recover most"
+    },
+    {
+      "timestamp": [
+        48.72,
+        53.37
+      ],
+      "text": "of that time by the end of the month. On hiring, we have"
+    },
+    {
+      "timestamp": [
+        53.37,
+        58.01
+      ],
+      "text": "nine open roles. Four are in customer support, three in engineering, and two"
+    },
+    {
+      "timestamp": [
+        58.01,
+        62.66
+      ],
+      "text": "in finance. Please send referrals to Marcus by Friday."
+    },
+    {
+      "timestamp": [
+        63.18,
+        67.29
+      ],
+      "text": "Finally, a reminder that the office will be closed on Monday"
+    },
+    {
+      "timestamp": [
+        67.29,
+        71.39
+      ],
+      "text": "for maintenance. If you need access to the lab, talk to"
+    },
+    {
+      "timestamp": [
+        71.39,
+        75.5
+      ],
+      "text": "facilities before Thursday. Any questions before we move on?"
+    }
+  ],
+  "_usage": {
+    "input_tokens": 291,
+    "output_tokens": 206,
+    "inference_time_tokens": 705,
+    "total_tokens": 1202
+  },
+  "log_id": "80112f50-eaef-4668-b767-68004363d66b"
+}

@@ -1,0 +1,186 @@
+{
+  "run_id": "2026-10-02T19-14-43Z",
+  "harness": "meetstream-ai/labs transcription-provider-benchmark",
+  "harness_version": {
+    "name": "meetstream-transcription-provider-benchmark",
+    "version": "1.0.2",
+    "commit": "d1e29bc06149e06772357a4d73043e000c85dc22",
+    "dirty": false,
+    "from": "git"
+  },
+  "started_at": "2026-10-02T19:14:43.976Z",
+  "environment": {
+    "node": "v22.18.0",
+    "platform": "win32 10.0.26200",
+    "poll_seconds": 1
+  },
+  "bot": {
+    "id": "52f907b0-f378-4f1d-9d98-8553733f1e25",
+    "status_when_benchmarked": "Done"
+  },
+  "recording": {
+    "bot_id": "52f907b0-f378-4f1d-9d98-8553733f1e25",
+    "speaker_bot_id": "92f2c91b-25a5-46e8-9ecd-9d7518d6c344",
+    "meeting_platform": "meet.google.com",
+    "played_at": "2026-10-02T19:10:56.573Z",
+    "live_provider": "meeting_captions",
+    "live_transcript": null,
+    "clip": {
+      "path": "sample/clip.wav",
+      "sha256": "f2d2ec68f98c7e87ed55965b8f07380f584d2405ab714991fb6d820e611f1aa8",
+      "seconds": 191.435
+    },
+    "reference": {
+      "path": "sample/reference.txt",
+      "sha256": "aed990bbd0465d75d9dd06f8a7d2b0161ac26a8918d228463bb686e860dc1cf2",
+      "sha256_line_endings": "lf"
+    }
+  },
+  "reference": {
+    "file": "reference.txt",
+    "source": "sample/reference.txt",
+    "sha256": "aed990bbd0465d75d9dd06f8a7d2b0161ac26a8918d228463bb686e860dc1cf2",
+    "sha256_line_endings": "lf"
+  },
+  "providers": {
+    "meetstream": {
+      "meetstream": {
+        "language": "auto",
+        "translate": false
+      }
+    },
+    "deepgram": {
+      "deepgram": {
+        "model": "nova-3",
+        "language": "en"
+      }
+    },
+    "assemblyai": {
+      "assemblyai": {
+        "speech_models": [
+          "universal-2"
+        ],
+        "language_code": "en_us"
+      }
+    },
+    "sarvam": {
+      "sarvam": {
+        "model": "saaras:v3",
+        "mode": "transcribe",
+        "language_code": "en-IN"
+      }
+    },
+    "jigsawstack": {
+      "jigsawstack": {
+        "language": "en",
+        "translate": false
+      }
+    }
+  },
+  "rounds": 1,
+  "jobs": [
+    {
+      "provider": "meetstream",
+      "round": 1,
+      "config": {
+        "meetstream": {
+          "language": "auto",
+          "translate": false
+        }
+      },
+      "submitted_at": "2026-10-02T19:14:43.976Z",
+      "request_s": 1.49,
+      "transcript_id": "a80e3b50-ab62-4c74-9c47-2d8ab33bec02",
+      "status": "Success",
+      "completed_at": "2026-10-02T19:15:06.626Z",
+      "turnaround_s": 22.65,
+      "turnaround_lower_bound_s": 20.77,
+      "server_created_at": "2026-10-02T19:14:45.101734+00:00",
+      "transcript_file": "transcripts/meetstream.r1.json",
+      "raw_file": "transcripts/meetstream.r1.raw.json"
+    },
+    {
+      "provider": "deepgram",
+      "round": 1,
+      "config": {
+        "deepgram": {
+          "model": "nova-3",
+          "language": "en"
+        }
+      },
+      "submitted_at": "2026-10-02T19:14:43.977Z",
+      "request_s": 0.74,
+      "transcript_id": "e3097872-7f25-4190-918e-fab54336335e",
+      "status": "Success",
+      "completed_at": "2026-10-02T19:14:55.732Z",
+      "turnaround_s": 11.76,
+      "turnaround_lower_bound_s": 10.22,
+      "server_created_at": "2026-10-02T19:14:44.452743+00:00",
+      "transcript_file": "transcripts/deepgram.r1.json",
+      "raw_file": "transcripts/deepgram.r1.raw.json"
+    },
+    {
+      "provider": "assemblyai",
+      "round": 1,
+      "config": {
+        "assemblyai": {
+          "speech_models": [
+            "universal-2"
+          ],
+          "language_code": "en_us"
+        }
+      },
+      "submitted_at": "2026-10-02T19:14:43.978Z",
+      "request_s": 1.36,
+      "transcript_id": "7235d744-22c8-4b43-9425-a527f098d792",
+      "status": "Success",
+      "completed_at": "2026-10-02T19:14:57.934Z",
+      "turnaround_s": 13.96,
+      "turnaround_lower_bound_s": 11.75,
+      "server_created_at": "2026-10-02T19:14:45.081783+00:00",
+      "transcript_file": "transcripts/assemblyai.r1.json",
+      "raw_file": "transcripts/assemblyai.r1.raw.json"
+    },
+    {
+      "provider": "sarvam",
+      "round": 1,
+      "config": {
+        "sarvam": {
+          "model": "saaras:v3",
+          "mode": "transcribe",
+          "language_code": "en-IN"
+        }
+      },
+      "submitted_at": "2026-10-02T19:14:43.980Z",
+      "request_s": 1,
+      "transcript_id": "abb61c71-9284-4d54-a811-d4ea0ec0cf15",
+      "status": "Success",
+      "completed_at": "2026-10-02T19:15:11.716Z",
+      "turnaround_s": 27.74,
+      "turnaround_lower_bound_s": 25.98,
+      "server_created_at": "2026-10-02T19:14:44.733438+00:00",
+      "transcript_file": "transcripts/sarvam.r1.json",
+      "raw_file": "transcripts/sarvam.r1.raw.json"
+    },
+    {
+      "provider": "jigsawstack",
+      "round": 1,
+      "config": {
+        "jigsawstack": {
+          "language": "en",
+          "translate": false
+        }
+      },
+      "submitted_at": "2026-10-02T19:14:43.982Z",
+      "request_s": 1.12,
+      "transcript_id": "1cd7fcc8-8d6d-4ddd-a42b-4eca4d8b4010",
+      "status": "Success",
+      "completed_at": "2026-10-02T19:14:48.992Z",
+      "turnaround_s": 5.01,
+      "turnaround_lower_bound_s": 3.1,
+      "server_created_at": "2026-10-02T19:14:44.845538+00:00",
+      "transcript_file": "transcripts/jigsawstack.r1.json",
+      "raw_file": "transcripts/jigsawstack.r1.raw.json"
+    }
+  ]
+}
