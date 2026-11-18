@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Read meeting artifacts collected by a MeetStream bot.
-# Usage: bot-data.sh detail|summary|participants|chats|speakers|audio|video|audio-streams|video-streams|screenshots|transcriptions BOT_ID [--json]
+# Usage: bot-data.sh detail|participants|chats|speakers|audio|video|audio-streams|video-streams|screenshots|transcriptions BOT_ID [--json]
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,7 +13,7 @@ json_only=false
 [[ "${3:-}" == "--json" ]] && json_only=true
 
 if [[ -z "$kind" || -z "$bot_id" || $# -gt 3 || ( $# -eq 3 && "${3:-}" != "--json" ) ]]; then
-  echo "Usage: $(basename "$0") detail|summary|participants|chats|speakers|audio|video|audio-streams|video-streams|screenshots|transcriptions BOT_ID [--json]" >&2
+  echo "Usage: $(basename "$0") detail|participants|chats|speakers|audio|video|audio-streams|video-streams|screenshots|transcriptions BOT_ID [--json]" >&2
   exit 64
 fi
 
@@ -24,7 +24,6 @@ encoded="$(ms_urlencode "$bot_id")"
 
 case "$kind" in
   detail) path="/bots/$encoded/detail" ;;
-  summary) path="/bots/$encoded/summary" ;;
   participants) path="/bots/$encoded/get_participants" ;;
   chats) path="/bots/$encoded/get_chats" ;;
   speakers) path="/bots/$encoded/get_speaker_timeline" ;;

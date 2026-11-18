@@ -4,10 +4,13 @@
 
 **Let your Hermes agent join, talk in, and summarize live meetings.**
 
-Your [Hermes Agent](https://github.com/NousResearch/hermes-agent) sends a MeetStream bot into **Zoom**, **Google Meet** or **Microsoft Teams**, chats in the call, speaks through a [MIA voice agent](#speaking-in-the-meeting), and pulls summaries and transcripts afterwards. It does this with **19 tools** and **6 skills** over the hosted [MeetStream](https://meetstream.ai) MCP server.
+Your [Hermes Agent](https://github.com/NousResearch/hermes-agent) sends a MeetStream bot into **Zoom**, **Google Meet** or **Microsoft Teams**, chats in the call, speaks through a [MIA voice agent](#speaking-in-the-meeting), and pulls summaries and transcripts afterwards. It does this with the tools of the hosted [MeetStream](https://meetstream.ai) MCP server and **6 skills**.
+
+> [!NOTE]
+> This is a Labs example. The supported Hermes plugin is [hermes-meetstream](https://github.com/meetstream-ai/hermes-meetstream): `hermes plugins install meetstream-ai/hermes-meetstream --enable`.
 
 [![Docs](https://img.shields.io/badge/docs-docs.meetstream.ai-fd6316?style=flat-square)](https://docs.meetstream.ai)
-[![MCP](https://img.shields.io/badge/MCP-19%20tools-6b4ea8?style=flat-square)](https://docs.meetstream.ai/build-with-ai/meetstream-mcp-server)
+[![MCP](https://img.shields.io/badge/MCP-hosted-6b4ea8?style=flat-square)](https://docs.meetstream.ai/build-with-ai/meetstream-mcp-server)
 [![Skills](https://img.shields.io/badge/skills-6-45689f?style=flat-square)](#skills)
 [![License](https://img.shields.io/badge/license-MIT-867c72?style=flat-square)](LICENSE)
 
@@ -149,20 +152,21 @@ scripts/check.py             Repository checks (manifests, skills, tool names, s
 
 Hermes discovers `plugin.json` and loads it through its Agent Plugins v1 adapter. That adapter is Hermes' only native mechanism for a standalone plugin repo to ship an MCP server, which is why this repo does not use `plugin.yaml` with Python. The server keeps its `mcp.json` name, so tools appear as `mcp__meetstream__<tool>`. Skills are namespaced as `agent-plugin-meetstream-ee716565:<skill>`.
 
-### The 19 tools
+### Tools
 
-These come from the hosted server, not from this repo, so they stay current automatically.
+These come from the hosted server, not from this repo, so they stay current automatically. Main ones:
 
 | Area | Tools |
 |---|---|
 | Bot lifecycle | `create_bot` · `list_bots` · `get_bot_status` · `get_bot_detail` · `get_bot_summary` · `remove_bot` · `delete_bot_data` |
 | Transcription | `get_transcript` · `list_transcriptions` · `transcribe_audio` |
 | Meeting data | `get_media_urls` · `get_participants` · `get_chats` · `get_speaker_timeline` |
-| Live interaction | `send_chat_message` · `send_image` |
+| Live interaction | `send_chat_message` · `send_image` · `raise_hand` · `lower_hand` · `pause_recording` · `resume_recording` |
 | Calendar | `list_calendar_events` · `schedule_calendar_bot` |
+| Account | `get_balance` · `top_up_link` |
 | Reference | `webhook_events_guide` |
 
-Full reference: [MeetStream MCP server](https://github.com/meetstream-ai/meetstream-mcp#full-capability-list---19-tools).
+Full reference: [MeetStream MCP server](https://github.com/meetstream-ai/meetstream-mcp). `get_bot_summary` only says that MeetStream has no built-in summary; summarize from `get_transcript`.
 
 ### Skills
 
@@ -278,7 +282,7 @@ Rules for contributors are in [AGENTS.md](AGENTS.md). The short version: no code
 
 | | Where |
 |---|---|
-| MCP server (the 19 tools) | [`meetstream-ai/meetstream-mcp`](https://github.com/meetstream-ai/meetstream-mcp) · [`@meetstream/mcp`](https://www.npmjs.com/package/@meetstream/mcp) |
+| MCP server (hosted) | [`meetstream-ai/meetstream-mcp`](https://github.com/meetstream-ai/meetstream-mcp) |
 | CLI | [`meetstream-ai/meetstream-cli`](https://github.com/meetstream-ai/meetstream-cli) |
 | Cursor plugin | [`meetstream-ai/meetstream-cursor-plugin`](https://github.com/meetstream-ai/meetstream-cursor-plugin) |
 | Claude Code plugin | [`meetstream-ai/claude-plugin`](https://github.com/meetstream-ai/claude-plugin) |

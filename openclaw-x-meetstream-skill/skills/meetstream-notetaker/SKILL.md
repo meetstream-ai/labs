@@ -17,6 +17,7 @@ Do not launch without a real authorized meeting URL. Keep the returned `bot_id`.
 After `transcription.processed`, fetch the transcript with
 `{baseDir}/../meetstream/scripts/get-transcript.sh <bot-id>`. Use the core
 `bot-data.sh` for the
-summary, participants, chats, speaker timeline, and short-lived media URLs.
+participants, chats, speaker timeline, and short-lived media URLs. MeetStream has
+no built-in summary: write the summary yourself from the transcript segments.
 Streaming providers are for live delivery and may not yield a normal post-call
 transcript; consult `{baseDir}/../meetstream/references/WEBHOOKS.md`.

@@ -17,12 +17,12 @@ read. Tools are named `mcp__meetstream__<tool>` in Hermes and all take `bot_id`
 
 ## Fastest route
 
-1. **`get_bot_summary`** - MeetStream's own AI summary. One call; try it first.
-2. **`get_transcript`** - full transcript. Pass the `bot_id`; the tool resolves the
-   transcript for you. `wait: true` polls until it is ready.
-3. **`get_speaker_timeline`** - who spoke and when.
-4. **`get_participants`** - attendee list.
-5. **`get_media_urls`** - presigned audio/video/screenshot URLs (they expire).
+1. **`get_transcript`** - full transcript. Pass the `bot_id`; the tool resolves the
+   transcript for you. `wait: true` polls until it is ready. MeetStream has no
+   built-in summary: write the brief yourself from these segments.
+2. **`get_speaker_timeline`** - who spoke and when.
+3. **`get_participants`** - attendee list.
+4. **`get_media_urls`** - presigned audio/video/screenshot URLs (they expire).
 
 ## Reading the transcript correctly
 

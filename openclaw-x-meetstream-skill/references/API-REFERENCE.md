@@ -69,7 +69,6 @@ schema drift. Do not change the audit date without rechecking.
 | DELETE | `/api/v1/calendar/scheduled_bots/{bot_id}` | Delete Scheduled Bot |
 | GET | `/api/v1/bots/{bot_id}/status` | Get Bot Status |
 | GET | `/api/v1/bots/{bot_id}/detail` | Get Bot Details |
-| GET | `/api/v1/bots/{bot_id}/summary` | Get Bot Summary |
 | GET | `/api/v1/bots/{bot_id}/get_audio` | Get Bot Audio |
 | GET | `/api/v1/bots/{bot_id}/get_video` | Get Bot Video |
 | GET | `/api/v1/bots/{bot_id}/get_recording_streams` | Get Recording Streams |

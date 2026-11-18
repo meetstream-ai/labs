@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "meetstream",
   "version": "1.0.0",
-  "description": "Send MeetStream bots into Zoom, Google Meet and Microsoft Teams from a Hermes agent. Join, chat, speak with a MIA voice agent, and pull summaries and transcripts - 19 tools over the hosted MeetStream MCP server, plus skills.",
+  "description": "Send MeetStream bots into Zoom, Google Meet and Microsoft Teams from a Hermes agent. Join, chat, speak with a MIA voice agent, and pull summaries and transcripts - tools from the hosted MeetStream MCP server, plus skills.",
   "author": {
     "name": "MeetStream.ai",
     "email": "hello@meetstream.ai",
