@@ -1,0 +1,9 @@
+[
+  { "speaker": "Alice", "start_byte": 0, "end_byte": 960000 },
+  { "speaker": "Alice", "start_byte": 960000, "end_byte": 1920000 },
+  { "speaker": "Bob", "start_byte": 2112000, "end_byte": 2592000 },
+  { "speaker": "NoSpeaker", "start_byte": 2592000, "end_byte": 2688000 },
+  { "speaker": "Alice", "start_byte": 2688000, "end_byte": 3168000 },
+  { "speaker": "Bob", "start_byte": 3360000, "end_byte": 5280000 },
+  { "speaker": "Chi", "start_byte": 5280000, "end_byte": 5760000 }
+]

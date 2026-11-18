@@ -1,0 +1,5 @@
+# One meeting link per line. Optional ",<bot name>" overrides MEETSTREAM_BOT_NAME.
+# Blank lines and # comments are ignored.
+https://meet.google.com/abc-defg-hij,Pricing Call
+https://us02web.zoom.us/j/81234567890?pwd=abc123
+https://teams.microsoft.com/l/meetup-join/19%3ameeting_NjQ4%40thread.v2/0?context=%7b%7d
