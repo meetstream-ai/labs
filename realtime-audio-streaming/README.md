@@ -213,7 +213,7 @@ realtime-audio-streaming/
 | Platform | Notes |
 |---|---|
 | Google Meet | A meeting URL is enough |
-| Zoom | Needs a Zoom app on your account; see the [Zoom platform guide](https://docs.meetstream.ai/guides/platforms/zoom) |
+| Zoom | A meeting URL is enough; your own Zoom app is optional. See the [Zoom platform guide](https://docs.meetstream.ai/guides/platforms/zoom) |
 | Microsoft Teams | A meeting URL is enough; see the [Teams platform guide](https://docs.meetstream.ai/guides/platforms/microsoft-teams) |
 
 ## Connecting any external application

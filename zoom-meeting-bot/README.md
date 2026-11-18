@@ -1,19 +1,19 @@
 # Send a Meeting Bot into Zoom with the MeetStream API
 
-Send a MeetStream meeting bot into a Zoom meeting with the MeetStream API, follow its recording and transcription lifecycle over webhooks, and handle the one thing Zoom does that Google Meet and Microsoft Teams do not: **recording is gated on host consent**. Covers the Marketplace app setup, `recording_permission_denied_timeout`, and authenticated ZAK / OBF joins.
+Send a MeetStream meeting bot into a Zoom meeting with the MeetStream API, follow its recording and transcription lifecycle over webhooks, and handle the one thing Zoom does that Google Meet and Microsoft Teams do not: **recording is gated on host consent**. Covers `recording_permission_denied_timeout`, the optional Zoom app setup, and authenticated ZAK / OBF joins.
 
 ## What it does
 
 - `node index.js` validates the config, starts a webhook receiver, calls `POST /bots/create_bot` with a Zoom link and a `callback_url`, then prints every lifecycle event, including the recording-permission outcome, until `bot.done`.
 - `node index.js check` validates your config and prints the exact `create_bot` body without calling the API.
 - `node index.js listen` runs the webhook receiver on its own.
-- Every `automatic_leave` value is range-checked locally, `meeting_captions` is refused up front (not available on Zoom), `create_bot` carries an `Idempotency-Key`, and a `507` replay is treated as success.
+- Every `automatic_leave` value is range-checked locally, `create_bot` carries an `Idempotency-Key`, and a `507` replay is treated as success.
 
 ## Prerequisites
 
 - Node.js 18 or newer (built-in `fetch`)
 - A MeetStream API key from <https://app.meetstream.ai>
-- A Zoom Marketplace app connected in the MeetStream dashboard (one time, below)
+- No Zoom app is needed: the bot joins with your API key and the meeting link. A Zoom app is optional (see [Your own Zoom app (optional)](#your-own-zoom-app-optional))
 - A Zoom invite link, including its `?pwd=` component for password-protected meetings
 - A publicly reachable webhook URL: `ngrok http 3000`, then put the https origin in `PUBLIC_WEBHOOK_URL`
 
@@ -101,12 +101,12 @@ When the host refuses the prompt you get `bot.recording_permission_denied` with 
 | `BOT_NAME` | no | Display name in the meeting. Default `MeetStream Notetaker`. |
 | `VIDEO_REQUIRED` | no | Video is off by default; `true` records video as well as audio. Default `false`. |
 | `VIDEO_LAYOUT` | no | Only read when `VIDEO_REQUIRED=true`. `speaker_view` (the default) or `grid_view`. The API default is `grid_view`, so speaker view is always sent explicitly. |
-| `RECORDING_PERMISSION_DENIED_TIMEOUT` | no | Seconds to wait for the host's recording prompt. Range 60-300, default `60`. Zoom only. |
+| `RECORDING_PERMISSION_DENIED_TIMEOUT` | no | Seconds to wait for the host's recording prompt. Range 60-600. This template sends `60` unless you set it (the API default is 600). Zoom only. |
 | `WAITING_ROOM_TIMEOUT` | no | Seconds to wait in the waiting room. Zoom range 60-1200, API default 600. |
 | `EVERYONE_LEFT_TIMEOUT` | no | Leave once the count hits zero. Range 60-1800, API default 300. |
 | `IN_CALL_RECORDING_TIMEOUT` | no | Hard cap on recording. Range 600-18000, API default 14400. |
 | `MAX_SESSION_MINUTES` | no | Local cap: `node index.js` gives up and exits 1 if `bot.done` has not arrived after this many minutes. Default `330`. |
-| `TRANSCRIPT_PROVIDER` | no | `deepgram`, `assemblyai`, `sarvam`, `jigsawstack` or `meetstream`. `meeting_captions` is refused on Zoom. Unset means no transcript. |
+| `TRANSCRIPT_PROVIDER` | no | `deepgram`, `assemblyai`, `sarvam`, `jigsawstack`, `meetstream` or `meeting_captions`. `meeting_captions` works only when the bot joins without your own Zoom app; with your own app the API returns 400. Unset means no transcript. |
 | `TRANSCRIPT_LANGUAGE` | no | Language for the provider. Default `en`. |
 | `RETENTION_HOURS` | no | `recording_config.retention.hours`. Unset means the API default of 720 (30 days). |
 | `ZOOM_ZAK_URL` | no | Your https token URL for a signed-in join. Sent as `zoom.zak_url`. |
@@ -115,9 +115,11 @@ When the host refuses the prompt you get `bot.recording_permission_denied` with 
 
 ---
 
-## Zoom app setup (required, one time)
+## Your own Zoom app (optional)
 
-Zoom is the only platform that needs setup before a bot can join. Google Meet and Teams work with zero configuration; Zoom bots join through the Zoom Meeting SDK, which means your own Marketplace app.
+A Zoom bot needs no setup: send the meeting link with your API key, as on Google Meet and Teams. Connect your own Zoom Meeting SDK app only if you want the bot to run as your app, or to use the authenticated joins below. Set `zoom.use_own_app` on `create_bot` to choose explicitly: `true` requires your connected app, `false` joins without it. When you omit it, MeetStream uses your app if one is connected.
+
+To connect your own app:
 
 1. Create a **General App** in the [Zoom App Marketplace](https://marketplace.zoom.us) (**Develop → Build App → General App**). User-managed or admin-managed both work.
 2. Under **Features → Embed**, enable **Meeting SDK**. Leave Device OAuth off.
@@ -127,9 +129,7 @@ These credentials identify the Meeting SDK app the bot runs as. They do not crea
 
 Full walkthrough with screenshots: [Zoom Marketplace App Setup](https://docs.meetstream.ai/guides/app-integrations/zoom-marketplace-app-setup).
 
-Once that is done, sending a bot is the same single `create_bot` call as any other platform.
-
-### Development mode vs production
+### Development mode vs production (your own app only)
 
 | | Development credentials | Production app |
 | --- | --- | --- |
@@ -141,7 +141,7 @@ If your bot joins your own test meetings fine but fails on a customer's meeting,
 
 ### Authenticated joins (ZAK and OBF)
 
-By default the bot joins as a guest. To join as a signed-in Zoom user, or on behalf of a user who is already in the meeting, pass a token URL that **you** host:
+By default the bot joins as a guest. To join as a signed-in Zoom user, or on behalf of a user who is already in the meeting, pass a token URL that **you** host. Both need your own Zoom app, and neither works with `zoom.use_own_app: false`:
 
 ```json
 {
@@ -165,7 +165,7 @@ Set `ZOOM_ZAK_URL` or `ZOOM_OBF_URL` in `.env` and this template sends the right
 
 ## The recording permission flow
 
-On Google Meet and Teams, `bot.recording` fires within about a second of `bot.inmeeting`. On Zoom the bot has to **ask the host** first, so there is a visible gap:
+On Google Meet and Teams, `bot.recording` fires within about a second of `bot.inmeeting`. When the bot runs as your own Zoom app, it has to **ask the host** first, so there is a visible gap. (Without your own app, the recording-consent behaviour is different; see the [Zoom platform guide](https://docs.meetstream.ai/guides/platforms/zoom).)
 
 ```
 bot.joining
@@ -208,8 +208,8 @@ That distinction trips people up. `bot_event: "bot.denied"` means a host refused
 | | |
 | --- | --- |
 | Unit | seconds |
-| Range | `60` - `300`. Out of range returns **HTTP 400** |
-| Default | `60` |
+| Range | `60` - `600`. Out of range returns **HTTP 400** |
+| Default | `600` (this template sends `60` unless you set `RECORDING_PERMISSION_DENIED_TIMEOUT`) |
 | Platform | **Zoom only.** Ignored on Google Meet and Microsoft Teams |
 | On expiry | `bot.recording_permission_denied` → `bot.leaving` → `bot.stopped` |
 
@@ -225,18 +225,18 @@ Things that reduce denials in the first place:
 
 ## Other Zoom-specific behaviour
 
+The rows below describe a bot that runs as your own Zoom app, except where a row says otherwise.
+
 | Behaviour | On Zoom |
 | --- | --- |
-| Setup | One-time Marketplace app plus dashboard credentials |
+| Setup | None. Your own Zoom app is optional |
 | Recording start | Gated on host permission (above) |
 | `waiting_room_timeout` | `60`-`1200`s, default `600`. Wider than Google Meet's `60`-`600` |
 | Per-participant audio | **Full isolation** - the Zoom SDK gives a dedicated raw PCM stream per participant, so each file contains only that speaker's microphone. The cleanest per-participant audio of any platform |
 | Per-participant video | Webcam 640×360 fixed at 300 kbps; screen share at native resolution at 1.5 Mbps; 1 concurrent screen share |
-| Screenshots endpoint | Not supported on Zoom bots |
-| Native captions (`meeting_captions`) | Not available on Zoom. Use deepgram, assemblyai, sarvam, jigsawstack, or the meetstream engine |
+| Screenshots endpoint | Not supported with your own Zoom app. Available when the bot joins without one |
+| Native captions (`meeting_captions`) | Returns 400 with your own Zoom app. Available when the bot joins without one |
 | Chat and images | `send_message` and `send_image` work as on other platforms |
-
-This template refuses to build a `meeting_captions` request for Zoom rather than letting the API reject it.
 
 ---
 
@@ -270,16 +270,16 @@ Deliveries to a per-bot `callback_url` are **not signed**. Signature verificatio
 | `Configuration error: Missing required environment variable MEETSTREAM_API_KEY` | No `.env` or empty key. | `cp .env.example .env` and paste your key. |
 | `PUBLIC_WEBHOOK_URL is required` | No public URL for the receiver. | Run `ngrok http 3000` and paste the https origin. |
 | `MEETING_LINK ... does not look like a Zoom link` | The link is not on a `zoom.us` host. | Paste the full invite link. |
-| `MeetStream 401` / `403` | No key sent, or the key is not valid for this workspace. If the key is right, the Zoom credentials may not be connected. | Check the key; confirm Dashboard > Integrations > Zoom shows the Marketplace app. |
-| `MeetStream 400` from `create_bot` | Out-of-range `automatic_leave` value (`recording_permission_denied_timeout` 60-300, `waiting_room_timeout` 60-1200, `in_call_recording_timeout` at least 600), both `zak_url` and `obf_url` sent, or a malformed link. | Fix the value; send one token URL at most. |
+| `MeetStream 401` / `403` | No key sent, or the key is not valid for this workspace. | Check the key. |
+| `MeetStream 400` from `create_bot` | Out-of-range `automatic_leave` value (`recording_permission_denied_timeout` 60-600, `waiting_room_timeout` 60-1200, `in_call_recording_timeout` at least 600), both `zak_url` and `obf_url` sent, `meeting_captions` with your own Zoom app, a Zoom personal link with no meeting number, or a malformed link. | Fix the value; send one token URL at most; use the numeric meeting invite. |
 | `MeetStream 507` | Idempotent replay of an earlier `create_bot`. | Nothing to fix; the original bot is returned. |
-| Bot joins but never records | The host never granted permission: watch for `bot.recording_permission_allowed` / `_denied`. | Ask the host to accept the prompt; raise `RECORDING_PERMISSION_DENIED_TIMEOUT` (max 300). |
-| Bot can only join my own meetings | Your Marketplace app is still in development mode. | Submit it for production approval. |
+| Bot joins but never records | The host never granted permission: watch for `bot.recording_permission_allowed` / `_denied`. | Ask the host to accept the prompt; raise `RECORDING_PERMISSION_DENIED_TIMEOUT` (max 600). |
+| Bot can only join my own meetings | Your own Zoom app is still in development mode. | Submit it for production approval, or join without your own app. |
 | Bot never gets in at all | The link is invalid or expired, `?pwd=` is missing, the app is in development mode for someone else's meeting, or the bot sat in the waiting room until `waiting_room_timeout` fired (`bot.stopped` with `bot_event: "bot.notallowed"`). | Check each in that order. |
 | `bot_event: "bot.denied"` | The host refused the bot entry or recording. | Tell the host the bot is coming; make the bot's account a co-host. |
 | OBF joins suddenly fail for one user | Their connection was revoked: a Zoom password change, uninstalling the app, or 90+ days idle. | They need to reconnect through your token server. |
 | `Port 3000 is already in use` | Another process owns the port. | Set `PORT` to a free port and update the tunnel. |
-| `Configuration error: ... must be between <min> and <max>` / `meeting_captions is not available on Zoom` / `Set only one of ZOOM_ZAK_URL or ZOOM_OBF_URL` | A value in `.env` failed the local range or combination check (nothing was sent). | Fix the value; see the Environment variables table for ranges. |
+| `Configuration error: ... must be between <min> and <max>` / `Set only one of ZOOM_ZAK_URL or ZOOM_OBF_URL` | A value in `.env` failed the local range or combination check (nothing was sent). | Fix the value; see the Environment variables table for ranges. |
 | `MeetStream 404 on /bots/create_bot` | `MEETSTREAM_BASE_URL` points at the wrong base, or the path was changed. | Use `https://api.meetstream.ai/api/v1`. |
 | `MeetStream 429` / `500` / `502` / `503` / `504` after a few seconds | Rate limit or transient server error; the client retried 3 times with backoff and gave up. | Wait a minute and run again. |
 | `Network error calling POST /bots/create_bot` | DNS, connection or 30 s timeout failure, retried 3 times. | Check connectivity and `MEETSTREAM_BASE_URL`. |
@@ -295,7 +295,7 @@ Deliveries to a per-bot `callback_url` are **not signed**. Signature verificatio
 ## Related
 
 - [Zoom meeting bots](https://docs.meetstream.ai/guides/platforms/zoom)
-- [Zoom Marketplace app setup](https://docs.meetstream.ai/guides/app-integrations/zoom-marketplace-app-setup)
+- [Zoom Marketplace app setup (optional)](https://docs.meetstream.ai/guides/app-integrations/zoom-marketplace-app-setup)
 - [Zoom app production submission](https://docs.meetstream.ai/guides/app-integrations/zoom-app-production-submission)
 - [Zoom authenticated bots](https://docs.meetstream.ai/guides/app-integrations/zoom-authenticated-bots)
 - [Automatic leave configuration](https://docs.meetstream.ai/guides/features/automatic-leave-configuration)

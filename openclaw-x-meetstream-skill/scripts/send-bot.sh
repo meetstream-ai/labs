@@ -147,10 +147,6 @@ if [[ "$transcription_provider" == *_streaming && -z "$live_transcript_webhook" 
   exit 64
 fi
 
-if [[ "$transcription_provider" == "meeting_captions" && "$link" == *zoom.us/* ]]; then
-  echo "error: meeting_captions is supported only on Google Meet and Microsoft Teams" >&2
-  exit 64
-fi
 
 # Resolve --agent-name to an agent_config_id if given.
 if [[ -n "$agent_name" ]]; then

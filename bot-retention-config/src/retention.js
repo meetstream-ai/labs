@@ -89,7 +89,7 @@ What actually expires
   - the audio recording            GET /bots/{id}/get_audio
   - the video recording            GET /bots/{id}/get_video
   - per-participant streams        get_audio_streams, get_recording_streams
-  - screenshots                    GET /bots/{id}/get_screenshots
+  - screenshots                    GET /bots/{id}/screenshots
   - the transcript                 GET /transcript/{transcript_id}/get_transcript
 
   Once the window closes those artifacts are gone the same way they are gone

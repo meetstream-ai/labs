@@ -32,7 +32,7 @@ case "$kind" in
   video) path="/bots/$encoded/get_video" ;;
   audio-streams) path="/bots/$encoded/get_audio_streams" ;;
   video-streams) path="/bots/$encoded/get_recording_streams" ;;
-  screenshots) path="/bots/$encoded/get_screenshots" ;;
+  screenshots) path="/bots/$encoded/screenshots" ;;
   transcriptions) path="/bots/$encoded/transcriptions" ;;
   *) echo "error: unknown data kind '$kind'" >&2; exit 64 ;;
 esac

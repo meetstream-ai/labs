@@ -79,7 +79,7 @@ schema drift. Do not change the audit date without rechecking.
 | POST | `/api/v1/bots/{bot_id}/resume_recording` | Resume Bot Recording |
 | GET | `/api/v1/bots/{bot_id}/get_speaker_timeline` | Get Speaker Timeline |
 | GET | `/api/v1/bots/{bot_id}/get_chats` | Get Bot Chats |
-| GET | `/api/v1/bots/{bot_id}/get_screenshots` | Get Bot Screenshots |
+| GET | `/api/v1/bots/{bot_id}/screenshots` | Get Bot Screenshots |
 | GET | `/api/v1/bots/{bot_id}/get_participants` | Fetch Participants |
 | DELETE | `/api/v1/bots/{bot_id}/delete` | Delete Data |
 | GET | `/api/v1/bots` | List Bots |
@@ -90,7 +90,7 @@ schema drift. Do not change the audit date without rechecking.
 | GET | `/api/v1/bots/{bot_id}/transcriptions` | Transcriptions |
 | POST | `/api/v1/calendar/create_calendar` | Create Calendar |
 | POST | `/api/v1/calendar/disconnect` | Disconnect Calendar |
-| GET | `/api/v1/calendar` | Get Calendars |
+| GET | `/api/v1/calendar/calendars` | Get Calendars |
 | POST | `/api/v1/calendar/schedule/{event_id}` | Schedule Event |
 | DELETE | `/api/v1/calendar/schedule/{event_id}` | Remove Schedule Event |
 | GET | `/api/v1/calendar/events` | Fetch/Sync Events |

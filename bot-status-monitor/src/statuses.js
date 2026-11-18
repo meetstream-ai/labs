@@ -66,7 +66,7 @@ export const STATUSES = [
     event: "bot.stopped (bot_event bot.denied)",
     terminal: true,
     meaning: "A host explicitly denied the bot entry or recording.",
-    note: "status_code 500. On Zoom this interacts with recording_permission_denied_timeout (60 to 300s).",
+    note: "status_code 500. On Zoom this interacts with recording_permission_denied_timeout (60 to 600s).",
   },
   {
     status: "Error",

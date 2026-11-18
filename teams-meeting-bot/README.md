@@ -93,17 +93,17 @@ Beyond that, the precise admission rules - who counts as an organiser, which ten
 
 | Behaviour | Teams | Zoom | Google Meet |
 | --- | --- | --- | --- |
-| Setup | None | One-time Marketplace app + dashboard credentials | None |
-| Recording start | On the first audio frame, typically within about a second of `bot.inmeeting` - no permission gate | **Gated on host consent** (`bot.recording_permission_allowed` / `_denied`) | Immediately after joining, no gate |
+| Setup | None | None (your own Zoom app is optional) | None |
+| Recording start | On the first audio frame, typically within about a second of `bot.inmeeting` - no permission gate | **Gated on host consent** when the bot runs as your own Zoom app (`bot.recording_permission_allowed` / `_denied`) | Immediately after joining, no gate |
 | `waiting_room_timeout` range | 60-1800 (default 600) | 60-1200 (default 600) | 60-600 (default 600) |
 | Other timeout defaults | `no_one_joined_timeout` 600, `everyone_left_timeout` 300 | - | `no_one_joined_timeout` 600, `everyone_left_timeout` 300 |
-| `recording_permission_denied_timeout` | Ignored | 60-300, default 60 | Ignored |
+| `recording_permission_denied_timeout` | Ignored | 60-600, default 600 | Ignored |
 | Signed-in / authenticated bot identity | `teams.login_required` with a registered `teams_login_domain` (Microsoft 365 work/school accounts, one concurrent bot per account; the bot uses the account's own display name): see [`teams-signed-in-bots-setup`](../teams-signed-in-bots-setup) | `zoom.zak_url` (as a signed-in user) or `zoom.obf_url` (on behalf of a user in the call), minted by your own server: see [`zoom-authenticated-joins`](../zoom-authenticated-joins) | `google_meet.login_required` signed-in bots |
 | Per-participant audio | Partial isolation - speaker-attributed capture via the browser bot, same stream-capture model as Google Meet | **Full isolation** - dedicated raw PCM stream per participant | Partial isolation, up to 3 concurrent speaker streams |
 | Per-participant video | Webcam up to 854×480 @ 800 kbps; screen share up to 1280×720 @ 2 Mbps; 1 concurrent screen share | Webcam 640×360 fixed @ 300 kbps; screen share at native resolution @ 1.5 Mbps; 1 concurrent | Webcam up to 854×480 @ 800 kbps; screen share up to 1280×720 @ 2 Mbps; **multiple** concurrent screen shares |
 | Video segmenting | A webcam dimension change starts a new segment (as does a screen-share resolution change) | - | - |
-| Native captions (`meeting_captions`) | Supported | **Not available** | Supported |
-| Screenshots endpoint | - | Not supported on Zoom | - |
+| Native captions (`meeting_captions`) | Supported | Only when the bot joins without your own Zoom app | Supported |
+| Screenshots endpoint | - | Only when the bot joins without your own Zoom app | - |
 | Calendar auto-join | Outlook Calendar (Azure app registration) | - | Google Calendar OAuth |
 
 The single biggest practical difference: **Zoom makes you wait for host consent before recording, Teams and Meet do not.** If you are porting Zoom-shaped code to Teams, the `bot.recording_permission_*` branch simply never fires.

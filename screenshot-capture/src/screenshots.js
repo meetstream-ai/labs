@@ -11,14 +11,14 @@ import { extractTime, formatElapsed, normalizeSpeakerTimeline, speakerAt } from 
  */
 
 /**
- * `GET /bots/{bot_id}/get_screenshots`
+ * `GET /bots/{bot_id}/screenshots`
  *
  * @param {import('./client.js').MeetStreamClient} client
  * @param {string} botId
  * @returns {Promise<{ ready: boolean, status: number, data: any, message: string }>}
  */
 export async function fetchScreenshots(client, botId) {
-  const res = await client.raw('GET', `/bots/${botId}/get_screenshots`);
+  const res = await client.raw('GET', `/bots/${botId}/screenshots`);
   const data = await parseBody(res);
 
   if (res.status === 202) {

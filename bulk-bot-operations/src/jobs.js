@@ -91,9 +91,9 @@ export function validateJobs(rawJobs, defaults = {}) {
       errors.push(`automatic_leave.in_call_recording_timeout must be at least 600 (got ${recTimeout}).`);
     }
     const denyTimeout = job.automatic_leave?.recording_permission_denied_timeout;
-    if (denyTimeout !== undefined && (denyTimeout < 60 || denyTimeout > 300)) {
+    if (denyTimeout !== undefined && (denyTimeout < 60 || denyTimeout > 600)) {
       errors.push(
-        `automatic_leave.recording_permission_denied_timeout must be 60-300 (got ${denyTimeout}). Zoom only.`,
+        `automatic_leave.recording_permission_denied_timeout must be 60-600 (got ${denyTimeout}). Zoom only.`,
       );
     }
 
