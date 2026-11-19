@@ -191,11 +191,15 @@ realtime-audio-streaming/
 +- index.js               # Entry point: server + ngrok + bot orchestration
 +- bridge.js              # Forwards /stream to whichever provider is configured
 +- consumer-example.js    # Minimal example of reading /stream directly
++- compare.js             # Same audio to every provider at once: WER + latency table
 +- src/
 |   +- meetstream.js      # MeetStream REST API client (Token auth, retry on 429/5xx)
 |   +- audio.js           # Binary PCM frame handler + per-speaker .wav writer
 |   +- broadcaster.js     # Re-broadcasts live frames to /stream consumers
 |   +- logger.js          # Pretty terminal output
+|   +- comparison.js      # compare.js engine: fan-out, timing, scoring
+|   +- wer.js             # WER scorer (copy of ../transcription-provider-benchmark's)
+|   +- data/              # Spelling variants the scorer treats as the same word
 |   +- providers/
 |       +- provider-interface.js  # The contract every provider implements
 |       +- deepgram.js             # Built-in: Deepgram speech-to-text
@@ -204,6 +208,7 @@ realtime-audio-streaming/
 |       +- console.js              # Built-in: no-network debug provider
 |       +- reconnect-helper.js     # Reconnect with backoff (used by Deepgram)
 +- logs/audio/            # Per-speaker .wav archive (git-ignored)
++- test/                  # npm test: no keys or network needed
 +- .env.example
 +- package.json
 ```
@@ -228,6 +233,13 @@ MeetStream bot -> your server -> /stream -> bridge.js -> [any provider] -> resul
 
 ### Built-in providers
 
+Status of the built-in providers:
+- **AssemblyAI** was rewritten for Universal-Streaming v3. It had been connecting to the v3 URL while speaking the old v2 protocol, so it never produced a transcript.
+- **OpenAI** was rewritten for `gpt-live-transcribe` and 24 kHz input, following OpenAI's current docs.
+- **Run against the live APIs (2026-10-02):** Deepgram and AssemblyAI, through `compare.js` in file mode, on a 191 s clip and a 122 s clip. Both returned final transcripts and scored as expected.
+- **Not yet run against the live API:** OpenAI. Its rewrite is built from OpenAI's docs, and the tests cover its message handling offline only.
+
+
 | Provider | `.env` value | Needs |
 |---|---|---|
 | Console (debug, no network) | `console` | nothing, works immediately |
@@ -249,6 +261,38 @@ npm run bridge       # Terminal 2: forwards /stream to STT_PROVIDER
 ```
 
 That is the entire change required to switch from one external app to another.
+
+### Compare providers side by side
+
+`bridge.js` sends the audio to **one** provider. `compare.js` sends the same audio to **all of them at once** and tabulates, for each one, word error rate against a reference transcript and how quickly its final transcripts arrive:
+
+```bash
+# From a file: no meeting needed, so anyone can reproduce the numbers
+npm run compare -- --file clip.wav --reference clip.txt
+
+# From a live meeting, with `npm start` running in another terminal (Ctrl+C when done)
+npm run compare -- --live --reference what-was-said.txt
+```
+
+By default, every provider whose API key is set in `.env` takes part. To pick some, pass `--providers deepgram,assemblyai`. The audio can be any 16-bit PCM WAV; it's resampled to 48 kHz and fed in real time, in the same 20 ms frames the bridge sends.
+
+For a clip with an exact transcript, use the one [`../transcription-provider-benchmark`](../transcription-provider-benchmark) builds: run `npm run fetch-sample` there to get `sample/clip.wav` and `sample/reference.txt`. Using the same clip lets you compare live providers here with MeetStream's post-call providers there.
+
+```
+| Provider   | WER  | Sub / Del / Ins | Latency (median) | Latency (p90) | After end of audio | Finals |
+|------------|-----:|----------------:|-----------------:|--------------:|-------------------:|-------:|
+| deepgram   | …    | …               | …                | …             | …                  | …      |
+| assemblyai | …    | …               | …                | …             | …                  | …      |
+```
+
+What the columns mean:
+
+- **WER** uses the same scorer as the post-call benchmark (`src/wer.js` is a copy of its scorer). Only final transcripts count; interim ones are ignored.
+- **Latency** is, for each final transcript, the time from the end of that phrase's audio to the transcript arriving. Each provider reports where its phrase ended: Deepgram as `start + duration`, AssemblyAI as its last word's `end`, and OpenAI as where the harness committed the turn. Because audio is fed in real time, the phrase's end is known on the wall clock.
+- **After end of audio** is the time from the last audio frame to the provider's last final transcript, after it has been asked to flush.
+- Results land in `results/compare-<time>/`: `results.md` has the table, and `results.json` has every final transcript with its timing.
+
+Providers can optionally implement `flush()`. `compare.js` calls it when the audio ends, so a provider can finalise its last phrase instead of dropping it. Deepgram sends `Finalize`, AssemblyAI sends `Terminate`, and OpenAI commits its last turn.
 
 ### Adding a new provider
 

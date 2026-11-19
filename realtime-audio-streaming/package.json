@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "bridge": "node bridge.js"
+    "bridge": "node bridge.js",
+    "compare": "node compare.js",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=18"
