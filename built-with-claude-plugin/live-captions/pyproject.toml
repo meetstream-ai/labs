@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "live-captions"
+version = "0.1.0"
+description = "Live speaker-labelled meeting captions in your terminal, powered by MeetStream"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "httpx>=0.27",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+live-captions = "live_captions.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/live_captions"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

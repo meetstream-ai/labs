@@ -1,0 +1,5 @@
+{
+  "bot_id": "2f0f3f4c-0000-4000-8000-000000000001",
+  "chunk_count": 115200,
+  "speaker_timeline_url": "https://media.example.com/timelines/2f0f3f4c.json?X-Amz-Signature=deadbeef"
+}

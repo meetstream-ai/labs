@@ -1,0 +1,8 @@
+{
+  "bot_id": "2f0f3f4c-0000-4000-8000-000000000001",
+  "speaker_timeline": [
+    { "speakerName": "Alice", "start_time": 0.0, "end_time": 12.5 },
+    { "speakerName": "Bob", "start_time": 12.5, "end_time": 20.0 },
+    { "speakerName": "Alice", "start_time": 20.25, "end_time": 24.25 }
+  ]
+}
