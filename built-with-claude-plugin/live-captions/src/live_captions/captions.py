@@ -1,6 +1,7 @@
 """Turn live transcript chunks into speaker-labelled terminal captions."""
 
 import sys
+import unicodedata
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Mapping, Optional, TextIO
@@ -28,11 +29,17 @@ class Caption:
     clock: str
 
 
+def _clean(value: str) -> str:
+    """Drop control characters. Speaker names and speech come from meeting
+    participants, so an escape sequence in a display name must not reach the terminal."""
+    return "".join(ch for ch in value if ch == " " or not unicodedata.category(ch).startswith("C"))
+
+
 def _speaker_of(payload: Mapping[str, Any]) -> str:
     speaker = payload.get("speakerName")
     if not isinstance(speaker, str) or speaker.strip().lower() in _UNATTRIBUTED:
         return UNKNOWN_SPEAKER
-    return speaker.strip()
+    return _clean(speaker).strip() or UNKNOWN_SPEAKER
 
 
 def _clock_of(payload: Mapping[str, Any], now: Optional[datetime] = None) -> str:
@@ -57,7 +64,7 @@ def parse_chunk(payload: Mapping[str, Any], now: Optional[datetime] = None) -> O
     text = payload.get("transcript")
     if not isinstance(text, str):
         return None
-    text = text.strip()
+    text = _clean(text).strip()
     if not text:
         return None
     return Caption(

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import re
@@ -373,7 +374,10 @@ class Archiver:
 def _participant_relpath(
     stream: ParticipantStream, index: int, url: str, total: int
 ) -> str:
-    slug = slugify(stream.participant)
+    # Different display names can make the same slug ("Ana!" and "ana"), so a short
+    # hash of the original label keeps each participant's files apart.
+    tag = hashlib.sha256(stream.participant.encode("utf-8")).hexdigest()[:8]
+    slug = f"{slugify(stream.participant)}-{tag}"
     suffix = extension_for(url, ".webm")
     name = slug if total == 1 else f"{slug}-{index:03d}"
     return f"participants/{name}{suffix}"

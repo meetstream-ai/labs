@@ -124,3 +124,15 @@ def test_parse_chunk_normalises_fields():
     assert caption.speaker == "Alice"
     assert caption.text == "spaced"
     assert caption.is_final is False
+
+
+def test_control_characters_from_the_meeting_are_dropped():
+    caption = parse_chunk({"speakerName": "Eve\x1b]0;owned\x07\x1b[2J", "transcript": "hi\x1b[31m there\r"})
+    assert caption.speaker == "Eve]0;owned[2J"
+    assert caption.text == "hi[31m there"
+    assert "\x1b" not in caption.speaker + caption.text
+
+
+def test_a_name_that_is_only_control_characters_is_unknown():
+    caption = parse_chunk({"speakerName": "\x1b\x07", "transcript": "hello"})
+    assert caption.speaker == UNKNOWN_SPEAKER

@@ -173,8 +173,8 @@ def test_archives_audio_video_and_participant_tracks(
     bot_dir = settings.archive_dir / BOT_ID
     assert (bot_dir / "audio.mp3").read_bytes() == b"mixed-audio"
     assert (bot_dir / "video.mp4").read_bytes() == b"video-bytes"
-    assert (bot_dir / "participants" / "alice-smith.webm").read_bytes() == b"alice-audio"
-    assert (bot_dir / "participants" / "bob.webm").read_bytes() == b"bob-audio"
+    assert (bot_dir / "participants" / "alice-smith-8ae10dfc.webm").read_bytes() == b"alice-audio"
+    assert (bot_dir / "participants" / "bob-cd9fb1e1.webm").read_bytes() == b"bob-audio"
     assert result.complete is True
     assert result.errors == []
 
@@ -211,8 +211,8 @@ def test_multi_segment_participant_audio_is_numbered(
 
     participants = settings.archive_dir / BOT_ID / "participants"
     assert sorted(p.name for p in participants.iterdir()) == [
-        "alice-001.webm",
-        "alice-002.webm",
+        "alice-3bc51062-001.webm",
+        "alice-3bc51062-002.webm",
     ]
 
 
@@ -395,7 +395,19 @@ def test_dry_run_writes_nothing(archiver: Archiver, settings: Settings) -> None:
 
     assert sorted(result.archived) == [
         "audio.mp3",
-        "participants/alice.webm",
+        "participants/alice-3bc51062.webm",
         "video.mp4",
     ]
     assert not settings.archive_dir.exists() or list(settings.archive_dir.rglob("*")) == []
+
+
+def test_names_that_slug_the_same_get_different_files():
+    from recording_archiver.archive import _participant_relpath
+    from recording_archiver.extract import ParticipantStream
+
+    url = "https://example.com/a.webm"
+    first = _participant_relpath(ParticipantStream("Ana!", [url]), 0, url, 1)
+    second = _participant_relpath(ParticipantStream("ana", [url]), 0, url, 1)
+    assert first != second
+    assert first.startswith("participants/ana-") and second.startswith("participants/ana-")
+    assert _participant_relpath(ParticipantStream("Ana!", [url]), 0, url, 1) == first

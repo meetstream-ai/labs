@@ -40,8 +40,8 @@ archive/
     audio.mp3
     video.mp4                     # only if the bot recorded video
     participants/
-      alice-smith.webm            # only if the bot captured per-participant audio
-      bob.webm
+      alice-smith-8ae10dfc.webm   # name + short hash of the display name; only if the bot captured per-participant audio
+      bob-cd9fb1e1.webm
 ```
 
 `manifest.json` records the bot's metadata, every file archived with its byte count,
