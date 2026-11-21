@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MeetStream Webhook Lifecycle</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-border: #262b36;
+    --text: #e6e8ec;
+    --text-dim: #8b93a3;
+    --accent: #ff5a1f;
+    --accent-dim: #7a2e12;
+    --ok: #3ddc84;
+    --warn: #f5c542;
+    --err: #ff5a5a;
+    --mono: "Consolas", "SFMono-Regular", Menlo, Monaco, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 24px;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 20px;
+    margin: 0;
+    font-weight: 600;
+  }
+  .pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .pill.active { color: var(--ok); border-color: var(--ok); }
+  .pill.joining, .pill.stopping { color: var(--warn); border-color: var(--warn); }
+  .pill.failed, .pill.notallowed, .pill.permissiondenied { color: var(--err); border-color: var(--err); }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+  }
+  .stat-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .card h2 {
+    font-size: 14px;
+    margin: 0 0 14px 0;
+    font-weight: 600;
+  }
+  .card-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .card-title-row h2 { margin: 0; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .field { margin-bottom: 14px; }
+  .field-row { display: flex; gap: 8px; }
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    background: #0d0f14;
+    border: 1px solid var(--panel-border);
+    color: var(--text);
+    padding: 9px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: var(--mono);
+  }
+  input:focus { outline: 1px solid var(--accent); }
+
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 16px;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #ff6f3d; }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+  }
+  .btn-secondary:hover { color: var(--text); }
+  .btn-toggle {
+    background: #0d0f14;
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    padding: 9px 12px;
+  }
+
+  .message { font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .message.error { color: var(--err); }
+  .message.ok { color: var(--ok); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td {
+    text-align: left;
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--panel-border);
+    color: var(--text-dim);
+  }
+  th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  td.bot-id { font-family: var(--mono); color: var(--text); }
+  td.status-cell { color: var(--text); font-weight: 600; }
+
+  .logs-box {
+    background: #0a0c10;
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    height: 220px;
+    overflow-y: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #b7bfcc;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .files-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 220px;
+    overflow-y: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .files-list li {
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--panel-border);
+    color: var(--text-dim);
+  }
+  .files-empty { color: var(--text-dim); font-size: 13px; }
+
+  @media (max-width: 860px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>MeetStream Webhook Lifecycle</h1>
+    <span class="pill" id="status-pill">Idle</span>
+  </div>
+
+  <div class="stats">
+    <div class="card">
+      <div class="stat-label">Status</div>
+      <div class="stat-value" id="stat-status">Idle</div>
+      <div class="stat-sub">No agent deployed</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">Elapsed</div>
+      <div class="stat-value" id="stat-elapsed">0:00</div>
+      <div class="stat-sub">Time since deploy</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">Events Received</div>
+      <div class="stat-value" id="stat-events">0</div>
+      <div class="stat-sub">Lifecycle events for this bot</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">Files Saved</div>
+      <div class="stat-value" id="stat-files">0</div>
+      <div class="stat-sub">Event JSON files written</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Deploy Agent</h2>
+      <div class="field">
+        <label for="api-key">MeetStream API key</label>
+        <div class="field-row">
+          <input type="password" id="api-key" placeholder="ms_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+          <button class="btn-toggle" id="toggle-key" type="button">show</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="meeting-link">Meeting link</label>
+        <input type="text" id="meeting-link" placeholder="https://meet.google.com/xxx-xxxx-xxx" autocomplete="off">
+      </div>
+      <button class="btn-primary" id="deploy-btn" type="button">Deploy Agent</button>
+      <div class="message" id="deploy-message"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title-row">
+        <h2>Output Files</h2>
+        <button class="btn-secondary" id="refresh-files-btn" type="button">refresh</button>
+      </div>
+      <ul class="files-list" id="files-list"></ul>
+      <div class="files-empty" id="files-empty">No event files yet. Deploy an agent to start receiving events.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom: 14px;">
+    <h2>Current Session</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Bot ID</th>
+          <th>Platform</th>
+          <th>Meeting Link</th>
+          <th>Start Time</th>
+          <th>Duration</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="bot-id" id="session-bot-id">--</td>
+          <td id="session-platform">--</td>
+          <td id="session-meeting-link">--</td>
+          <td id="session-start-time">--</td>
+          <td id="session-duration">--</td>
+          <td class="status-cell" id="session-status">Idle</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title-row">
+      <h2>Live Logs</h2>
+      <button class="btn-secondary" id="clear-logs-btn" type="button">clear</button>
+    </div>
+    <div class="logs-box" id="logs-box"></div>
+  </div>
+
+<script>
+  var renderedLogCount = 0;
+  var sessionStartTime = null;
+  var eventsReceived = 0;
+  var lastBotId = null;
+
+  function statusClass(status) {
+    var s = (status || "").toLowerCase().replace(/[^a-z]/g, "");
+    return s;
+  }
+
+  function setStatus(status) {
+    var pill = document.getElementById("status-pill");
+    var statValue = document.getElementById("stat-status");
+    pill.textContent = status;
+    statValue.textContent = status;
+    pill.className = "pill " + statusClass(status);
+  }
+
+  function toggleKeyVisibility() {
+    var input = document.getElementById("api-key");
+    var btn = document.getElementById("toggle-key");
+    if (input.type === "password") {
+      input.type = "text";
+      btn.textContent = "hide";
+    } else {
+      input.type = "password";
+      btn.textContent = "show";
+    }
+  }
+
+  function showMessage(text, isError) {
+    var el = document.getElementById("deploy-message");
+    el.textContent = text;
+    el.className = "message " + (isError ? "error" : "ok");
+  }
+
+  function deployAgent() {
+    var apiKey = document.getElementById("api-key").value.trim();
+    var meetingLink = document.getElementById("meeting-link").value.trim();
+
+    if (!apiKey || !meetingLink) {
+      showMessage("API key and meeting link are both required.", true);
+      return;
+    }
+
+    showMessage("Deploying agent...", false);
+
+    fetch("/api/deploy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ api_key: apiKey, meeting_link: meetingLink })
+    })
+      .then(function (res) {
+        return res.json().then(function (body) {
+          return { ok: res.ok, body: body };
+        });
+      })
+      .then(function (result) {
+        if (result.ok) {
+          showMessage("Bot deployed: " + result.body.bot_id, false);
+          eventsReceived = 0;
+          lastBotId = result.body.bot_id;
+        } else {
+          showMessage(result.body.error || "Deploy failed.", true);
+        }
+      })
+      .catch(function (err) {
+        showMessage("Request failed: " + err, true);
+      });
+  }
+
+  function formatElapsed(startIso) {
+    var start = new Date(startIso).getTime();
+    var now = Date.now();
+    var totalSeconds = Math.max(0, Math.floor((now - start) / 1000));
+    var minutes = Math.floor(totalSeconds / 60);
+    var seconds = totalSeconds % 60;
+    return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+  }
+
+  function pollSession() {
+    fetch("/api/session")
+      .then(function (res) { return res.json(); })
+      .then(function (session) {
+        document.getElementById("session-bot-id").textContent = session.bot_id || "--";
+        document.getElementById("session-platform").textContent = session.platform || "--";
+        document.getElementById("session-meeting-link").textContent = session.meeting_link || "--";
+        document.getElementById("session-status").textContent = session.status || "Idle";
+
+        if (session.bot_id && session.bot_id !== lastBotId) {
+          eventsReceived = 0;
+          lastBotId = session.bot_id;
+        }
+
+        setStatus(session.status || "Idle");
+
+        if (session.start_time) {
+          sessionStartTime = session.start_time;
+          document.getElementById("session-start-time").textContent =
+            new Date(session.start_time).toLocaleTimeString();
+          document.getElementById("session-duration").textContent = formatElapsed(session.start_time);
+          document.getElementById("stat-elapsed").textContent = formatElapsed(session.start_time);
+        }
+      })
+      .catch(function () { /* server unreachable, skip this tick */ });
+  }
+
+  function pollLogs() {
+    fetch("/api/logs")
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        var lines = data.lines || [];
+        if (lines.length > renderedLogCount) {
+          var newLines = lines.slice(renderedLogCount);
+          var box = document.getElementById("logs-box");
+          newLines.forEach(function (line) {
+            var div = document.createElement("div");
+            div.textContent = line;
+            box.appendChild(div);
+          });
+          renderedLogCount = lines.length;
+          eventsReceived += newLines.length;
+          document.getElementById("stat-events").textContent = eventsReceived;
+          box.scrollTop = box.scrollHeight;
+        }
+      })
+      .catch(function () { /* server unreachable, skip this tick */ });
+  }
+
+  function pollOutputFiles() {
+    fetch("/api/output-files")
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        var files = data.files || [];
+        document.getElementById("stat-files").textContent = data.count || 0;
+        var list = document.getElementById("files-list");
+        var empty = document.getElementById("files-empty");
+        list.innerHTML = "";
+        if (files.length === 0) {
+          empty.style.display = "block";
+        } else {
+          empty.style.display = "none";
+          files.slice().reverse().forEach(function (name) {
+            var li = document.createElement("li");
+            li.textContent = name;
+            list.appendChild(li);
+          });
+        }
+      })
+      .catch(function () { /* server unreachable, skip this tick */ });
+  }
+
+  function clearLogs() {
+    // Clears the client-side view only; the server-side log is untouched.
+    document.getElementById("logs-box").innerHTML = "";
+  }
+
+  document.getElementById("toggle-key").addEventListener("click", toggleKeyVisibility);
+  document.getElementById("deploy-btn").addEventListener("click", deployAgent);
+  document.getElementById("refresh-files-btn").addEventListener("click", pollOutputFiles);
+  document.getElementById("clear-logs-btn").addEventListener("click", clearLogs);
+
+  pollSession();
+  pollLogs();
+  pollOutputFiles();
+  setInterval(pollSession, 1000);
+  setInterval(pollLogs, 1500);
+  setInterval(pollOutputFiles, 3000);
+</script>
+
+</body>
+</html>
