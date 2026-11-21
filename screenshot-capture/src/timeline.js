@@ -12,6 +12,7 @@
 export const TIME_KEYS = [
   'timestamp',
   'captured_at',
+  'recorded_at',
   'capture_time',
   'taken_at',
   'created_at',

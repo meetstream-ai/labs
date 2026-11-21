@@ -7,10 +7,12 @@
  *   GET /bots/{id}/get_participants       roster (top-level array)
  *   GET /bots/{id}/get_speaker_timeline   who spoke when
  *   GET /bots/{id}/get_chats              in-meeting chat
- *   GET /bots/{id}/summary                MeetStream's AI summary
+ *   GET /transcript/{tid}/get_transcript  post-call transcript -> a short brief
  *
- * Any one of them can legitimately be unavailable for a given bot - a bot
- * with a streaming-only transcript provider has no summary, a meeting where
+ * MeetStream has no summary endpoint: the "summary" section is a brief built
+ * from the transcript. Any one of them can legitimately be unavailable for a
+ * given bot - a bot with a streaming-only transcript provider has no post-call
+ * transcript, a meeting where
  * nobody typed has no chat. So each section records its own outcome instead
  * of one failure sinking the whole report.
  */
@@ -95,15 +97,47 @@ export async function collectMeeting(client, botId, { intervalMs = 10_000, maxAt
     ...common,
   });
 
-  const summary = await section(() => client.getSummary(botId), {
-    label: 'AI summary',
-    missingNote:
-      'No summary for this bot. Summaries need a post-call transcript provider; ' +
-      'streaming-only providers do not produce one.',
-    ...common,
-  });
+  const noTranscript =
+    'No post-call transcript for this bot, so no brief. Briefs need a post-call ' +
+    'transcript provider; streaming-only providers do not produce one.';
+  const transcriptId = meetingMeta(detail)?.transcript_id;
+  const transcript = transcriptId
+    ? await section(() => client.getTranscript(transcriptId), {
+        label: 'transcript',
+        missingNote: noTranscript,
+        ...common,
+      })
+    : { status: 'missing', data: null, note: noTranscript, httpStatus: null };
+  const summary =
+    transcript.status === 'ok' ? { ...transcript, data: briefFromTranscript(transcript.data) } : transcript;
 
   return { botId, detail, participants, speakerTimeline, chats, summary };
+}
+
+/** A short brief from transcript segments: length, speakers by share of words, opening lines. */
+export function briefFromTranscript(payload) {
+  const list =
+    [payload, payload?.transcript, payload?.segments, payload?.data, payload?.message].find(
+      Array.isArray
+    ) ?? [];
+  const segments = list
+    .map((s) => ({ speaker: String(s?.speaker ?? 'Unknown speaker'), text: String(s?.transcript ?? '').trim(), end: Number(s?.end_time) || 0 }))
+    .filter((s) => s.text);
+  const words = new Map();
+  let end = 0;
+  for (const s of segments) {
+    words.set(s.speaker, (words.get(s.speaker) || 0) + s.text.split(/\s+/).length);
+    end = Math.max(end, s.end);
+  }
+  const total = [...words.values()].reduce((a, b) => a + b, 0) || 1;
+  return {
+    summary: `${segments.length} transcript segments, about ${Math.round(end / 60)} minutes. Brief built from the transcript.`,
+    speakers: [...words.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([speaker, count]) => `${speaker}: ${Math.round((100 * count) / total)}% of words`)
+      .join('; '),
+    opening: segments.slice(0, 3).map((s) => `${s.speaker}: ${s.text}`).join(' / '),
+  };
 }
 
 /** Pull the useful bits out of the `{ bot_details: {...} }` envelope. */

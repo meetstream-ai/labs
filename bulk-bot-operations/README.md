@@ -142,7 +142,7 @@ A batch of 50 that dies on job 37 with `meeting_link is required.` is 36 bots yo
 - provider is a real one
 - `callback_url` is `https`
 - `automatic_leave.in_call_recording_timeout` is at least **600** (a hard API floor)
-- `automatic_leave.recording_permission_denied_timeout` is 60 to 300 (Zoom only)
+- `automatic_leave.recording_permission_denied_timeout` is 60 to 600 (Zoom only)
 - every `custom_attributes` value is a **string**
 
 Rejected jobs are listed and never submitted. `--dry-run` prints the exact payload and key for each job and calls nothing.

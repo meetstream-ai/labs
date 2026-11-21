@@ -135,7 +135,7 @@ In a **new** chat, ask:
 
 ❌ **It's broken if** Hermes says something like *"I don't have a meetstream tool"* or *"I can't join Google Meet calls"*. Go to [Troubleshooting](#troubleshooting).
 
-You can also ask *"Which MeetStream tools and skills do you have?"*. Expect **19 tools** (`create_bot`, `send_chat_message`, `get_transcript`, …) and **6 skills** (`join-meeting`, `speak-in-meeting`, `meeting-chat`, `meeting-brief`, `calendar-bots`, `troubleshooting`).
+You can also ask *"Which MeetStream tools and skills do you have?"*. Expect the MeetStream tools (`create_bot`, `send_chat_message`, `get_transcript`, …) and **6 skills** (`join-meeting`, `speak-in-meeting`, `meeting-chat`, `meeting-brief`, `calendar-bots`, `troubleshooting`).
 
 The same check from the terminal:
 
@@ -297,7 +297,7 @@ mcp_servers:
       Authorization: "Bearer ${MEETSTREAM_API_KEY}"
 ```
 
-You get the 19 tools but none of the skills. The plugin is the recommended setup.
+You get the MeetStream tools but none of the skills. The plugin is the recommended setup.
 
 ### Hermes as the voice in the room
 

@@ -1,12 +1,10 @@
 /**
- * Pretty-print whatever the summary endpoint returns.
+ * Pretty-print the meeting brief that src/summary.js builds from the
+ * transcript (MeetStream has no summary endpoint).
  *
- * The summary payload is a `BotDetailsResponse`, and the exact set of keys
- * inside it depends on which summary workflow your workspace has configured.
- * Rather than guess at field names, this renderer walks the response
- * generically: summary-ish keys are surfaced first, session metadata second,
- * and bulky plumbing fields (the echoed request payload, the raw status
- * timeline) are hidden unless you ask for them.
+ * The renderer walks the object generically: brief keys (summary, speakers,
+ * opening) are surfaced first, ids second, and bulky fields are hidden unless
+ * you ask for them.
  */
 
 import { heading, titleize, wrap, timestamp } from './format.js';
@@ -14,6 +12,8 @@ import { heading, titleize, wrap, timestamp } from './format.js';
 /** Keys whose content is most likely to be the actual summary. Shown first. */
 const PRIORITY_PATTERNS = [
   /summary/i,
+  /speaker/i,
+  /opening/i,
   /overview/i,
   /abstract/i,
   /key.?point/i,
@@ -105,7 +105,7 @@ function renderValue(value, depth, width) {
 }
 
 /**
- * @param {any} body the unwrapped summary body
+ * @param {any} body the brief from src/summary.js
  * @param {{ showAll?: boolean, width?: number }} [opts]
  * @returns {string}
  */
@@ -113,11 +113,11 @@ export function renderSummary(body, { showAll = false, width = 88 } = {}) {
   if (body === null || body === undefined) return '(the API returned an empty body)';
 
   if (typeof body === 'string') {
-    return `${heading('AI Meeting Summary')}\n\n${wrap(body, width)}`;
+    return `${heading('Meeting Brief')}\n\n${wrap(body, width)}`;
   }
 
   if (Array.isArray(body)) {
-    return `${heading('AI Meeting Summary')}\n${renderValue(body, 0, width).join('\n')}`;
+    return `${heading('Meeting Brief')}\n${renderValue(body, 0, width).join('\n')}`;
   }
 
   const keys = Object.keys(body).filter((k) => showAll || !NOISY_KEYS.has(k));
@@ -131,10 +131,9 @@ export function renderSummary(body, { showAll = false, width = 88 } = {}) {
 
   if (populated.length === 0) {
     return (
-      `${heading('AI Meeting Summary')}\n\n` +
-      'The endpoint responded, but every field was empty. That usually means no\n' +
-      'summary workflow is enabled for this workspace, or the meeting produced no\n' +
-      'transcript to summarise. The raw JSON has still been written to disk.'
+      `${heading('Meeting Brief')}\n\n` +
+      'Every field of the brief was empty: the meeting produced no transcript to\n' +
+      'summarise. The raw JSON has still been written to disk.'
     );
   }
 
@@ -148,7 +147,7 @@ export function renderSummary(body, { showAll = false, width = 88 } = {}) {
 
   const out = [];
 
-  out.push(heading('AI Meeting Summary'));
+  out.push(heading('Meeting Brief'));
   if (summaryKeys.length === 0) {
     out.push('');
     out.push(

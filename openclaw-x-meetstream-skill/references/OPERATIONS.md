@@ -28,7 +28,7 @@ All values are integer seconds. Service defaults and limits:
 | everyone_left_timeout | 300 | 60–1800 |
 | voice_inactivity_timeout | 100 | container-enforced; guide suggests 60–1800 |
 | in_call_recording_timeout | 14400 | 600–18000 |
-| recording_permission_denied_timeout | 60 | 60–300; Zoom only |
+| recording_permission_denied_timeout | 600 | 60–600; Zoom only |
 
 The convenience script deliberately sends waiting-room=300, everyone-left=60,
 recording-permission=60 and max duration=14400; these are package choices.
@@ -54,7 +54,7 @@ recording transcription settings.
 | jigsawstack | language auto; translate false; by_speaker true |
 | deepgram_streaming | nova-2 only; sentence/word/raw; language en; linear16 |
 | assemblyai_streaming | universal-streaming-english; raw/sentence; 48000 Hz; pcm_s16le |
-| meeting_captions | empty object; Meet/Teams only; caption availability depends on the meeting |
+| meeting_captions | empty object; Meet/Teams, and Zoom when the bot joins without your own Zoom app (400 with your own app); caption availability depends on the meeting |
 
 Sources: [provider comparison](https://docs.meetstream.ai/guides/transcription-recordings/providers/transcription-providers)
 and each [provider's field reference](DOCS-INDEX.md). Full configurable fields,

@@ -1,6 +1,6 @@
 # Sync Meeting Notes to HubSpot CRM with the MeetStream API
 
-After a sales call on Zoom, Google Meet or Microsoft Teams, a MeetStream API meeting bot records and transcribes it, and this script attaches the AI summary, action items and transcript to the matching HubSpot contact and their deals as a single timeline note.
+After a sales call on Zoom, Google Meet or Microsoft Teams, a MeetStream API meeting bot records and transcribes it, and this script attaches a transcript brief, action items and transcript to the matching HubSpot contact and their deals as a single timeline note.
 
 ```bash
 npm install
@@ -13,7 +13,7 @@ node index.js --bot <bot_id> --emails "buyer@acme.com"
 1. `POST /bots/create_bot` with your `meeting_link` and a `callback_url`.
 2. Serves a webhook and follows the bot lifecycle to `transcription.processed`.
 3. Fetches the transcript with `GET /transcript/{transcript_id}/get_transcript`.
-4. Reads the summary from `GET /bots/{bot_id}/summary` and attendees from `GET /bots/{bot_id}/get_participants`.
+4. Builds a short brief from the transcript (MeetStream has no summary endpoint) and reads attendees from `GET /bots/{bot_id}/get_participants`.
 5. Searches HubSpot for a contact with each attendee email.
 6. Reads the deals associated with those contacts.
 7. Optionally extracts action items with an LLM.
@@ -206,7 +206,6 @@ The MeetStream details that matter:
 
 - [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
 - [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
-- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
 - [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
 - [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
 - [Post-call transcription](https://docs.meetstream.ai/guides/transcription-recordings/post-call-transcription)

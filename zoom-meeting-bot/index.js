@@ -83,13 +83,8 @@ function buildRecordingConfig(config) {
 
   if (config.transcriptProvider) {
     // Pick exactly ONE provider key under transcript.provider.
-    // meeting_captions is not available on Zoom - use any other provider.
-    if (config.transcriptProvider === 'meeting_captions') {
-      throw new ConfigError(
-        'meeting_captions is not available on Zoom. Use deepgram, assemblyai, sarvam, ' +
-          'jigsawstack or meetstream instead.'
-      );
-    }
+    // meeting_captions works only when the bot joins without your own Zoom app;
+    // with your own app the API returns 400.
     const provider =
       config.transcriptProvider === 'deepgram'
         ? { deepgram: { model: 'nova-3', language: config.transcriptLanguage } }
@@ -248,7 +243,7 @@ async function run(config) {
             '(bot.denied), then bot.done. No recording is produced.',
           fixes:
             'Ask the host to grant the prompt, make the host a co-host of the bot account, or ' +
-            'raise recording_permission_denied_timeout (max 300s) so a slow host still has time.',
+            'raise recording_permission_denied_timeout (max 600s) so a slow host still has time.',
         });
       }
 
@@ -370,15 +365,13 @@ main().catch((error) => {
     if (error.status === 400) {
       console.error(
         'HTTP 400 on Zoom usually means: an out-of-range automatic_leave value ' +
-          '(recording_permission_denied_timeout must be 60-300, waiting_room_timeout 60-1200, ' +
-          'in_call_recording_timeout at least 600), or a malformed meeting link.'
+          '(recording_permission_denied_timeout must be 60-600, waiting_room_timeout 60-1200, ' +
+          'in_call_recording_timeout at least 600), meeting_captions with your own Zoom app, ' +
+          'or a malformed meeting link.'
       );
     }
     if (error.status === 403) {
-      console.error(
-        'HTTP 403: check the API key. If the key is fine, your Zoom Marketplace app credentials ' +
-          'may not be connected in Dashboard -> Integrations -> Zoom.'
-      );
+      console.error('HTTP 403: check the API key.');
     }
   } else {
     console.error(`\n${redactSecrets(error.stack ?? error.message)}`);

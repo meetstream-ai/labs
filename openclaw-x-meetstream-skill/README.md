@@ -1,5 +1,10 @@
 # MeetStream for OpenClaw
 
+> [!NOTE]
+> This is a Labs example. The supported way to add MeetStream to OpenClaw is the MeetStream plugin's setup:
+> `git clone https://github.com/meetstream-ai/claude-plugin.git ~/.meetstream-plugin && ~/.meetstream-plugin/setup --host openclaw`,
+> then `openclaw mcp login meetstream`.
+
 An OpenClaw skill for operating the [MeetStream](https://meetstream.ai)
 meeting-bot API with natural language. For the shortest installation path,
 see [QUICKSTART.md](./QUICKSTART.md). This file is the technical reference;

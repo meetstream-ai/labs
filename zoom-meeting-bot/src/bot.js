@@ -7,7 +7,7 @@
  *
  *   automatic_leave.recording_permission_denied_timeout
  *     How long the bot waits for the host to answer the recording-permission
- *     prompt. Range 60-300 seconds, default 60. Zoom only - ignored on Google
+ *     prompt. Range 60-600 seconds, default 600. Zoom only - ignored on Google
  *     Meet and Microsoft Teams. Out of range returns HTTP 400.
  *
  *   automatic_leave.waiting_room_timeout
@@ -87,7 +87,7 @@ export function buildZoomAuth({ zakUrl, obfUrl } = {}) {
 }
 
 export const RECORDING_PERMISSION_TIMEOUT_MIN = 60;
-export const RECORDING_PERMISSION_TIMEOUT_MAX = 300;
+export const RECORDING_PERMISSION_TIMEOUT_MAX = 600;
 export const WAITING_ROOM_MIN = 60;
 export const WAITING_ROOM_MAX_ZOOM = 1200;
 export const IN_CALL_RECORDING_MIN = 600;

@@ -77,13 +77,17 @@ Sources: [first bot](https://docs.meetstream.ai/guides/get-started/create-your-f
 
 ### Zoom
 
-Create a General App in Zoom Marketplace; enable Features → Embed → Meeting
-SDK. Store the matching client ID/secret in MeetStream Integrations → Zoom.
-Development credentials are limited to meetings hosted by your Zoom account.
-External use requires applicable app review plus join authorization. Keep the
-complete invitation URL including its password query. The host must grant
-recording permission; admission and recording are separate steps. Zoom has
-fully isolated participant audio, but no native-caption or screenshot support.
+Zoom needs no setup: the API key and the meeting link are enough. Keep the
+complete invitation URL including its password query; personal `/my/` links
+without a meeting number return 400. Your own Zoom app is optional: set
+`zoom.use_own_app` to `true` to require it, `false` to join without it, or
+omit it to use your app when one is connected. To connect one, create a
+General App in Zoom Marketplace, enable Features → Embed → Meeting SDK, and
+store the client ID/secret in MeetStream Integrations → Zoom. Development
+credentials are limited to meetings hosted by your Zoom account. With your own
+app, the host must grant recording permission, participant audio is fully
+isolated, and native captions and screenshots are not available; without it,
+`meeting_captions` and screenshots work.
 Source: [Zoom platform](https://docs.meetstream.ai/guides/platforms/zoom).
 
 For authenticated joins, your server owns OAuth, validates state, stores and

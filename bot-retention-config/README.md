@@ -85,7 +85,7 @@ Two structural notes people get wrong:
 | Video recording | `GET /bots/{id}/get_video` |
 | Per-participant audio | `GET /bots/{id}/get_audio_streams` |
 | Per-participant video | `GET /bots/{id}/get_recording_streams` |
-| Screenshots | `GET /bots/{id}/get_screenshots` |
+| Screenshots | `GET /bots/{id}/screenshots` |
 | Transcript | `GET /transcript/{transcript_id}/get_transcript` |
 
 When the window closes those artifacts are gone the same way they are gone after `DELETE /bots/{id}/delete`. Retention is a delete timer, not a backup policy. Pull down anything you need to keep before it fires.

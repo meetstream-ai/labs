@@ -11,7 +11,7 @@
 import "dotenv/config";
 
 import { run } from "./src/pipeline.js";
-import { getBotSummary, summaryToText } from "./src/meetstream.js";
+import { briefFromSegments } from "./src/meetstream.js";
 import { describeLlm, isLlmConfigured } from "./src/llm.js";
 import { balanceScore, computeTalkTime } from "./src/talktime.js";
 import { analyzeTranscript } from "./src/analyze.js";
@@ -42,16 +42,8 @@ run({
         `${talkTime.speakers.length} speakers, ${talkTime.totalSeconds}s total.`
     );
 
-    /* 2. MeetStream's own summary, as framing for the model. */
-    let summary = "";
-    if (botId) {
-      try {
-        const payload = await getBotSummary(botId);
-        if (payload) summary = summaryToText(payload);
-      } catch (error) {
-        console.warn(`  Could not read the AI summary: ${error.message}`);
-      }
-    }
+    /* 2. A short brief from the transcript (MeetStream has no summary endpoint). */
+    const summary = briefFromSegments(segments);
 
     /* 3. LLM analysis. */
     const analysis = await analyzeTranscript({

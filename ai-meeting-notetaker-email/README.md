@@ -1,6 +1,6 @@
 # Email AI Meeting Notes and Transcripts with the MeetStream API
 
-A MeetStream API meeting bot joins your Zoom, Google Meet or Microsoft Teams meeting, records and transcribes it, and MeetStream generates the AI summary. This script then emails the summary and transcript to the attendees through Resend, SendGrid or SMTP, driven by webhooks so nothing is polled blindly.
+A MeetStream API meeting bot joins your Zoom, Google Meet or Microsoft Teams meeting, records and transcribes it, and this script builds a short brief from the transcript. This script then emails the summary and transcript to the attendees through Resend, SendGrid or SMTP, driven by webhooks so nothing is polled blindly.
 
 ```bash
 npm install
@@ -13,7 +13,7 @@ node index.js --meeting "https://meet.google.com/abc-defg-hij"
 1. `POST /bots/create_bot` with your `meeting_link` and a `callback_url`.
 2. Serves a webhook and follows the bot lifecycle to `transcription.processed`.
 3. Fetches the transcript with `GET /transcript/{transcript_id}/get_transcript`.
-4. Pulls MeetStream's AI summary from `GET /bots/{bot_id}/summary`.
+4. Builds a short brief from the transcript: speakers by share of words, length, opening lines. MeetStream has no summary endpoint; for a written summary, add your own LLM step.
 5. Pulls the attendee list from `GET /bots/{bot_id}/get_participants`.
 6. Renders an HTML + plain-text email and sends it through Resend, SendGrid, SMTP, or the console.
 
@@ -138,7 +138,7 @@ The MeetStream details that matter:
 | `bot.stopped` with `bot_event: bot.notallowed` (status_code 500) | Nobody admitted the bot before the waiting-room timeout | Admit it sooner, or raise `automatic_leave.waiting_room_timeout`. |
 | `bot.stopped` with `bot_event: bot.denied` | Host refused entry or recording | Ask the host to allow the bot; see the platform guides. |
 | `bot.done` arrived with no `transcription.processed` | No post-call transcript exists for this bot | The pipeline exits; re-check the provider. |
-| Summary is empty | `GET /bots/{id}/summary` returns 202 while generating | Re-run in replay mode a minute later: `node index.js --bot <bot_id>`. |
+| Summary is empty | The transcript had no segments (nobody spoke, or a streaming-only provider) | Use a post-call provider such as `meetstream`, then re-run in replay mode: `node index.js --bot <bot_id>`. |
 | HTTP 429 | Rate limited | The client retries with backoff; slow down concurrent runs. |
 | HTTP 507 | Idempotent replay of a request already made | Treated as success; the existing bot is reused. |
 | Resend rejects the send (403) | `EMAIL_FROM` domain not verified in Resend | Verify the domain in your Resend account. |
@@ -147,7 +147,6 @@ The MeetStream details that matter:
 
 - [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
 - [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
-- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
 - [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
 - [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
 - [Post-call transcription](https://docs.meetstream.ai/guides/transcription-recordings/post-call-transcription)

@@ -1,6 +1,6 @@
 # Post AI Meeting Summaries to Slack with the MeetStream API
 
-A MeetStream meeting bot records your Zoom, Google Meet or Microsoft Teams meeting, then this script fetches the transcript and AI summary from the MeetStream API, optionally extracts action items with an LLM, and posts them into a Slack channel as formatted Block Kit blocks.
+A MeetStream meeting bot records your Zoom, Google Meet or Microsoft Teams meeting, then this script fetches the transcript from the MeetStream API, builds a short brief from it, optionally extracts action items with an LLM, and posts them into a Slack channel as formatted Block Kit blocks.
 
 ```bash
 npm install
@@ -13,7 +13,7 @@ node index.js --meeting "https://meet.google.com/abc-defg-hij"
 1. `POST /bots/create_bot` with your `meeting_link` and a `callback_url`.
 2. Serves a webhook and follows the bot lifecycle to `transcription.processed`.
 3. Fetches the transcript with `GET /transcript/{transcript_id}/get_transcript`.
-4. Reads the AI summary from `GET /bots/{bot_id}/summary` and attendees from `GET /bots/{bot_id}/get_participants`.
+4. Builds a short brief from the transcript (MeetStream has no summary endpoint) and reads attendees from `GET /bots/{bot_id}/get_participants`.
 5. Optionally runs an LLM over the transcript to pull out action items with owners and due dates.
 6. Posts a Block Kit message to Slack, and with a bot token can drop the full transcript into the message thread.
 
@@ -141,7 +141,6 @@ Slack limits handled in `src/blocks.js`: 50 blocks per message, 3000 characters 
 
 - [Post-call transcription](https://docs.meetstream.ai/guides/transcription-recordings/post-call-transcription)
 - [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
-- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
 - [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
 - [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
 - [Transcription providers](https://docs.meetstream.ai/guides/transcription-recordings/providers/transcription-providers)

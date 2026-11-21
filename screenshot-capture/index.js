@@ -18,7 +18,7 @@ import { envInt, optionalEnv, requireEnv, sleep, timestampSlug } from './src/uti
 /**
  * screenshot-capture
  *
- * Downloads a meeting's screenshots from `GET /bots/{bot_id}/get_screenshots`
+ * Downloads a meeting's screenshots from `GET /bots/{bot_id}/screenshots`
  * and writes a report placing each one on the meeting timeline, cross-
  * referenced against `GET /bots/{bot_id}/get_speaker_timeline`.
  *
@@ -67,7 +67,7 @@ async function main() {
   } else {
     // Screenshots are cut from the video capture, so this template keeps video
     // on: with `video_required: false` the bot records audio only and
-    // get_screenshots never returns anything. It is an exception; everywhere
+    // the screenshots endpoint never returns anything. It is an exception; everywhere
     // else video is off by default.
     //
     // The layout is sent explicitly because the API default is `grid_view`.
@@ -110,7 +110,7 @@ async function main() {
   });
 
   const rawShotsPath = await dumpRaw(destDir, 'raw_get_screenshots_response.json', screenshots.data);
-  log.debug(`Raw get_screenshots body saved to ${rawShotsPath}`);
+  log.debug(`Raw screenshots body saved to ${rawShotsPath}`);
 
   const shots = extractScreenshots(screenshots.data);
   if (shots.length === 0) {
@@ -167,7 +167,7 @@ async function waitForMeetingToEnd({ client, botId, maxAttempts, intervalMs }) {
 }
 
 /**
- * Poll get_screenshots, treating 202/404 as "not ready yet" and stopping at the cap.
+ * Poll the screenshots endpoint, treating 202/404 as "not ready yet" and stopping at the cap.
  *
  * @param {object} params
  * @param {MeetStreamClient} params.client
@@ -188,7 +188,7 @@ async function pollScreenshots({ client, botId, maxAttempts, intervalMs }) {
   }
 
   throw new Error(
-    `get_screenshots never returned 200 after ${maxAttempts} attempts. ` +
+    `The screenshots endpoint never returned 200 after ${maxAttempts} attempts. ` +
       'Screenshots are only produced for bots that captured video - confirm the bot recorded ' +
       'the meeting, or raise SCREENSHOT_POLL_MAX_ATTEMPTS.'
   );

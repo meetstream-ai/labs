@@ -5,7 +5,7 @@
  * Everything MeetStream knows about one meeting, in one report.
  *
  * Reads five endpoints - detail, participants, speaker timeline, chats and
- * the AI summary - and writes a consolidated JSON file plus a readable
+ * a brief built from the transcript - and writes a consolidated JSON file plus a readable
  * Markdown document, with a dashboard printed to the terminal.
  *
  *   BOT_ID set        -> report on a meeting that already happened

@@ -258,13 +258,6 @@ export async function getBotDetail(botId) {
   return data;
 }
 
-/** GET /bots/{id}/summary - MeetStream's AI-generated meeting summary. */
-export async function getBotSummary(botId) {
-  const { status, data } = await apiRequest(`/bots/${encodeURIComponent(botId)}/summary`);
-  if (status === 202) return null; // summary still generating
-  return data;
-}
-
 /** GET /bots/{id}/get_participants */
 export async function getParticipants(botId) {
   const { data } = await apiRequest(`/bots/${encodeURIComponent(botId)}/get_participants`);
@@ -431,19 +424,30 @@ export function normalizeParticipants(payload) {
 }
 
 /**
- * Pull a plain-text summary out of the `/bots/{id}/summary` payload.
- * The endpoint's exact JSON shape can vary by account configuration, so we probe
- * the likely string fields and fall back to the pretty-printed JSON.
+ * A short plain-text brief built from the transcript segments: how long the
+ * meeting ran, who spoke and how much, and the opening lines. MeetStream has no
+ * summary endpoint, so the brief always comes from the transcript. For a written
+ * summary, hand the segments to your own LLM.
  */
-export function summaryToText(payload) {
-  if (!payload) return "";
-  if (typeof payload === "string") return payload.trim();
-  for (const key of ["summary", "meeting_summary", "text", "content", "message", "data"]) {
-    const value = payload[key];
-    if (typeof value === "string" && value.trim()) return value.trim();
+export function briefFromSegments(segments) {
+  if (!Array.isArray(segments) || segments.length === 0) return "";
+  const words = new Map();
+  let end = 0;
+  for (const segment of segments) {
+    const count = String(segment.transcript || "").split(/\s+/).filter(Boolean).length;
+    words.set(segment.speaker, (words.get(segment.speaker) || 0) + count);
+    end = Math.max(end, Number(segment.end_time) || 0);
   }
-  if (Array.isArray(payload?.summary)) return payload.summary.filter(Boolean).join("\n");
-  return JSON.stringify(payload, null, 2);
+  const total = [...words.values()].reduce((a, b) => a + b, 0) || 1;
+  const speakers = [...words.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([speaker, count]) => `${speaker} (${Math.round((100 * count) / total)}%)`);
+  return [
+    `${segments.length} transcript segments${end ? `, about ${formatClock(end)} long` : ""}.`,
+    `Speakers by share of words: ${speakers.join(", ")}.`,
+    "Opening:",
+    ...segments.slice(0, 3).map((segment) => `- ${segment.speaker}: ${segment.transcript}`),
+  ].join("\n");
 }
 
 /* ------------------------------------------------------------------ */

@@ -2,8 +2,8 @@
 /**
  * ai-meeting-summary
  *
- * Fetches MeetStream's native AI meeting summary for a bot and prints it in
- * a readable form.
+ * Builds a short meeting brief from a bot's post-call transcript and prints
+ * it. MeetStream has no summary endpoint.
  *
  *   BOT_ID set        -> summarise a meeting that already happened
  *   MEETING_LINK set  -> send a bot in, wait for the call to end, then summarise
@@ -29,9 +29,9 @@ async function main() {
 
   const { botId } = await resolveBot(client, { botNameDefault: 'MeetStream Summary Bot' });
 
-  console.log('\nFetching the AI summary ...');
+  console.log('\nFetching the transcript ...');
   const { raw, body, attempts } = await fetchSummary(client, botId);
-  console.log(`Summary retrieved after ${attempts} request${attempts === 1 ? '' : 's'}.`);
+  console.log(`Transcript retrieved after ${attempts} request${attempts === 1 ? '' : 's'}.`);
 
   console.log(
     renderSummary(body, {
@@ -57,7 +57,7 @@ main().catch((err) => {
     }
     if (err.status === 202) {
       console.error(
-        'The summary was still generating when the poll cap was hit. Raise\n' +
+        'The transcript was still processing when the poll cap was hit. Raise\n' +
           'SUMMARY_POLL_MAX_ATTEMPTS, or re-run later with BOT_ID set to this bot.'
       );
     }

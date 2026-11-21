@@ -217,10 +217,10 @@ export function renderDashboard(report, { barWidth = 30 } = {}) {
 
   // --- Summary -----------------------------------------------------------
   const highlights = summaryHighlights(report.summary);
-  out.push(heading('AI summary'));
+  out.push(heading('Transcript brief'));
   out.push('');
   if (report.sections.summary !== 'ok') {
-    out.push(`Not included - the AI summary is ${why(report.sections.summary)}.`);
+    out.push(`Not included - the transcript brief is ${why(report.sections.summary)}.`);
     if (report.section_notes?.summary) out.push(report.section_notes.summary);
   } else if (highlights.length === 0) {
     out.push('The endpoint responded but contained no summary-shaped fields.');
@@ -400,11 +400,11 @@ export function renderMarkdown(report) {
   );
   lines.push('');
 
-  lines.push('## AI summary');
+  lines.push('## Transcript brief');
   lines.push('');
   const highlights = summaryHighlights(report.summary);
   if (report.sections.summary !== 'ok') {
-    lines.push(`_The AI summary is ${why(report.sections.summary)}._`);
+    lines.push(`_The transcript brief is ${why(report.sections.summary)}._`);
   } else if (highlights.length === 0) {
     lines.push('_The endpoint responded but contained no summary-shaped fields._');
   } else {

@@ -2,7 +2,7 @@
   "name": "@meetstream-labs/ai-meeting-notetaker-email",
   "version": "1.0.0",
   "private": true,
-  "description": "A MeetStream bot joins a meeting, records and transcribes it, then emails the AI summary and transcript to attendees. Resend, SendGrid or SMTP.",
+  "description": "A MeetStream bot joins a meeting, records and transcribes it, then emails a transcript brief and the transcript to attendees. Resend, SendGrid or SMTP.",
   "type": "module",
   "main": "index.js",
   "engines": {

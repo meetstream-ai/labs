@@ -1,7 +1,7 @@
 {
   "name": "@meetstream-labs/meeting-analytics-dashboard",
   "version": "1.0.0",
-  "description": "Consolidate MeetStream's detail, participants, speaker timeline, chat and AI summary endpoints into one meeting report (JSON + Markdown).",
+  "description": "Consolidate MeetStream's detail, participants, speaker timeline, chat and transcript endpoints into one meeting report (JSON + Markdown).",
   "type": "module",
   "main": "index.js",
   "scripts": {

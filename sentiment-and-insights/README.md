@@ -8,7 +8,7 @@ Analyse a MeetStream meeting transcript from a Zoom, Google Meet or Microsoft Te
 2. Serves a webhook and follows the bot lifecycle to `transcription.processed`.
 3. Fetches the transcript with `GET /transcript/{transcript_id}/get_transcript`, polling through HTTP 202 with a cap.
 4. Pulls measured speaking time from `GET /bots/{bot_id}/get_speaker_timeline`.
-5. Reads MeetStream's AI summary from `GET /bots/{bot_id}/summary` as framing.
+5. Builds a short brief from the transcript as framing. MeetStream has no summary endpoint.
 6. Splits the transcript into chronological sections and asks an LLM how sentiment moved, what was discussed, what the risks were, and what to do differently.
 7. Writes `output/insights-<transcript_id>.json` and `output/insights-<transcript_id>.md`.
 
@@ -148,7 +148,6 @@ The MeetStream details that matter:
 - [Diarization](https://docs.meetstream.ai/guides/transcription-recordings/diarization)
 - [Post-call transcription](https://docs.meetstream.ai/guides/transcription-recordings/post-call-transcription)
 - [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
-- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
 - [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
 - [Error reference](https://docs.meetstream.ai/errors)
 - Templates: [speaker-timeline-analytics](../speaker-timeline-analytics/README.md), [meeting-analytics-dashboard](../meeting-analytics-dashboard/README.md), [action-item-extractor](../action-item-extractor/README.md), [notion-meeting-notes](../notion-meeting-notes/README.md)
