@@ -47,6 +47,5 @@ Attribute claims to speakers. Flag ambiguity instead of smoothing it over.
 
 ## Reference
 
-- [Bot summary API](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
 - [Post-call transcription](https://docs.meetstream.ai/guides/transcription-recordings/post-call-transcription)
 - [Retrieve recordings](https://docs.meetstream.ai/guides/transcription-recordings/retrieve-recordings)

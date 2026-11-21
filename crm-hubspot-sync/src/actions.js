@@ -1,7 +1,7 @@
 /**
  * Optional action-item extraction.
  *
- * MeetStream's `/bots/{id}/summary` gives you prose. Turning a meeting into a
+ * The transcript brief gives you context, not decisions. Turning a meeting into a
  * checklist needs a model. This step is deliberately optional: with neither
  * OPENAI_API_KEY nor ANTHROPIC_API_KEY set it returns an empty list and the
  * rest of the template carries on without an action items section.

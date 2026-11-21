@@ -50,7 +50,7 @@ export function renderEmail({
     textParts.push(
       "SUMMARY",
       "-------",
-      "(No AI summary was available for this meeting.)",
+      "(The transcript had no text to summarise.)",
       ""
     );
   }
@@ -70,7 +70,7 @@ export function renderEmail({
         .split(/\n{2,}/)
         .map((block) => `<p style="margin:0 0 12px;">${escapeHtml(block).replace(/\n/g, "<br>")}</p>`)
         .join("")
-    : `<p style="margin:0;color:#6b7280;">No AI summary was available for this meeting.</p>`;
+    : `<p style="margin:0;color:#6b7280;">The transcript had no text to summarise.</p>`;
 
   const transcriptHtml = excerpt
     .map((turn) => {

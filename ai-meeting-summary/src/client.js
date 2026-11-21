@@ -141,7 +141,7 @@ export class MeetStreamClient {
    * MeetStreamError for anything else (after exhausting retries on
    * transient statuses).
    *
-   * @param {string} path path below the API base, e.g. `/bots/abc/summary`
+   * @param {string} path path below the API base, e.g. `/bots/abc/detail`
    * @param {{ method?: string, body?: unknown, headers?: Record<string,string> }} [opts]
    * @returns {Promise<{ status: number, data: any }>}
    */
@@ -226,9 +226,14 @@ export class MeetStreamClient {
     return { status, data };
   }
 
-  /** GET /bots/{bot_id}/summary -> BotDetailsResponse shape; 202 while generating */
-  async getSummary(botId) {
-    return this.request(`/bots/${encodeURIComponent(botId)}/summary`);
+  /** GET /bots/{bot_id}/transcriptions -> every transcription run for the bot */
+  async getTranscriptions(botId) {
+    return this.request(`/bots/${encodeURIComponent(botId)}/transcriptions`);
+  }
+
+  /** GET /transcript/{transcript_id}/get_transcript -> segments; 202 while processing */
+  async getTranscript(transcriptId) {
+    return this.request(`/transcript/${encodeURIComponent(transcriptId)}/get_transcript`);
   }
 
   /** GET /bots/{bot_id}/get_participants -> top-level array of participants */

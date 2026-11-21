@@ -64,7 +64,7 @@ export function buildNoteBody({
       parts.push(`<p>${escapeHtml(block).replace(/\n/g, "<br>")}</p>`);
     }
   } else {
-    parts.push("<p><em>No AI summary was available for this meeting.</em></p>");
+    parts.push("<p><em>The transcript had no text to summarise.</em></p>");
   }
 
   if (actionItems.length > 0) {

@@ -3,7 +3,7 @@
  *
  * Layout:
  *   callout   provenance (bot id, transcript id, segment count)
- *   Summary   paragraphs from GET /bots/{id}/summary
+ *   Summary   a short brief built from the transcript
  *   Participants  bullets
  *   Action items  to_do checkboxes
  *   Transcript    one paragraph per speaker turn, inside a collapsed toggle
@@ -61,7 +61,7 @@ export function buildMeetingBlocks({
       blocks.push(paragraph(block));
     }
   } else {
-    blocks.push(paragraph("No AI summary was available for this meeting."));
+    blocks.push(paragraph("The transcript had no text to summarise."));
   }
 
   blocks.push(heading("Participants"));

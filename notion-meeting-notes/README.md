@@ -1,13 +1,13 @@
 # Send Meeting Notes to Notion with the MeetStream API
 
-A MeetStream meeting bot records your Zoom, Google Meet or Microsoft Teams call, and this script files one Notion page per meeting containing the AI summary, the participants, LLM-extracted action items and the full transcript, driven by MeetStream webhooks and the post-call transcription API.
+A MeetStream meeting bot records your Zoom, Google Meet or Microsoft Teams call, and this script files one Notion page per meeting containing a transcript brief, the participants, LLM-extracted action items and the full transcript, driven by MeetStream webhooks and the post-call transcription API.
 
 ## What it does
 
 1. `POST /bots/create_bot` with your `meeting_link`, a post-call transcription provider and a `callback_url`.
 2. Serves a webhook and follows the bot lifecycle to `transcription.processed`.
 3. Fetches the transcript with `GET /transcript/{transcript_id}/get_transcript`, polling through HTTP 202 with a cap.
-4. Reads the summary from `GET /bots/{bot_id}/summary` and attendees from `GET /bots/{bot_id}/get_participants`.
+4. Builds a short brief from the transcript (MeetStream has no summary endpoint) and reads attendees from `GET /bots/{bot_id}/get_participants`.
 5. Optionally extracts action items with an LLM.
 6. Creates a Notion page: summary paragraphs, participant bullets, action items as checkboxes, transcript in a collapsed toggle.
 
@@ -136,7 +136,6 @@ The Notion limits handled in `src/notion.js`: 2000 characters per `rich_text` ob
 
 - [Post-call transcription](https://docs.meetstream.ai/guides/transcription-recordings/post-call-transcription)
 - [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
-- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
 - [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
 - [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
 - [Local webhook server](https://docs.meetstream.ai/guides/webhooks/local-webhook-server)

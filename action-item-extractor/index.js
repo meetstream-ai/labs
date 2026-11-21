@@ -11,7 +11,7 @@
 import "dotenv/config";
 
 import { run } from "./src/pipeline.js";
-import { getBotSummary, summaryToText } from "./src/meetstream.js";
+import { briefFromSegments } from "./src/meetstream.js";
 import { describeLlm, isLlmConfigured } from "./src/llm.js";
 import { extractActionItems } from "./src/extract.js";
 import { renderMarkdown, sortActionItems, writeOutputs } from "./src/render.js";
@@ -30,16 +30,8 @@ run({
   },
 
   async onMeetingComplete({ botId, transcriptId, segments }) {
-    /* MeetStream's own summary gives the model useful framing. Optional. */
-    let summary = "";
-    if (botId) {
-      try {
-        const payload = await getBotSummary(botId);
-        if (payload) summary = summaryToText(payload);
-      } catch (error) {
-        console.warn(`  Could not read the AI summary: ${error.message}`);
-      }
-    }
+    /* A short brief from the transcript (MeetStream has no summary endpoint). */
+    const summary = briefFromSegments(segments);
 
     const meetingDate = process.env.MEETING_DATE ? new Date(process.env.MEETING_DATE) : new Date();
     if (Number.isNaN(meetingDate.getTime())) {

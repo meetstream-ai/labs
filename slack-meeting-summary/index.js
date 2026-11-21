@@ -1,7 +1,7 @@
 /**
  * Slack Meeting Summary
  *
- * A MeetStream bot records the meeting, and this script posts the AI summary
+ * A MeetStream bot records the meeting, and this script posts a transcript brief
  * plus extracted action items into a Slack channel as Block Kit blocks.
  *
  *   node index.js --meeting "https://meet.google.com/abc-defg-hij"
@@ -12,10 +12,9 @@ import "dotenv/config";
 
 import { run } from "./src/pipeline.js";
 import {
-  getBotSummary,
+  briefFromSegments,
   getParticipants,
   normalizeParticipants,
-  summaryToText,
 } from "./src/meetstream.js";
 import { assertSlackConfig, postToSlack } from "./src/slack.js";
 import { buildSummaryMessage, buildTranscriptMessage } from "./src/blocks.js";
@@ -46,13 +45,8 @@ run({
   },
 
   async onMeetingComplete({ botId, transcriptId, segments }) {
-    /* 1. MeetStream's AI summary. */
-    let summary = "";
-    if (botId) {
-      const payload = await getBotSummary(botId);
-      if (payload) summary = summaryToText(payload);
-      else console.warn("  GET /bots/{id}/summary returned 202, the summary is still generating.");
-    }
+    /* 1. A short brief from the transcript (MeetStream has no summary endpoint). */
+    const summary = briefFromSegments(segments);
 
     /* 2. Participants, for the context line. */
     let participants = [];

@@ -1,6 +1,6 @@
 # Build a Meeting Analytics Report with the MeetStream API
 
-Everything the MeetStream API knows about one Zoom, Google Meet or Microsoft Teams meeting, consolidated into a single report: participants, talk-time per speaker, in-meeting chat, the AI summary and the bot lifecycle, printed to your terminal and written as JSON and Markdown.
+Everything the MeetStream API knows about one Zoom, Google Meet or Microsoft Teams meeting, consolidated into a single report: participants, talk-time per speaker, in-meeting chat, a short brief built from the transcript and the bot lifecycle, printed to your terminal and written as JSON and Markdown.
 
 ## What it does
 
@@ -12,7 +12,7 @@ Reads five endpoints for one bot and merges them into one document:
 | `GET /bots/{id}/get_participants` | Roster, per-participant stream counts, screen shares |
 | `GET /bots/{id}/get_speaker_timeline` | Talk-time per speaker, turns, longest monologue, overlapping speech |
 | `GET /bots/{id}/get_chats` | In-meeting chat, per-author counts, full transcript |
-| `GET /bots/{id}/summary` | MeetStream's native AI summary |
+| `GET /transcript/{transcript_id}/get_transcript` | Post-call transcript, turned into a short brief (MeetStream has no summary endpoint) |
 
 Two modes, chosen by your `.env`:
 
@@ -94,7 +94,7 @@ Detail            ok
 Participants      ok
 Speaker Timeline  ok
 Chats             ok
-Summary           not available    No summary for this bot. Summaries…
+Summary           not available    No post-call transcript for this bot…
 ```
 
 Only a 404 on `detail` is fatal - that means the bot id does not exist or its
@@ -130,7 +130,7 @@ the mapping it used in the JSON report under `chat.field_mapping`.
 
 ## Output
 
-Console: an overview table, the data-sources table, the AI summary, an ASCII
+Console: an overview table, the data-sources table, the transcript brief, an ASCII
 talk-time chart, per-speaker metrics, the participant roster, chat counts and
 the lifecycle stages the bot reached.
 
@@ -159,7 +159,7 @@ Files:
 | HTTP 400 on create | `in_call_recording_timeout` below its 600 second minimum, or a missing `meeting_link` / `bot_name`. | Fix the value in `.env`. |
 | `No bot found with id ...` (404) | Wrong bot id, or the data expired via its retention window. | Confirm the id with `GET /bots`. |
 | HTTP 507 on create | Idempotent replay of an earlier `create_bot` with the same `Idempotency-Key`. | Nothing to fix; the original bot is returned. |
-| Summary shows "not available" | The bot used a streaming-only provider, or no summary workflow is enabled. | Use a post-call provider such as `deepgram`. |
+| Summary shows "not available" | The bot used a streaming-only provider, so there is no post-call transcript. | Use a post-call provider such as `meetstream`. |
 | A section shows "still processing" | Post-call processing has not finished (HTTP 202). | Re-run later with `BOT_ID`, or raise `SECTION_POLL_MAX_ATTEMPTS`. |
 | Bot status ends at `NotAllowed` / `Denied` | The bot timed out in the waiting room, or the host refused it. | Admit it faster, or raise `WAITING_ROOM_TIMEOUT`. |
 | Talk-time durations look wrong | The audio is not 16-bit mono PCM. | Adjust `AUDIO_BYTES_PER_SAMPLE` / `AUDIO_CHANNELS`. Shares stay correct either way. |
@@ -172,7 +172,6 @@ Files:
 - [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
 - [Get speaker timeline](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-speaker-timeline)
 - [Get bot chats](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-chats)
-- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
 - [Participants and speaker timeline guide](https://docs.meetstream.ai/guides/features/participants-and-speaker-timeline)
 - [Error reference](https://docs.meetstream.ai/errors)
 - Templates: [speaker-timeline-analytics](../speaker-timeline-analytics/README.md), [participant-tracker](../participant-tracker/README.md), [ai-meeting-summary](../ai-meeting-summary/README.md), [meeting-chat-logger](../meeting-chat-logger/README.md)

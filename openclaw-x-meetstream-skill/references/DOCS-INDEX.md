@@ -88,7 +88,6 @@ STREAMING.md and WEBHOOKS.md; use the page links below for exhaustive details.
 - API Endpoints > Bot Endpoints [Delete Scheduled Bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/delete-scheduled-bot.md)
 - API Endpoints > Bot Endpoints [Get Bot Status](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-status.md)
 - API Endpoints > Bot Endpoints [Get Bot Details](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-details.md)
-- API Endpoints > Bot Endpoints [Get Bot Summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary.md)
 - API Endpoints > Bot Endpoints [Get Bot Audio](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-audio.md)
 - API Endpoints > Bot Endpoints [Get Bot Video](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-video.md)
 - API Endpoints > Bot Endpoints [Get Recording Streams](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-recording-streams.md)

@@ -12,10 +12,9 @@ import "dotenv/config";
 
 import { parseArgs, run } from "./src/pipeline.js";
 import {
-  getBotSummary,
+  briefFromSegments,
   getParticipants,
   normalizeParticipants,
-  summaryToText,
 } from "./src/meetstream.js";
 import {
   assertHubSpotConfig,
@@ -70,13 +69,8 @@ run({
   },
 
   async onMeetingComplete({ botId, transcriptId, segments }) {
-    /* 1. MeetStream's AI summary. */
-    let summary = "";
-    if (botId) {
-      const payload = await getBotSummary(botId);
-      if (payload) summary = summaryToText(payload);
-      else console.warn("  GET /bots/{id}/summary returned 202, the summary is still generating.");
-    }
+    /* 1. A short brief from the transcript (MeetStream has no summary endpoint). */
+    const summary = briefFromSegments(segments);
 
     /* 2. Participants. Zoom, Meet and Teams do not always expose emails, which is
           why --emails / ATTENDEE_EMAILS exists as the reliable path. */

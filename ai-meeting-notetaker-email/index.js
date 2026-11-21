@@ -2,7 +2,7 @@
  * AI Meeting Notetaker → Email
  *
  * A MeetStream bot joins the meeting, records and transcribes it, MeetStream
- * generates the AI summary, and this script emails the notes to the attendees.
+ * this script builds a short brief from the transcript and emails the notes to the attendees.
  *
  *   node index.js --meeting "https://meet.google.com/abc-defg-hij"
  *   node index.js --bot <bot_id>            # replay a meeting that already ended
@@ -12,10 +12,9 @@ import "dotenv/config";
 
 import { run } from "./src/pipeline.js";
 import {
-  getBotSummary,
+  briefFromSegments,
   getParticipants,
   normalizeParticipants,
-  summaryToText,
 } from "./src/meetstream.js";
 import { renderEmail } from "./src/render.js";
 import { assertEmailConfig, resolveEmailProvider, sendEmail } from "./src/email.js";
@@ -37,16 +36,8 @@ run({
   },
 
   async onMeetingComplete({ botId, transcriptId, segments }) {
-    /* 1. MeetStream's own AI summary. */
-    let summary = "";
-    if (botId) {
-      const payload = await getBotSummary(botId);
-      if (payload) {
-        summary = summaryToText(payload);
-      } else {
-        console.warn("  GET /bots/{id}/summary returned 202 - the summary is still generating.");
-      }
-    }
+    /* 1. A short brief from the transcript (MeetStream has no summary endpoint). */
+    const summary = briefFromSegments(segments);
 
     /* 2. Who was in the room. */
     let participants = [];

@@ -18,7 +18,7 @@ Get an API key at [app.meetstream.ai](https://app.meetstream.ai/api-key). Node 1
 
 | Goal | Start with |
 |---|---|
-| Record a meeting and get a transcript and AI summary afterwards | [post-call-transcription](./post-call-transcription), [ai-meeting-summary](./ai-meeting-summary), [ai-meeting-notetaker-email](./ai-meeting-notetaker-email) |
+| Record a meeting and get a transcript and a meeting brief afterwards | [post-call-transcription](./post-call-transcription), [ai-meeting-summary](./ai-meeting-summary), [ai-meeting-notetaker-email](./ai-meeting-notetaker-email) |
 | Live transcription, captions or audio while the meeting is running | [realtime-transcription](./realtime-transcription), [live-captions-overlay](./live-captions-overlay), [realtime-audio-streaming](./realtime-audio-streaming) |
 | A bot on every calendar meeting automatically | [calendar-auto-schedule](./calendar-auto-schedule), [google-calendar-integration](./google-calendar-integration), [outlook-calendar-integration](./outlook-calendar-integration) |
 | An AI voice agent that listens and talks in the call | [MIA-chat-agent](./MIA-chat-agent), [mia-voice-agent-pipeline](./mia-voice-agent-pipeline), [mia-grok-agent](./mia-grok-agent), [mia-wake-word-assistant](./mia-wake-word-assistant) |
@@ -83,7 +83,7 @@ Get an API key at [app.meetstream.ai](https://app.meetstream.ai/api-key). Node 1
 
 | Template | What it does |
 |---|---|
-| [ai-meeting-summary](./ai-meeting-summary) | MeetStream's native AI summary (`GET /bots/{id}/summary`) |
+| [ai-meeting-summary](./ai-meeting-summary) | A short meeting brief built from the post-call transcript |
 | [speaker-timeline-analytics](./speaker-timeline-analytics) | Talk-time, turns, longest monologue, ASCII bar chart |
 | [participant-tracker](./participant-tracker) | Who joined and left, live over webhooks |
 | [meeting-chat-logger](./meeting-chat-logger) | Export in-meeting chat to JSON and Markdown |
