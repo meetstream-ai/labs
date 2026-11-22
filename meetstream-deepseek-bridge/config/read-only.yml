@@ -1,0 +1,13 @@
+- id: sandbox-policy
+  config:
+    mode: read-only
+- id: approval
+  config:
+    policy: never
+- id: permission
+  config:
+    presets:
+      read-only:
+        sandbox: read-only
+        approval: never
+    defaultPreset: read-only

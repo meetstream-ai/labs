@@ -1,0 +1,13 @@
+# Opt in to the installed Harness account store; never extracts browser cookies.
+- id: credentials
+  disabled: false
+- id: deepseek-account
+  disabled: false
+  config:
+    desktopPlatform: darwin
+- id: agent-default-model
+  config:
+    provider: deepseek-account
+    model: deepseek-flash
+- id: authorization
+  disabled: false

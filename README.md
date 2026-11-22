@@ -2,7 +2,7 @@
 
 Open source, runnable Node.js templates for the [MeetStream API](https://meetstream.ai), the meeting bot API that joins Zoom, Google Meet and Microsoft Teams calls to record, transcribe, stream and act on them. Every template is a small, complete app: an AI notetaker, a real-time transcription server, a webhook handler, a calendar auto-join, a voice agent that talks in the meeting, a CRM or Slack sync, and so on.
 
-**64 templates plus four agent integrations covering every endpoint in the API.** Each folder stands alone: clone it, add your API key, run it.
+**64 templates plus five agent integrations covering every endpoint in the API.** Each folder stands alone: clone it, add your API key, run it.
 
 ```bash
 git clone https://github.com/meetstream-ai/labs.git
@@ -162,10 +162,13 @@ MIA agents run on MeetStream's own hosted bridge. Attach one by passing **only**
 
 Larger reference integrations that connect MeetStream to other agent frameworks. Each has its own README and quickstart.
 
+Check each integration's prerequisites; the DeepSeek bridge requires Node.js 24.9 or newer.
+
 | Project | What it does |
 |---|---|
 | [hermes-plugin](./hermes-plugin) | A Hermes Agent plugin: one connection to the hosted MeetStream MCP server plus six skills, so Hermes can send bots, chat, speak through MIA and pull summaries. No server to run |
 | [mia-hermes-bridge](./mia-hermes-bridge) | Bridge a self-hosted Hermes Agent into a live meeting through MIA, with ngrok tunnelling and a one-command launcher |
+| [meetstream-deepseek-bridge](./meetstream-deepseek-bridge) | Bring DeepSeek Harness into meetings for repository questions and explicitly approved engineering tasks, with voice/chat responses and managed cleanup |
 | [MIA-poster-design](./MIA-poster-design) | A wake-word MIA assistant that turns a spoken event brief into a poster through the Canva bridge |
 | [openclaw-x-meetstream-skill](./openclaw-x-meetstream-skill) | An OpenClaw skill for operating MeetStream bots from the OpenClaw agent |
 

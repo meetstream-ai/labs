@@ -1,0 +1,14 @@
+# Always select the API-key route, regardless of the user's Desktop/headless selection.
+- id: agent-default-model
+  config:
+    provider: deepseek-official
+    model: !!js process.env.DEEPSEEK_MODEL || 'deepseek-flash'
+- id: llm-deepseek
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+- id: credentials
+  disabled: true
+- id: deepseek-account
+  disabled: true
+- id: authorization
+  disabled: true

@@ -1,0 +1,23 @@
+node_modules/
+.env
+.state/
+.reference/
+coverage/
+*.log
+.DS_Store
+
+.env.*
+!.env.example
+
+# Keep the two public guides; ignore other Markdown notes.
+*.[mM][dD]
+!/README.md
+!/Quickstart.md
+
+# Private development artifacts
+/docs/blog-metadata.json
+/docs/demo.cast
+/scripts/local-acceptance.js
+/scripts/record-demo.js
+
+/.codex/
