@@ -104,6 +104,11 @@ Get an API key at [app.meetstream.ai](https://app.meetstream.ai/api-key). Node 1
 
 MIA agents run on MeetStream's own hosted bridge. Attach one by passing **only** `agent_config_id` on `create_bot`.
 
+MeetStream has three flows ([Integration paths](https://docs.meetstream.ai/guides/introduction/integration-paths)): 1. recording only (the Bot API, most templates above), 2. an agent on your own stack, 3. an agent that MeetStream hosts (MIA). For an agent in the meeting:
+
+- **Your own stack (try this first).** A bridge server that you run receives live audio and sends audio, chat and images back ([Bridge server architecture](https://docs.meetstream.ai/guides/websockets/bridge-server-architecture), starter: [meetstream-agent](https://github.com/meetstream-ai/meetstream-agent), template: [websocket-bot-control](./websocket-bot-control)); bot price only. Or your own agent CLI is the brain through the [Agent Kit](https://github.com/meetstream-ai/agent-kit); bot price + $0.25 per hour agent infrastructure.
+- **MeetStream hosts the agent (MIA, the templates below).** Inbuilt keys work in pipeline mode only: Deepgram (speech-to-text) and OpenAI (LLM and voice). Realtime mode runs on OpenAI and needs your own OpenAI key. Any other provider: bring your own key. See [Voice agent pricing and keys](https://docs.meetstream.ai/guides/mia/pricing-and-keys).
+
 | Template | What it does |
 |---|---|
 | [MIA-chat-agent](./MIA-chat-agent) | Deploy a MIA into a meeting and watch it respond |

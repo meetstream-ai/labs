@@ -636,7 +636,7 @@ QUICKSTART.md               Non-technical operating guide
 ## Reference sources
 
 - [MeetStream live meeting chat-agent walkthrough](https://meetstream.ai/blog/how-to-build-a-live-meeting-chat-agent/)
-- [MeetStream MIA configurations](https://docs.meetstream.ai/guides/mia/mia-configurations)
+- [MeetStream MIA configurations](https://docs.meetstream.ai/guides/mia/mia-custom-configurations)
 - [MeetStream live transcription](https://docs.meetstream.ai/guides/transcription-recordings/live-transcription)
 - [MeetStream bridge architecture](https://docs.meetstream.ai/guides/websockets/bridge-server-architecture)
 - [MeetStream meeting control commands](https://docs.meetstream.ai/guides/websockets/meeting-control-patterns)
