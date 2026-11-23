@@ -66,3 +66,20 @@ test("disconnect: sends the remaining audio, then Terminate, and waits for Termi
   await closing;
   assert.equal(socket.closed, true);
 });
+
+test("parseMessage: reports where the turn ends in the audio, from its last word", () => {
+  const words = [{ text: "Hello", start: 100, end: 400 }, { text: "there", start: 450, end: 900 }];
+  assert.equal(parseMessage({ type: "Turn", end_of_turn: true, turn_is_formatted: true, transcript: "Hello there.", words }).meta.audioEnd, 0.9);
+  assert.equal(parseMessage({ type: "Turn", transcript: "hi" }).meta.audioEnd, undefined);
+});
+
+test("flush: finishes the session once, so disconnect afterwards doesn't send Terminate twice", async () => {
+  const socket = fakeSocket();
+  Object.assign(assemblyai, { socket, _pending: [], _pendingBytes: 0, _flushed: false });
+  const flushing = assemblyai.flush();
+  assemblyai._terminated();
+  await flushing;
+  await assemblyai.disconnect();
+  assert.equal(socket.sent.filter((m) => typeof m === "string" && JSON.parse(m).type === "Terminate").length, 1);
+  assert.equal(socket.closed, true);
+});

@@ -36,10 +36,15 @@ const TERMINATE_TIMEOUT_MS = 5_000;
  */
 export function parseMessage(msg) {
   if (msg?.type !== "Turn" || !msg.transcript?.trim()) return null;
+  const lastWord = msg.words?.[msg.words.length - 1];
   return {
     text: msg.transcript,
     isFinal: Boolean(msg.end_of_turn && msg.turn_is_formatted),
-    meta: { confidence: msg.end_of_turn_confidence },
+    meta: {
+      confidence: msg.end_of_turn_confidence,
+      // Where this turn ends in the audio stream, in seconds (compare.js latency).
+      ...(typeof lastWord?.end === "number" ? { audioEnd: lastWord.end / 1000 } : {}),
+    },
   };
 }
 
@@ -57,6 +62,7 @@ export default {
     this._pending = [];
     this._pendingBytes = 0;
     this._terminated = null;
+    this._flushed = false;
 
     return new Promise((resolve, reject) => {
       this.socket = new WebSocket(ASSEMBLYAI_URL, {
@@ -104,15 +110,21 @@ export default {
   /**
    * Sends what is still buffered, asks AssemblyAI to finish the last turn and
    * waits (up to 5 s) for it to confirm, so trailing words are not lost.
+   * compare.js calls this when the audio ends; disconnect() calls it too.
    */
-  async disconnect() {
-    if (this.socket?.readyState !== WebSocket.OPEN) return;
+  async flush() {
+    if (this.socket?.readyState !== WebSocket.OPEN || this._flushed) return;
+    this._flushed = true;
     this._sendPending();
     const done = new Promise((resolve) => (this._terminated = resolve));
     this.socket.send(JSON.stringify({ type: "Terminate" }));
     let timer;
     await Promise.race([done, new Promise((r) => (timer = setTimeout(r, TERMINATE_TIMEOUT_MS)))]);
     clearTimeout(timer);
-    this.socket.close();
+  },
+
+  async disconnect() {
+    await this.flush();
+    if (this.socket?.readyState === WebSocket.OPEN) this.socket.close();
   },
 };
