@@ -1,0 +1,31 @@
+name: Realtime audio streaming
+on:
+  push:
+    paths:
+      - 'realtime-audio-streaming/**'
+      - '.github/workflows/realtime-audio-streaming.yml'
+  pull_request:
+    paths:
+      - 'realtime-audio-streaming/**'
+      - '.github/workflows/realtime-audio-streaming.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: realtime-audio-streaming
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: realtime-audio-streaming/package-lock.json
+      - run: npm ci
+      - run: npm test
