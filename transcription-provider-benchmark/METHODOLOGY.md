@@ -21,7 +21,7 @@ Two choices deserve comment:
 - **`meetstream` runs on `auto`, not English.** MeetStream's docs don't confirm an English code for it. Auto-detection can only cost it accuracy, so the choice cuts against our own engine, not for it.
 - **`sarvam` runs with `en-IN`.** It is the only English code in Sarvam's MeetStream docs. The sample is American and British read speech, so this may disadvantage Sarvam.
 
-"All supported providers" means every transcription provider a MeetStream customer can turn on today: the five on the dashboard's Integrations → Transcription page. The page's "Soon" entries (ElevenLabs, Azure Speech, Gladia, Speechmatics) are not usable yet. The API also names `aws_transcribe`, but it isn't on that page and the API refuses it ("batch transcription is not enabled for the US execution plane"), so it isn't included.
+"All supported providers" means every transcription provider a MeetStream customer can turn on today: the five on the dashboard's Integrations → Transcription page. The page's "Soon" entries (ElevenLabs, Azure Speech, Gladia, Speechmatics) are not usable yet. The API also names `aws_transcribe`, but it isn't on that page and the API doesn't accept it for re-transcription, so it isn't included.
 
 `meeting_captions` is excluded. It reads the meeting platform's live captions during the call, so it can't be re-run on a finished recording and would not hear the same audio as the others.
 
@@ -126,12 +126,14 @@ Fetching the transcript, normalising and scoring happen after T3 and are not cou
 - **Re-running a recording isn't a new test.** MeetStream runs each provider once per recording, so a second benchmark of the same bot reuses the first run's transcripts, untimed. The app warns before you do it. An earlier transcript is only reused if MeetStream reports the same model and settings (or doesn't report them); one made with a different model, say `nova-2` for `nova-3`, is not scored under this provider's name.
 - **Without a reference, words transcribed is not a score.** A provider that returns more words may be hallucinating or picking up background talk, so the app shows the count but doesn't call anyone best on it.
 - **Failed attempts are retried once.** A job that fails inside MeetStream before reaching the provider ("Retranscription failed before provider submission") tells you nothing about that provider, so it is resubmitted once. You can also re-run a provider into an existing run with `--append`. Either way, `run.json` keeps every attempt, and `results.md` notes the retry and that the provider wasn't timed alongside the others.
-- **Fallback: live transcription.** If the re-transcribe endpoint refuses a provider that works at bot creation (this happened to AssemblyAI for part of 2026-09-28), `npm run record -- --live-provider <p>` runs it live on the recording bot. Its turnaround is then timed from the bots leaving the call, which includes MeetStream's post-call media processing, so the table marks it with † as not comparable.
+- **Fallback: live transcription.** If the re-transcribe endpoint refuses a provider that works at bot creation, `npm run record -- --live-provider <p>` runs it live on the recording bot. Its turnaround is then timed from the bots leaving the call, which includes MeetStream's post-call media processing, so the table marks it with † as not comparable.
 - "× real time" is the turnaround divided by the clip length. For example, 0.25× means a 3-minute clip took 45 s.
 
 ## Cost
 
 Cost is **transcription only**, at each provider's published pay-as-you-go rate. The rates and their date are in [src/pricing.js](src/pricing.js), and each one is worked out from what the provider actually billed for, read from its own raw response (`transcripts/*.raw.json`).
+
+**Third-party rates are not verified by MeetStream.** They were copied from each provider's public pricing page (linked in `src/pricing.js`) on the date shown, and providers change prices, plans and discounts. They are an estimate, not a statement of what any provider charges you. Check the provider's current pricing page before you quote or compare a cost.
 
 The providers use two different pricing models, so their costs are worked out differently:
 
