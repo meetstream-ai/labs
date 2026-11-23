@@ -125,7 +125,7 @@ The setup guide targets macOS. Automated bridge checks run on macOS and Linux; t
 | Platform | Required setup |
 |---|---|
 | Google Meet | Host admission, enabled chat, working microphone and configured MeetStream providers. |
-| Zoom | For authenticated joins, the bot joins through your own Zoom Meeting SDK app using an OBF or ZAK token. Joining meetings outside your app's Zoom account through that app requires Zoom review and a token URL on the bot creation request. This launcher does not supply that URL. See the [authenticated Zoom setup](https://docs.meetstream.ai/guides/app-integrations/zoom-authenticated-bots). Host admission and recording permissions still apply. |
+| Zoom | The bot joins through your own Zoom Meeting SDK app: create it and save its credentials in MeetStream first ([Zoom Marketplace App Setup](https://docs.meetstream.ai/guides/app-integrations/zoom-marketplace-app-setup)). Meetings outside your app's own Zoom account need an OBF or ZAK token from a token URL on the bot creation request, and Zoom review of your app. This launcher does not supply that URL. See the [authenticated Zoom setup](https://docs.meetstream.ai/guides/app-integrations/zoom-authenticated-bots). Host admission and recording permissions still apply. |
 | Microsoft Teams | Supported invitation URL, organization bot/access policy, admission and chat permissions. |
 
 Platform availability comes from MeetStream; validate your host and organization settings using its [platform FAQ](https://docs.meetstream.ai/guides/help/faq). In your meeting, check spoken and chat answers, speaker attribution, an approved task, cancellation and departure before relying on the workflow.

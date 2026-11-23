@@ -55,7 +55,7 @@ Keys are hidden while you type or paste them. Press Enter after each answer. Sav
 
 Startup makes a small, read-only model request to check access. This is an API request billed under your configured provider. Invalid credentials, insufficient balance, a missing repository or a failed connection stop startup before a meeting bot is invited. No coding task runs during this check.
 
-When Terminal says **“Admit DeepSeek Meeting Agent”**, admit that participant in your meeting. Leave Terminal open. On Zoom, the host may also need to allow recording. If your meeting requires an authenticated Zoom join through your own app, see the [Zoom setup and launcher limits](README.md#meeting-platforms).
+When Terminal says **“Admit DeepSeek Meeting Agent”**, admit that participant in your meeting. Leave Terminal open. On Zoom, the bot joins through your own Zoom Meeting SDK app, so set up that app in MeetStream first; the host may also need to allow recording. See the [Zoom setup and launcher limits](README.md#meeting-platforms).
 
 You do not need to launch the bot separately in MeetStream. Running `npm start` while this bridge is already running will refuse a second owner rather than invite a duplicate bot.
 
