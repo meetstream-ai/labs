@@ -20,11 +20,11 @@ This harness compares MeetStream's **post-call** providers: the ones you configu
   CC BY 4.0)                                                                            ├─► assemblyai  ─┼─► WER + turnaround
                                                                                         ├─► sarvam      ─┤    per provider
                                                                                         └─► jigsawstack ─┘
-                                              POST /bots/{id}/transcribe, same audio every time
+                                              POST /bots/{id}/transcribe, same stored recording
 ```
 
 1. **Record once.** A speaker bot plays the reference clip into a real meeting while a listener bot records it. The audio goes through the platform's real codec, like a customer's call would.
-2. **Transcribe many times.** `POST /bots/{id}/transcribe` re-runs that one recording through each provider. Every provider gets byte-identical audio, and all are submitted together so they run under the same load.
+2. **Transcribe many times.** `POST /bots/{id}/transcribe` re-runs that one recording through each provider. Every provider is re-transcribed from the same stored recording, and all are submitted together so they run under the same load. MeetStream sends the audio to each provider, so the harness can't confirm the bytes each one receives are identical (see [METHODOLOGY.md](METHODOLOGY.md#same-audio-for-every-provider)).
 3. **Score offline.** Each transcript is normalised and aligned against the reference. Everything needed to recompute the table, including the raw API responses, is saved in `results/<run>/`, so someone without an API key can check it.
 
 ## What you need
