@@ -29,6 +29,8 @@ In your **MeetStream dashboard → Integrations**, also connect **Google Gemini*
 
 Have a separate Git copy of the repository you want the assistant to work on. Use that copy's folder path when asked. A ZIP without Git history is not sufficient; ask a teammate to prepare a disposable Git checkout if needed.
 
+**Use this in meetings with trusted participants.** Someone could deliberately say things to trick the assistant into sharing repository information or proposing unwanted work. Use a repository copy without secrets and approve only tasks you recognize and want to run.
+
 ## 3. Open this project and start
 
 On the MeetStream Labs GitHub page, choose **Code → Download ZIP**, or ask a teammate to clone it. Extract the ZIP if needed and find the **meetstream-deepseek-bridge** folder inside it. Open **Terminal**, type `cd `, drag that bridge folder from Finder into Terminal, then press Enter. Run subsequent commands from that folder.
@@ -53,7 +55,7 @@ Keys are hidden while you type or paste them. Press Enter after each answer. Sav
 
 Startup makes a small, read-only model request to check access. This is an API request billed under your configured provider. Invalid credentials, insufficient balance, a missing repository or a failed connection stop startup before a meeting bot is invited. No coding task runs during this check.
 
-When Terminal says **“Admit DeepSeek Meeting Agent”**, admit that participant in your meeting. Leave Terminal open. On Zoom, the host may also need to allow recording; Zoom requires additional account setup. See [platform notes](README.md#meeting-platforms).
+When Terminal says **“Admit DeepSeek Meeting Agent”**, admit that participant in your meeting. Leave Terminal open. On Zoom, the bot joins through your own Zoom Meeting SDK app, so set up that app in MeetStream first; the host may also need to allow recording. See the [Zoom setup and launcher limits](README.md#meeting-platforms).
 
 You do not need to launch the bot separately in MeetStream. Running `npm start` while this bridge is already running will refuse a second owner rather than invite a duplicate bot.
 
