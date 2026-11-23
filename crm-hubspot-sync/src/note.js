@@ -64,7 +64,7 @@ export function buildNoteBody({
       parts.push(`<p>${escapeHtml(block).replace(/\n/g, "<br>")}</p>`);
     }
   } else {
-    parts.push("<p><em>No AI summary was available for this meeting.</em></p>");
+    parts.push("<p><em>No summary: set OPENAI_API_KEY or ANTHROPIC_API_KEY to have your LLM write one from the transcript.</em></p>");
   }
 
   if (actionItems.length > 0) {

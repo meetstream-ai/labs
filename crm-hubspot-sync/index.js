@@ -12,10 +12,8 @@ import "dotenv/config";
 
 import { parseArgs, run } from "./src/pipeline.js";
 import {
-  getBotSummary,
   getParticipants,
   normalizeParticipants,
-  summaryToText,
 } from "./src/meetstream.js";
 import {
   assertHubSpotConfig,
@@ -27,7 +25,7 @@ import {
   noteUrl,
 } from "./src/hubspot.js";
 import { buildNoteBody } from "./src/note.js";
-import { extractActionItems } from "./src/actions.js";
+import { extractActionItems, summarizeMeeting } from "./src/actions.js";
 import { describeLlm } from "./src/llm.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -66,16 +64,16 @@ run({
 
   preflight() {
     assertHubSpotConfig();
-    console.log(`LLM for action items: ${describeLlm()}`);
+    console.log(`LLM for summary and action items: ${describeLlm()}`);
   },
 
   async onMeetingComplete({ botId, transcriptId, segments }) {
-    /* 1. MeetStream's AI summary. */
+    /* 1. Summary, written by your LLM from the transcript (optional, needs an LLM key). */
     let summary = "";
-    if (botId) {
-      const payload = await getBotSummary(botId);
-      if (payload) summary = summaryToText(payload);
-      else console.warn("  GET /bots/{id}/summary returned 202, the summary is still generating.");
+    try {
+      summary = await summarizeMeeting(segments);
+    } catch (error) {
+      console.warn(`  Summary generation failed, logging without a summary: ${error.message}`);
     }
 
     /* 2. Participants. Zoom, Meet and Teams do not always expose emails, which is

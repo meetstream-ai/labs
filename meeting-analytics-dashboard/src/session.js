@@ -19,7 +19,7 @@ import { envInt, isTerminalStatus } from './client.js';
  *   meeting_link, bot_name, video_required, recording_config, automatic_leave.
  *
  * A *post-call* transcript provider is configured on purpose. Post-call
- * providers are what produce transcripts and summaries; streaming-only
+ * providers are what produce post-call transcripts; streaming-only
  * providers (`*_streaming`, `meeting_captions`) never send
  * `transcription.processed` and have no post-call transcript. Both kinds
  * still end with `bot.done` (`audio.processed` is never final).

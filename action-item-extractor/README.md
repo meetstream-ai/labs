@@ -13,9 +13,8 @@ node index.js --bot <bot_id>
 1. `POST /bots/create_bot` with your `meeting_link` and a `callback_url`.
 2. Serves a webhook and follows the bot lifecycle to `transcription.processed`.
 3. Fetches the transcript with `GET /transcript/{transcript_id}/get_transcript`.
-4. Reads MeetStream's AI summary from `GET /bots/{bot_id}/summary` to give the model framing.
-5. Sends the transcript to OpenAI or Anthropic with the meeting date and the speaker list, and asks for strict JSON.
-6. Writes `output/action-items-<transcript_id>.json` and `output/action-items-<transcript_id>.md`.
+4. Sends the transcript to OpenAI or Anthropic with the meeting date and the speaker list, and asks for strict JSON.
+5. Writes `output/action-items-<transcript_id>.json` and `output/action-items-<transcript_id>.md`.
 
 Each action item comes back as:
 
@@ -153,7 +152,6 @@ The MeetStream details that matter:
 - [Transcription providers](https://docs.meetstream.ai/guides/transcription-recordings/providers/transcription-providers)
 - [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
 - [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
-- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
 - [Create bot payload reference](https://docs.meetstream.ai/api-reference/create-bot-payload-reference)
 - [Error codes](https://docs.meetstream.ai/errors)
 - Sibling templates: [ai-meeting-summary](../ai-meeting-summary), [transcript-fetcher](../transcript-fetcher), [speaker-diarization](../speaker-diarization)

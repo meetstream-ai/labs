@@ -12,14 +12,12 @@ import "dotenv/config";
 
 import { run } from "./src/pipeline.js";
 import {
-  getBotSummary,
   getParticipants,
   normalizeParticipants,
-  summaryToText,
 } from "./src/meetstream.js";
 import { assertSlackConfig, postToSlack } from "./src/slack.js";
 import { buildSummaryMessage, buildTranscriptMessage } from "./src/blocks.js";
-import { extractActionItems } from "./src/actions.js";
+import { extractActionItems, summarizeMeeting } from "./src/actions.js";
 import { describeLlm } from "./src/llm.js";
 
 /** Merge consecutive segments from the same speaker into one turn. */
@@ -42,16 +40,16 @@ run({
   preflight() {
     const mode = assertSlackConfig();
     console.log(`Slack mode: ${mode}`);
-    console.log(`LLM for action items: ${describeLlm()}`);
+    console.log(`LLM for summary and action items: ${describeLlm()}`);
   },
 
   async onMeetingComplete({ botId, transcriptId, segments }) {
-    /* 1. MeetStream's AI summary. */
+    /* 1. Summary, written by your LLM from the transcript (optional, needs an LLM key). */
     let summary = "";
-    if (botId) {
-      const payload = await getBotSummary(botId);
-      if (payload) summary = summaryToText(payload);
-      else console.warn("  GET /bots/{id}/summary returned 202, the summary is still generating.");
+    try {
+      summary = await summarizeMeeting(segments);
+    } catch (error) {
+      console.warn(`  Summary generation failed, posting without a summary: ${error.message}`);
     }
 
     /* 2. Participants, for the context line. */

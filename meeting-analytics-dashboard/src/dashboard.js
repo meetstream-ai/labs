@@ -45,7 +45,6 @@ export function buildReport(collected, { bytesPerSample = 2, channels = 1 } = {}
     participants: collected.participants.status,
     speaker_timeline: collected.speakerTimeline.status,
     chats: collected.chats.status,
-    summary: collected.summary.status,
   };
 
   return {
@@ -58,7 +57,6 @@ export function buildReport(collected, { bytesPerSample = 2, channels = 1 } = {}
         participants: collected.participants.note,
         speaker_timeline: collected.speakerTimeline.note,
         chats: collected.chats.note,
-        summary: collected.summary.note,
       }).filter(([, v]) => v)
     ),
     meeting: meta,
@@ -103,64 +101,13 @@ export function buildReport(collected, { bytesPerSample = 2, channels = 1 } = {}
           })),
         }
       : null,
-    summary: collected.summary.status === 'ok' ? unwrapSummary(collected.summary.data) : null,
     raw: {
       detail: collected.detail.data,
       participants: collected.participants.data,
       speaker_timeline: collected.speakerTimeline.data,
       chats: collected.chats.data,
-      summary: collected.summary.data,
     },
   };
-}
-
-function unwrapSummary(payload) {
-  if (payload && typeof payload === 'object' && !Array.isArray(payload) && payload.bot_details) {
-    return payload.bot_details;
-  }
-  return payload;
-}
-
-/** Keys inside the summary payload most likely to hold actual summary text. */
-const SUMMARY_PATTERNS = [
-  /summary/i,
-  /overview/i,
-  /key.?point/i,
-  /action.?item/i,
-  /next.?step/i,
-  /decision/i,
-  /topic/i,
-  /highlight/i,
-];
-
-function summaryHighlights(summary) {
-  if (!summary) return [];
-  if (typeof summary === 'string') return [['Summary', summary]];
-  if (typeof summary !== 'object') return [];
-  return Object.entries(summary).filter(([k, v]) => {
-    if (v === null || v === undefined || v === '') return false;
-    if (Array.isArray(v) && v.length === 0) return false;
-    return SUMMARY_PATTERNS.some((re) => re.test(k));
-  });
-}
-
-function renderSummaryValue(value, indent = '') {
-  if (value === null || value === undefined) return [];
-  if (typeof value === 'string') return value.split('\n').map((l) => indent + l);
-  if (Array.isArray(value)) {
-    return value.flatMap((item) =>
-      typeof item === 'object' && item !== null
-        ? renderSummaryValue(item, `${indent}  `)
-        : [`${indent}- ${item}`]
-    );
-  }
-  if (typeof value === 'object') {
-    return Object.entries(value).flatMap(([k, v]) => [
-      `${indent}${titleize(k)}:`,
-      ...renderSummaryValue(v, `${indent}  `),
-    ]);
-  }
-  return [`${indent}${value}`];
 }
 
 // ---------------------------------------------------------------------------
@@ -214,25 +161,6 @@ export function renderDashboard(report, { barWidth = 30 } = {}) {
       ])
     )
   );
-
-  // --- Summary -----------------------------------------------------------
-  const highlights = summaryHighlights(report.summary);
-  out.push(heading('AI summary'));
-  out.push('');
-  if (report.sections.summary !== 'ok') {
-    out.push(`Not included - the AI summary is ${why(report.sections.summary)}.`);
-    if (report.section_notes?.summary) out.push(report.section_notes.summary);
-  } else if (highlights.length === 0) {
-    out.push('The endpoint responded but contained no summary-shaped fields.');
-    out.push('The full payload is in the JSON export under "raw.summary".');
-  } else {
-    for (const [key, value] of highlights) {
-      out.push(titleize(key));
-      out.push('-'.repeat(titleize(key).length));
-      out.push(...renderSummaryValue(value));
-      out.push('');
-    }
-  }
 
   // --- Talk time ---------------------------------------------------------
   out.push(heading('Talk-time share'));
@@ -398,23 +326,6 @@ export function renderMarkdown(report) {
       ])
     )
   );
-  lines.push('');
-
-  lines.push('## AI summary');
-  lines.push('');
-  const highlights = summaryHighlights(report.summary);
-  if (report.sections.summary !== 'ok') {
-    lines.push(`_The AI summary is ${why(report.sections.summary)}._`);
-  } else if (highlights.length === 0) {
-    lines.push('_The endpoint responded but contained no summary-shaped fields._');
-  } else {
-    for (const [key, value] of highlights) {
-      lines.push(`### ${titleize(key)}`);
-      lines.push('');
-      lines.push(renderSummaryValue(value).join('\n'));
-      lines.push('');
-    }
-  }
   lines.push('');
 
   lines.push('## Talk time');

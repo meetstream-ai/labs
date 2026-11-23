@@ -86,7 +86,7 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, {"message": f"Stop signal sent for bot {bot_id}."})
             return
 
-        m = re.match(r"^/api/v1/bots/([^/]+)/(detail|summary|get_participants|get_chats|get_speaker_timeline|get_audio|get_video|get_audio_streams|get_recording_streams|get_screenshots|transcriptions)$", path)
+        m = re.match(r"^/api/v1/bots/([^/]+)/(detail|get_participants|get_chats|get_speaker_timeline|get_audio|get_video|get_audio_streams|get_recording_streams|get_screenshots|transcriptions)$", path)
         if m:
             bot_id, kind = m.groups()
             if bot_id not in BOTS:
@@ -94,7 +94,6 @@ class Handler(BaseHTTPRequestHandler):
                 return
             payloads = {
                 "detail": {"bot_details": {"bot_id": bot_id, "status": BOTS[bot_id]["status"], "transcript_id": BOTS[bot_id].get("transcript_id")}},
-                "summary": {"summary": "The team agreed on the launch plan."},
                 "get_participants": {"participants": [{"displayName": "Alice", "status": "joined"}]},
                 "get_chats": {"chats": [{"sender": "Alice", "message": "Hello"}]},
                 "get_speaker_timeline": {"speakers": [{"speaker_name": "Alice", "start": 0, "end": 4}]},

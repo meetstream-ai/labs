@@ -1,10 +1,10 @@
 # Build a Meeting Analytics Report with the MeetStream API
 
-Everything the MeetStream API knows about one Zoom, Google Meet or Microsoft Teams meeting, consolidated into a single report: participants, talk-time per speaker, in-meeting chat, the AI summary and the bot lifecycle, printed to your terminal and written as JSON and Markdown.
+Everything the MeetStream API knows about one Zoom, Google Meet or Microsoft Teams meeting, consolidated into a single report: participants, talk-time per speaker, in-meeting chat and the bot lifecycle, printed to your terminal and written as JSON and Markdown.
 
 ## What it does
 
-Reads five endpoints for one bot and merges them into one document:
+Reads four endpoints for one bot and merges them into one document:
 
 | Endpoint | Contributes |
 | --- | --- |
@@ -12,7 +12,8 @@ Reads five endpoints for one bot and merges them into one document:
 | `GET /bots/{id}/get_participants` | Roster, per-participant stream counts, screen shares |
 | `GET /bots/{id}/get_speaker_timeline` | Talk-time per speaker, turns, longest monologue, overlapping speech |
 | `GET /bots/{id}/get_chats` | In-meeting chat, per-author counts, full transcript |
-| `GET /bots/{id}/summary` | MeetStream's native AI summary |
+
+MeetStream does not generate summaries server side. For a written summary, fetch the transcript (`GET /transcript/{transcript_id}/get_transcript`, with the transcript id this report shows) and pass it to your own LLM. [slack-meeting-summary](../slack-meeting-summary) shows one way to do that.
 
 Two modes, chosen by your `.env`:
 
@@ -69,12 +70,12 @@ node index.js
 
 ## Partial data is normal
 
-Any one of the five sources can legitimately be unavailable:
+Any one of the four sources can legitimately be unavailable:
 
 - a bot created with a **streaming-only** transcript provider
   (`deepgram_streaming`, `assemblyai_streaming`, `meetstream_streaming`,
   `jigsawstack_streaming`, `meeting_captions`) never produces a post-call
-  transcript, so there is nothing to summarise
+  transcript
 - a meeting where nobody typed has no chat
 - a bot that was denied entry has no speaker timeline
 - anything still processing answers **HTTP 202**
@@ -94,7 +95,6 @@ Detail            ok
 Participants      ok
 Speaker Timeline  ok
 Chats             ok
-Summary           not available    No summary for this bot. Summaries…
 ```
 
 Only a 404 on `detail` is fatal - that means the bot id does not exist or its
@@ -106,14 +106,14 @@ data has already expired.
 index.js               entry point, output files, exit reporting
 src/client.js          MeetStream HTTP client (Token auth, 202/507 handling, retries)
 src/session.js         resolve BOT_ID, or create a bot and wait for it to finish
-src/collect.js         fetch all five sources, each with its own status
+src/collect.js         fetch all four sources, each with its own status
 src/analytics.js       speaker timeline -> talk-time / turn / overlap metrics
 src/normalize.js       chat response -> normalised messages
 src/dashboard.js       build the report object, terminal view, Markdown view
 src/format.js          duration / percent / bar / table helpers
 ```
 
-Sources are fetched **sequentially, not in parallel** - five simultaneous poll
+Sources are fetched **sequentially, not in parallel** - four simultaneous poll
 loops against one bot is a reliable way to get rate limited for no benefit.
 
 ### Two details worth knowing
@@ -130,7 +130,7 @@ the mapping it used in the JSON report under `chat.field_mapping`.
 
 ## Output
 
-Console: an overview table, the data-sources table, the AI summary, an ASCII
+Console: an overview table, the data-sources table, an ASCII
 talk-time chart, per-speaker metrics, the participant roster, chat counts and
 the lifecycle stages the bot reached.
 
@@ -159,7 +159,6 @@ Files:
 | HTTP 400 on create | `in_call_recording_timeout` below its 600 second minimum, or a missing `meeting_link` / `bot_name`. | Fix the value in `.env`. |
 | `No bot found with id ...` (404) | Wrong bot id, or the data expired via its retention window. | Confirm the id with `GET /bots`. |
 | HTTP 507 on create | Idempotent replay of an earlier `create_bot` with the same `Idempotency-Key`. | Nothing to fix; the original bot is returned. |
-| Summary shows "not available" | The bot used a streaming-only provider, or no summary workflow is enabled. | Use a post-call provider such as `deepgram`. |
 | A section shows "still processing" | Post-call processing has not finished (HTTP 202). | Re-run later with `BOT_ID`, or raise `SECTION_POLL_MAX_ATTEMPTS`. |
 | Bot status ends at `NotAllowed` / `Denied` | The bot timed out in the waiting room, or the host refused it. | Admit it faster, or raise `WAITING_ROOM_TIMEOUT`. |
 | Talk-time durations look wrong | The audio is not 16-bit mono PCM. | Adjust `AUDIO_BYTES_PER_SAMPLE` / `AUDIO_CHANNELS`. Shares stay correct either way. |
@@ -172,7 +171,6 @@ Files:
 - [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
 - [Get speaker timeline](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-speaker-timeline)
 - [Get bot chats](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-chats)
-- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
 - [Participants and speaker timeline guide](https://docs.meetstream.ai/guides/features/participants-and-speaker-timeline)
 - [Error reference](https://docs.meetstream.ai/errors)
 - Templates: [speaker-timeline-analytics](../speaker-timeline-analytics/README.md), [participant-tracker](../participant-tracker/README.md), [ai-meeting-summary](../ai-meeting-summary/README.md), [meeting-chat-logger](../meeting-chat-logger/README.md)

@@ -1,6 +1,6 @@
 # Sync Meeting Notes to HubSpot CRM with the MeetStream API
 
-After a sales call on Zoom, Google Meet or Microsoft Teams, a MeetStream API meeting bot records and transcribes it, and this script attaches the AI summary, action items and transcript to the matching HubSpot contact and their deals as a single timeline note.
+After a sales call on Zoom, Google Meet or Microsoft Teams, a MeetStream API meeting bot records and transcribes it, and this script attaches an LLM-written summary, action items and transcript to the matching HubSpot contact and their deals as a single timeline note.
 
 ```bash
 npm install
@@ -13,10 +13,10 @@ node index.js --bot <bot_id> --emails "buyer@acme.com"
 1. `POST /bots/create_bot` with your `meeting_link` and a `callback_url`.
 2. Serves a webhook and follows the bot lifecycle to `transcription.processed`.
 3. Fetches the transcript with `GET /transcript/{transcript_id}/get_transcript`.
-4. Reads the summary from `GET /bots/{bot_id}/summary` and attendees from `GET /bots/{bot_id}/get_participants`.
+4. Reads attendees from `GET /bots/{bot_id}/get_participants`.
 5. Searches HubSpot for a contact with each attendee email.
 6. Reads the deals associated with those contacts.
-7. Optionally extracts action items with an LLM.
+7. Optionally writes a summary and extracts action items from the transcript with your own LLM (OpenAI or Anthropic). MeetStream does not generate summaries.
 8. Creates **one** note and associates it with every matched contact and deal, so the call shows up on the right timelines without duplicating itself.
 
 ## Prerequisites
@@ -70,7 +70,7 @@ Create the private app in HubSpot under **Settings > Integrations > Private Apps
 | `INCLUDE_TRANSCRIPT` | no | `false` omits the transcript from the note. Default `true`. |
 | `NOTE_MAX_TRANSCRIPT_TURNS` | no | Speaker turns included in the note. Default `200`. |
 | `NOTE_TITLE` | no | `{date}` is replaced with today's date. Default `Meeting notes - {date}`. |
-| `LLM_PROVIDER` | no | `openai` or `anthropic`. Inferred from whichever key is set. Leave blank to skip action items. |
+| `LLM_PROVIDER` | no | `openai` or `anthropic`. Inferred from whichever key is set. Leave blank to skip the summary and action items. |
 | `OPENAI_API_KEY`, `OPENAI_MODEL` | no | OpenAI key and model. Default model `gpt-4o-mini`. |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | no | Anthropic key and model. Default model `claude-sonnet-4-5`. |
 | `LLM_MAX_TRANSCRIPT_CHARS` | no | Transcript characters sent to the LLM. Default `60000`. |
@@ -102,12 +102,13 @@ Replay mode (`--bot <bot_id>`), with no LLM key set:
 ```text
 === MeetStream Labs · CRM HubSpot Sync ===
 
-LLM for action items: none
+LLM for summary and action items: none
 Looking up the transcript_id for bot <bot_id>...
 Found transcript_id: <transcript_id>
 
 Fetching transcript <transcript_id> ...
 Got 142 transcript segments.
+  No LLM key set, skipping the summary. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.
 
 Matching on: buyer@acme.com, champion@acme.com
   Matched buyer@acme.com to contact <contact_id> (Jane Buyer)
@@ -121,7 +122,7 @@ https://app.hubspot.com/contacts/<portal_id>/objects/0-46/<note_id>
 Done.
 ```
 
-The last URL is printed only when `HUBSPOT_PORTAL_ID` is set; otherwise the line reads `note <note_id>`. With `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` set, the first line reads `LLM for action items: openai/gpt-4o-mini` (or `anthropic/claude-sonnet-4-5`) and `Extracted N action items.` reports what the model found.
+The last URL is printed only when `HUBSPOT_PORTAL_ID` is set; otherwise the line reads `note <note_id>`. With `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` set, the first line reads `LLM for summary and action items: openai/gpt-4o-mini` (or `anthropic/claude-sonnet-4-5`) and `Extracted N action items.` reports what the model found.
 
 Live mode (`--meeting <url>`) first prints the webhook server and the created bot, then one line per lifecycle event until the transcript is ready, then the same tail as above:
 
@@ -161,7 +162,7 @@ src/pipeline.js   create the bot, serve the webhook, fetch the transcript
 src/meetstream.js the MeetStream API client
 src/hubspot.js    contact search, deal associations, note creation
 src/note.js       the HTML body HubSpot renders on the timeline
-src/actions.js    optional LLM action item extraction
+src/actions.js    optional LLM summary and action item extraction
 src/llm.js        pluggable OpenAI / Anthropic client
 ```
 
@@ -206,7 +207,6 @@ The MeetStream details that matter:
 
 - [Create bot](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/create-bot)
 - [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
-- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
 - [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
 - [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
 - [Post-call transcription](https://docs.meetstream.ai/guides/transcription-recordings/post-call-transcription)

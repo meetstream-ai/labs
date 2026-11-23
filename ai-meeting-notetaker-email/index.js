@@ -1,8 +1,8 @@
 /**
  * AI Meeting Notetaker → Email
  *
- * A MeetStream bot joins the meeting, records and transcribes it, MeetStream
- * generates the AI summary, and this script emails the notes to the attendees.
+ * A MeetStream bot joins the meeting, records and transcribes it, and this
+ * script emails the notes (a local overview plus the transcript) to the attendees.
  *
  *   node index.js --meeting "https://meet.google.com/abc-defg-hij"
  *   node index.js --bot <bot_id>            # replay a meeting that already ended
@@ -11,13 +11,8 @@
 import "dotenv/config";
 
 import { run } from "./src/pipeline.js";
-import {
-  getBotSummary,
-  getParticipants,
-  normalizeParticipants,
-  summaryToText,
-} from "./src/meetstream.js";
-import { renderEmail } from "./src/render.js";
+import { getParticipants, normalizeParticipants } from "./src/meetstream.js";
+import { renderEmail, transcriptOverview } from "./src/render.js";
 import { assertEmailConfig, resolveEmailProvider, sendEmail } from "./src/email.js";
 
 run({
@@ -37,16 +32,10 @@ run({
   },
 
   async onMeetingComplete({ botId, transcriptId, segments }) {
-    /* 1. MeetStream's own AI summary. */
-    let summary = "";
-    if (botId) {
-      const payload = await getBotSummary(botId);
-      if (payload) {
-        summary = summaryToText(payload);
-      } else {
-        console.warn("  GET /bots/{id}/summary returned 202 - the summary is still generating.");
-      }
-    }
+    /* 1. A local overview built from the transcript (speakers, turns, talk share).
+     *    MeetStream has no summary endpoint. For a written summary, call your own
+     *    LLM with `segments` here and assign its text to `summary`. */
+    const summary = transcriptOverview(segments);
 
     /* 2. Who was in the room. */
     let participants = [];
