@@ -181,8 +181,7 @@ check "bot-status.sh rejects path syntax in BOT_ID" 64 "$code"
 echo
 echo "== bot-building data and interaction tests =="
 out="$("$SCRIPTS/bot-data.sh" summary bot-active-1 2>&1)"; code=$?
-check "bot-data.sh gets a meeting summary" 0 "$code"
-check_contains "bot-data.sh summary contains result" "launch plan" "$out"
+check "bot-data.sh rejects the removed summary kind" 64 "$code"
 
 out="$("$SCRIPTS/bot-data.sh" participants bot-active-1 --json 2>&1)"; code=$?
 check "bot-data.sh gets participants" 0 "$code"

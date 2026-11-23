@@ -1,7 +1,7 @@
 {
   "name": "@meetstream-labs/ai-meeting-summary",
   "version": "1.0.0",
-  "description": "Fetch and pretty-print MeetStream's native AI meeting summary for any bot.",
+  "description": "Fetch a bot's MeetStream transcript and print a local meeting digest (talk share, opening lines) to feed your own LLM summary.",
   "type": "module",
   "main": "index.js",
   "scripts": {

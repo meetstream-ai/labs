@@ -1,5 +1,5 @@
 /**
- * Turns a MeetStream summary + transcript into an HTML and a plain-text email body.
+ * Turns a meeting overview + MeetStream transcript into an HTML and a plain-text email body.
  * No template engine - just string building, so it is easy to restyle.
  */
 
@@ -13,9 +13,34 @@ const escapeHtml = (value) =>
     .replace(/"/g, "&quot;");
 
 /**
+ * A short plain-text overview computed locally from the transcript: speaker
+ * count, turns and each speaker's share of the words spoken. No LLM involved.
+ * @param {Array<{speaker: string, transcript: string}>} segments
+ * @returns {string} empty string for an empty transcript
+ */
+export function transcriptOverview(segments = []) {
+  const words = new Map();
+  let total = 0;
+  for (const segment of segments) {
+    const count = String(segment.transcript ?? "").split(/\s+/).filter(Boolean).length;
+    const speaker = segment.speaker || "Unknown";
+    words.set(speaker, (words.get(speaker) ?? 0) + count);
+    total += count;
+  }
+  if (total === 0) return "";
+
+  const turns = groupTurns(segments).length;
+  const share = [...words.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([speaker, count]) => `${speaker} ${Math.round((count / total) * 100)}%`)
+    .join(", ");
+  return `${words.size} speaker${words.size === 1 ? "" : "s"}, ${turns} turns, ${total} words.\nTalk share by words: ${share}.`;
+}
+
+/**
  * @param {object} input
  * @param {string} input.subject
- * @param {string} input.summary            Plain text summary (may be empty)
+ * @param {string} input.summary            Plain text summary or overview (may be empty)
  * @param {Array<{name: string|null, email: string|null}>} input.participants
  * @param {Array<{speaker: string, transcript: string, start_time: number|null}>} input.segments
  * @param {string} input.botId
@@ -50,7 +75,7 @@ export function renderEmail({
     textParts.push(
       "SUMMARY",
       "-------",
-      "(No AI summary was available for this meeting.)",
+      "(No summary for this meeting.)",
       ""
     );
   }
@@ -70,7 +95,7 @@ export function renderEmail({
         .split(/\n{2,}/)
         .map((block) => `<p style="margin:0 0 12px;">${escapeHtml(block).replace(/\n/g, "<br>")}</p>`)
         .join("")
-    : `<p style="margin:0;color:#6b7280;">No AI summary was available for this meeting.</p>`;
+    : `<p style="margin:0;color:#6b7280;">No summary for this meeting.</p>`;
 
   const transcriptHtml = excerpt
     .map((turn) => {

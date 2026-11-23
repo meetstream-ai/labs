@@ -20,7 +20,7 @@ import { envInt, isTerminalStatus } from './client.js';
  *
  * A *post-call* transcript provider is configured on purpose. Post-call
  * providers are what produce a post-call transcript (transcription.processed)
- * and the summary built from it. Streaming-only providers (`*_streaming`,
+ * and the digest built from it. Streaming-only providers (`*_streaming`,
  * `meeting_captions`) never fire transcription.processed and have no post-call
  * transcript. Every bot, streaming or not, still ends with `bot.done`.
  */

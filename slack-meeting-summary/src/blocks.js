@@ -64,7 +64,7 @@ export function buildSummaryMessage({
       blocks.push(section(chunk));
     }
   } else {
-    blocks.push(section("*Summary*\n_No AI summary was available for this meeting._"));
+    blocks.push(section("*Summary*\n_No summary: set OPENAI_API_KEY or ANTHROPIC_API_KEY to have your LLM write one from the transcript._"));
   }
 
   if (actionItems.length > 0) {

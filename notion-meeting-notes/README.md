@@ -1,14 +1,14 @@
 # Send Meeting Notes to Notion with the MeetStream API
 
-A MeetStream meeting bot records your Zoom, Google Meet or Microsoft Teams call, and this script files one Notion page per meeting containing the AI summary, the participants, LLM-extracted action items and the full transcript, driven by MeetStream webhooks and the post-call transcription API.
+A MeetStream meeting bot records your Zoom, Google Meet or Microsoft Teams call, and this script files one Notion page per meeting containing an LLM-written summary, the participants, LLM-extracted action items and the full transcript, driven by MeetStream webhooks and the post-call transcription API.
 
 ## What it does
 
 1. `POST /bots/create_bot` with your `meeting_link`, a post-call transcription provider and a `callback_url`.
 2. Serves a webhook and follows the bot lifecycle to `transcription.processed`.
 3. Fetches the transcript with `GET /transcript/{transcript_id}/get_transcript`, polling through HTTP 202 with a cap.
-4. Reads the summary from `GET /bots/{bot_id}/summary` and attendees from `GET /bots/{bot_id}/get_participants`.
-5. Optionally extracts action items with an LLM.
+4. Reads attendees from `GET /bots/{bot_id}/get_participants`.
+5. Optionally writes a summary and extracts action items from the transcript with your own LLM (OpenAI or Anthropic). MeetStream does not generate summaries.
 6. Creates a Notion page: summary paragraphs, participant bullets, action items as checkboxes, transcript in a collapsed toggle.
 
 Replay mode (`--bot` or `--transcript`) skips steps 1 and 2 and runs against a meeting that already finished.
@@ -19,7 +19,7 @@ Replay mode (`--bot` or `--transcript`) skips steps 1 and 2 and runs against a m
 - A MeetStream API key from <https://app.meetstream.ai>.
 - A Notion internal integration secret from <https://www.notion.so/my-integrations>.
 - A Notion database (recommended) or a parent page, shared with that integration.
-- Optional: an OpenAI or Anthropic key for action items.
+- Optional: an OpenAI or Anthropic key for the summary and action items.
 - For live mode, a public HTTPS URL. In development:
   ```bash
   ngrok http 3000
@@ -79,9 +79,9 @@ node index.js --help
 | `NOTION_PAGE_TITLE` | no | Page title; `{date}` is replaced. Default `Meeting notes - {date}`. |
 | `NOTION_MAX_TRANSCRIPT_TURNS` | no | Cap on speaker turns written to the page. Default `400`. |
 | `LLM_PROVIDER` | no | `openai` or `anthropic`. Unset picks whichever key is present. |
-| `OPENAI_API_KEY` | no | Enables action items via OpenAI. |
+| `OPENAI_API_KEY` | no | Enables the summary and action items via OpenAI. |
 | `OPENAI_MODEL` | no | Default `gpt-4o-mini`. |
-| `ANTHROPIC_API_KEY` | no | Enables action items via Anthropic. |
+| `ANTHROPIC_API_KEY` | no | Enables the summary and action items via Anthropic. |
 | `ANTHROPIC_MODEL` | no | Default `claude-sonnet-4-5`. |
 | `LLM_MAX_TRANSCRIPT_CHARS` | no | Transcript characters sent to the LLM. Default `60000`. |
 | `MEETSTREAM_BASE_URL` | no | API base. Default `https://api.meetstream.ai/api/v1`. |
@@ -96,7 +96,7 @@ src/pipeline.js   create the bot, serve the webhook, fetch the transcript
 src/meetstream.js the MeetStream API client
 src/notion.js     Notion API client and block builders
 src/page.js       the page layout for one meeting
-src/actions.js    optional LLM action item extraction
+src/actions.js    optional LLM summary and action item extraction
 src/llm.js        pluggable OpenAI / Anthropic client
 ```
 
@@ -130,13 +130,12 @@ The Notion limits handled in `src/notion.js`: 2000 characters per `rich_text` ob
 | Notion returns `404 object_not_found` | The integration is not connected to that database or page. | Open it in Notion, `...` menu, Connections, add your integration. |
 | Notion returns `400 validation_error` about `children` | A block exceeded a limit. | The builders chunk rich text at 2000 characters and children at 100 per request; check those numbers if you added custom blocks. |
 | The title property is wrong or the page has no title | The database has no property of type `title`. | Add one; Notion cannot accept pages without it. |
-| No action items on the page | No LLM key is set. That is the designed fallback. | Set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`. |
+| No summary or action items on the page | No LLM key is set. That is the designed fallback. | Set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`. |
 
 ## Related
 
 - [Post-call transcription](https://docs.meetstream.ai/guides/transcription-recordings/post-call-transcription)
 - [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
-- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
 - [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
 - [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
 - [Local webhook server](https://docs.meetstream.ai/guides/webhooks/local-webhook-server)

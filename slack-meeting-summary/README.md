@@ -1,6 +1,6 @@
 # Post AI Meeting Summaries to Slack with the MeetStream API
 
-A MeetStream meeting bot records your Zoom, Google Meet or Microsoft Teams meeting, then this script fetches the transcript and AI summary from the MeetStream API, optionally extracts action items with an LLM, and posts them into a Slack channel as formatted Block Kit blocks.
+A MeetStream meeting bot records your Zoom, Google Meet or Microsoft Teams meeting, then this script fetches the transcript from the MeetStream API, optionally writes a summary and extracts action items with your own LLM, and posts them into a Slack channel as formatted Block Kit blocks.
 
 ```bash
 npm install
@@ -13,8 +13,8 @@ node index.js --meeting "https://meet.google.com/abc-defg-hij"
 1. `POST /bots/create_bot` with your `meeting_link` and a `callback_url`.
 2. Serves a webhook and follows the bot lifecycle to `transcription.processed`.
 3. Fetches the transcript with `GET /transcript/{transcript_id}/get_transcript`.
-4. Reads the AI summary from `GET /bots/{bot_id}/summary` and attendees from `GET /bots/{bot_id}/get_participants`.
-5. Optionally runs an LLM over the transcript to pull out action items with owners and due dates.
+4. Reads attendees from `GET /bots/{bot_id}/get_participants`.
+5. Optionally runs your own LLM (OpenAI or Anthropic) over the transcript to write a summary and pull out action items with owners and due dates. MeetStream does not generate summaries.
 6. Posts a Block Kit message to Slack, and with a bot token can drop the full transcript into the message thread.
 
 ## Prerequisites
@@ -22,7 +22,7 @@ node index.js --meeting "https://meet.google.com/abc-defg-hij"
 - Node 18 or newer.
 - A MeetStream API key from <https://app.meetstream.ai>.
 - Either a Slack incoming webhook URL or a bot token with `chat:write`.
-- Optional: an OpenAI or Anthropic key for action items.
+- Optional: an OpenAI or Anthropic key for the summary and action items.
 - For live mode, a public HTTPS URL. In development:
   ```bash
   ngrok http 3000
@@ -62,8 +62,8 @@ node index.js --meeting "https://meet.google.com/abc-defg-hij"
 | `POST_TRANSCRIPT_IN_THREAD` | no | `true` posts the transcript as a thread reply (bot token only) |
 | `TRANSCRIPT_THREAD_TURNS` | no | Max transcript turns in the thread reply (default `60`) |
 | `LLM_PROVIDER` | no | `openai` or `anthropic`; auto-detected from whichever key is set |
-| `OPENAI_API_KEY` / `OPENAI_MODEL` | no | OpenAI action-item extraction (default model `gpt-4o-mini`) |
-| `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` | no | Anthropic action-item extraction (default model `claude-sonnet-4-5`) |
+| `OPENAI_API_KEY` / `OPENAI_MODEL` | no | OpenAI summary and action items (default model `gpt-4o-mini`) |
+| `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` | no | Anthropic summary and action items (default model `claude-sonnet-4-5`) |
 | `LLM_MAX_TRANSCRIPT_CHARS` | no | Cap on transcript characters sent to the model (default `60000`) |
 | `MEETSTREAM_BASE_URL` | no | API base URL (default `https://api.meetstream.ai/api/v1`) |
 
@@ -101,7 +101,7 @@ src/pipeline.js   create the bot, serve the webhook, fetch the transcript
 src/meetstream.js the MeetStream API client
 src/slack.js      webhook vs bot token delivery
 src/blocks.js     Block Kit builders, with Slack's size limits handled
-src/actions.js    optional LLM action item extraction
+src/actions.js    optional LLM summary and action item extraction
 src/llm.js        pluggable OpenAI / Anthropic client
 ```
 
@@ -135,13 +135,12 @@ Slack limits handled in `src/blocks.js`: 50 blocks per message, 3000 characters 
 | `not_in_channel` | The bot is not a member of `SLACK_CHANNEL` | Run `/invite @your-bot` in that channel |
 | `missing_scope` | `chat:write` not granted | Add it under OAuth and Permissions, then reinstall the app |
 | `invalid_blocks` | A section over 3000 characters | The builders chunk for you; if you edited them, check your chunk size |
-| Message posts but action items are missing | No LLM key is set (designed fallback) | Set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` |
+| Message posts but the summary and action items are missing | No LLM key is set (designed fallback) | Set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` |
 
 ## Related
 
 - [Post-call transcription](https://docs.meetstream.ai/guides/transcription-recordings/post-call-transcription)
 - [Get transcription](https://docs.meetstream.ai/api-reference/api-endpoints/transcription/get-transcription)
-- [Get bot summary](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/get-bot-summary)
 - [Fetch participants](https://docs.meetstream.ai/api-reference/api-endpoints/bot-endpoints/fetch-participants)
 - [Webhooks and events](https://docs.meetstream.ai/guides/webhooks/webhooks-and-events)
 - [Transcription providers](https://docs.meetstream.ai/guides/transcription-recordings/providers/transcription-providers)

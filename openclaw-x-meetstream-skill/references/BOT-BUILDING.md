@@ -87,7 +87,6 @@ developer, not MeetStream's hosted MIA runtime.
 ```bash
 scripts/bot-data.sh detail <bot-id>
 scripts/get-transcript.sh <bot-id>
-scripts/bot-data.sh summary <bot-id>
 scripts/bot-data.sh participants <bot-id>
 scripts/bot-data.sh chats <bot-id>
 scripts/bot-data.sh audio <bot-id>

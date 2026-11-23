@@ -20,7 +20,7 @@ Prefer the terminal? The [`meetstream` CLI](https://github.com/meetstream-ai/cli
 
 | Goal | Start with |
 |---|---|
-| Record a meeting and get a transcript and AI summary afterwards | [post-call-transcription](./post-call-transcription), [ai-meeting-summary](./ai-meeting-summary), [ai-meeting-notetaker-email](./ai-meeting-notetaker-email) |
+| Record a meeting and get a transcript afterwards (summarise it with your own LLM) | [post-call-transcription](./post-call-transcription), [ai-meeting-summary](./ai-meeting-summary), [ai-meeting-notetaker-email](./ai-meeting-notetaker-email) |
 | Live transcription, captions or audio while the meeting is running | [realtime-transcription](./realtime-transcription), [live-captions-overlay](./live-captions-overlay), [realtime-audio-streaming](./realtime-audio-streaming) |
 | A bot on every calendar meeting automatically | [calendar-auto-schedule](./calendar-auto-schedule), [google-calendar-integration](./google-calendar-integration), [outlook-calendar-integration](./outlook-calendar-integration) |
 | An AI voice agent that listens and talks in the call | [MIA-chat-agent](./MIA-chat-agent), [mia-voice-agent-pipeline](./mia-voice-agent-pipeline), [mia-grok-agent](./mia-grok-agent), [mia-wake-word-assistant](./mia-wake-word-assistant) |
@@ -85,7 +85,7 @@ Prefer the terminal? The [`meetstream` CLI](https://github.com/meetstream-ai/cli
 
 | Template | What it does |
 |---|---|
-| [ai-meeting-summary](./ai-meeting-summary) | MeetStream's native AI summary (`GET /bots/{id}/summary`) |
+| [ai-meeting-summary](./ai-meeting-summary) | Local meeting digest (talk share, opening lines) from the post-call transcript, ready for your own LLM summary |
 | [speaker-timeline-analytics](./speaker-timeline-analytics) | Talk-time, turns, longest monologue, ASCII bar chart |
 | [participant-tracker](./participant-tracker) | Who joined and left, live over webhooks |
 | [meeting-chat-logger](./meeting-chat-logger) | Export in-meeting chat to JSON and Markdown |
@@ -156,7 +156,7 @@ MeetStream has three flows ([Integration paths](https://docs.meetstream.ai/guide
 
 | Template | What it does |
 |---|---|
-| [ai-meeting-notetaker-email](./ai-meeting-notetaker-email) | Record, summarize, and email the notes to attendees |
+| [ai-meeting-notetaker-email](./ai-meeting-notetaker-email) | Record, transcribe, and email the notes to attendees |
 | [slack-meeting-summary](./slack-meeting-summary) | Post the summary and action items into Slack |
 | [notion-meeting-notes](./notion-meeting-notes) | One Notion page per meeting |
 | [crm-hubspot-sync](./crm-hubspot-sync) | Attach the summary and transcript to the HubSpot contact and deal |

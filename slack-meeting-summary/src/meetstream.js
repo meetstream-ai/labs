@@ -258,13 +258,6 @@ export async function getBotDetail(botId) {
   return data;
 }
 
-/** GET /bots/{id}/summary - MeetStream's AI-generated meeting summary. */
-export async function getBotSummary(botId) {
-  const { status, data } = await apiRequest(`/bots/${encodeURIComponent(botId)}/summary`);
-  if (status === 202) return null; // summary still generating
-  return data;
-}
-
 /** GET /bots/{id}/get_participants */
 export async function getParticipants(botId) {
   const { data } = await apiRequest(`/bots/${encodeURIComponent(botId)}/get_participants`);
@@ -428,22 +421,6 @@ export function normalizeParticipants(payload) {
     out.push({ name: name ? String(name) : null, email: email ? String(email) : null });
   }
   return out;
-}
-
-/**
- * Pull a plain-text summary out of the `/bots/{id}/summary` payload.
- * The endpoint's exact JSON shape can vary by account configuration, so we probe
- * the likely string fields and fall back to the pretty-printed JSON.
- */
-export function summaryToText(payload) {
-  if (!payload) return "";
-  if (typeof payload === "string") return payload.trim();
-  for (const key of ["summary", "meeting_summary", "text", "content", "message", "data"]) {
-    const value = payload[key];
-    if (typeof value === "string" && value.trim()) return value.trim();
-  }
-  if (Array.isArray(payload?.summary)) return payload.summary.filter(Boolean).join("\n");
-  return JSON.stringify(payload, null, 2);
 }
 
 /* ------------------------------------------------------------------ */

@@ -159,7 +159,7 @@ request is ambiguous about *which* bot or meeting, ask before removing.
 ### Retrieve meeting data
 
 ```bash
-{baseDir}/scripts/bot-data.sh detail|summary|participants|chats|speakers|audio|video|audio-streams|video-streams|screenshots|transcriptions <bot_id>
+{baseDir}/scripts/bot-data.sh detail|participants|chats|speakers|audio|video|audio-streams|video-streams|screenshots|transcriptions <bot_id>
 {baseDir}/scripts/get-transcript.sh <bot_id>
 ```
 

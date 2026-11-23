@@ -1,17 +1,16 @@
 /**
  * Gather everything MeetStream knows about one meeting.
  *
- * Five read endpoints are fetched independently:
+ * Four read endpoints are fetched independently:
  *
  *   GET /bots/{id}/detail                 session metadata + status timeline
  *   GET /bots/{id}/get_participants       roster (top-level array)
  *   GET /bots/{id}/get_speaker_timeline   who spoke when
  *   GET /bots/{id}/get_chats              in-meeting chat
- *   GET /bots/{id}/summary                MeetStream's AI summary
  *
  * Any one of them can legitimately be unavailable for a given bot - a bot
- * with a streaming-only transcript provider has no summary, a meeting where
- * nobody typed has no chat. So each section records its own outcome instead
+ * that recorded no audio has no speaker timeline, a meeting where nobody
+ * typed has no chat. So each section records its own outcome instead
  * of one failure sinking the whole report.
  */
 
@@ -69,7 +68,7 @@ async function section(fn, { label, missingNote, intervalMs, maxAttempts, onLog 
 export async function collectMeeting(client, botId, { intervalMs = 10_000, maxAttempts = 12, onLog = () => {} } = {}) {
   const common = { intervalMs, maxAttempts, onLog };
 
-  // Sequential rather than parallel: five simultaneous poll loops against the
+  // Sequential rather than parallel: four simultaneous poll loops against the
   // same bot is a good way to get rate limited for no benefit.
   const detail = await section(() => client.getDetail(botId), {
     label: 'detail',
@@ -95,15 +94,7 @@ export async function collectMeeting(client, botId, { intervalMs = 10_000, maxAt
     ...common,
   });
 
-  const summary = await section(() => client.getSummary(botId), {
-    label: 'AI summary',
-    missingNote:
-      'No summary for this bot. Summaries need a post-call transcript provider; ' +
-      'streaming-only providers do not produce one.',
-    ...common,
-  });
-
-  return { botId, detail, participants, speakerTimeline, chats, summary };
+  return { botId, detail, participants, speakerTimeline, chats };
 }
 
 /** Pull the useful bits out of the `{ bot_details: {...} }` envelope. */

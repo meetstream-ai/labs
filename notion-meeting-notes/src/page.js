@@ -3,7 +3,7 @@
  *
  * Layout:
  *   callout   provenance (bot id, transcript id, segment count)
- *   Summary   paragraphs from GET /bots/{id}/summary
+ *   Summary   paragraphs written by your LLM from the transcript
  *   Participants  bullets
  *   Action items  to_do checkboxes
  *   Transcript    one paragraph per speaker turn, inside a collapsed toggle
@@ -61,7 +61,7 @@ export function buildMeetingBlocks({
       blocks.push(paragraph(block));
     }
   } else {
-    blocks.push(paragraph("No AI summary was available for this meeting."));
+    blocks.push(paragraph("No summary: set OPENAI_API_KEY or ANTHROPIC_API_KEY to have your LLM write one from the transcript."));
   }
 
   blocks.push(heading("Participants"));
