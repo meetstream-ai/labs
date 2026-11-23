@@ -29,7 +29,7 @@ Hermes has two plugin formats. Native `plugin.yaml` + `register(ctx)` plugins ca
 ## Skill rules
 
 - Describe only tools the MCP server exposes. `python3 scripts/check.py --live` compares tool references against the real server's `tools/list`.
-- MIA agent configs, calendar connection, signed-in account management, Zoom ZAK/OBF setup, custom storage and pause/resume are **REST-only**. Name them as such and route to REST, the dashboard or `@meetstream/cli`. Never imply a tool exists.
+- MIA agent configs, calendar connection, signed-in account management, Zoom ZAK/OBF setup, custom storage and pause/resume are **REST-only**. Name them as such and route to REST, the dashboard or the `meetstream` CLI (`@meetstream/cli`). Never imply a tool exists.
 - There is no MCP tool that makes the bot say arbitrary text. Speech is MIA (`agent_config_id`). Do not write a skill that claims otherwise.
 - MIA bots take **only** `agent_config_id`. Never add `socket_connection_url` / `live_audio_required`.
 - Video is off by default (`record_video` unset). Per-participant video is opt-in only.

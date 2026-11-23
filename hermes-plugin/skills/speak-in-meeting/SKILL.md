@@ -42,7 +42,7 @@ tool. Use the id the user gives you. If they have none, tell them to run this
 once in their own terminal (the README has a ready-made config):
 
 ```sh
-npx -y @meetstream/cli mia create -f examples/mia-intro-agent.json
+npx -y @meetstream/cli mia apply -f examples/mia-intro-agent.json --json --no-input
 ```
 
 Then ask them for the `agent_config_id` it prints. Do not try to create MIA
@@ -64,5 +64,5 @@ in commands and logs.
 
 - [Create a MIA agent](https://docs.meetstream.ai/guides/mia/create-an-agent)
 - [MIA configurations](https://docs.meetstream.ai/guides/mia/mia-custom-configurations)
-- [MeetStream CLI `mia create`](https://github.com/meetstream-ai/meetstream-cli)
+- [MeetStream CLI `mia apply`](https://github.com/meetstream-ai/cli)
 - [MIA x Hermes bridge (Hermes as the in-meeting voice)](https://github.com/meetstream-ai/labs/tree/main/mia-hermes-bridge)

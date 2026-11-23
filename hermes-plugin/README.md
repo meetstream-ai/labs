@@ -78,7 +78,7 @@ Create a voice agent once with the official CLI and the ready-made config in thi
 
 ```bash
 export MEETSTREAM_API_KEY=ms_your_key_here        # the CLI reads the key from your shell
-npx -y @meetstream/cli mia create -f examples/mia-intro-agent.json
+npx -y @meetstream/cli mia apply -f examples/mia-intro-agent.json --json --no-input
 # -> prints JSON containing "agent_config_id": "..."
 ```
 
@@ -104,7 +104,7 @@ scripts/demo.sh 'https://meet.google.com/abc-defg-hij'
 [`scripts/demo.sh`](scripts/demo.sh) does the following:
 
 1. Checks that Hermes is installed, the plugin is enabled and `MEETSTREAM_API_KEY` is configured.
-2. Creates the MIA voice agent from `examples/mia-intro-agent.json` via `@meetstream/cli`. Skip this by passing an id as the second argument or setting `MEETSTREAM_MIA_AGENT_ID`.
+2. Creates the MIA voice agent from `examples/mia-intro-agent.json` via the `meetstream` CLI (`@meetstream/cli`). Skip this by passing an id as the second argument or setting `MEETSTREAM_MIA_AGENT_ID`.
 3. Runs one Hermes turn (`hermes -z`) with the `join-meeting`, `speak-in-meeting` and `meeting-chat` skills preloaded. Hermes calls `create_bot` with the voice agent attached, polls `get_bot_status` until the bot is admitted, then calls `send_chat_message`.
 
 Verified end to end on 2026-10-06 against a live Google Meet call: the bot was dispatched, admitted, reached `InMeeting`, and posted its chat greeting.
@@ -279,7 +279,7 @@ Rules for contributors are in [AGENTS.md](AGENTS.md). The short version: no code
 | | Where |
 |---|---|
 | MCP server (the 19 tools) | [`meetstream-ai/meetstream-mcp`](https://github.com/meetstream-ai/meetstream-mcp) · [`@meetstream/mcp`](https://www.npmjs.com/package/@meetstream/mcp) |
-| CLI | [`meetstream-ai/meetstream-cli`](https://github.com/meetstream-ai/meetstream-cli) |
+| CLI | [`meetstream-ai/cli`](https://github.com/meetstream-ai/cli) |
 | Cursor plugin | [`meetstream-ai/meetstream-cursor-plugin`](https://github.com/meetstream-ai/meetstream-cursor-plugin) |
 | Claude Code plugin | [`meetstream-ai/claude-plugin`](https://github.com/meetstream-ai/claude-plugin) |
 | MIA × Hermes bridge | [`meetstream-ai/labs/mia-hermes-bridge`](https://github.com/meetstream-ai/labs/tree/main/mia-hermes-bridge) |
