@@ -105,6 +105,8 @@ If a create request times out before its returned ID is saved, ownership is ambi
 
 ## State and security
 
+**Prompt-injection risk:** Anyone who can speak in the meeting can try to steer MIA or Harness with spoken instructions. Treat meeting speech and transcripts as untrusted input. Read-only questions can still reveal repository content in voice or chat, and approved tasks can use tools in the checkout. Invite only trusted participants, use a disposable checkout without secrets, and approve only requests you recognize and intend to run. Review the resulting changes before using them.
+
 MIA custom functions and final-transcript callbacks reach the loopback HTTP service through HTTPS. The bridge records meeting/session mapping, task references, results and delivery receipts in SQLite under `.state`, then runs Harness in the configured repository.
 
 - A durable receipt binds each request ID to its session, kind and effective text. An identical retry returns the existing task; conflicting reuse fails. Different request IDs can create separate proposals, each requiring approval.
@@ -123,7 +125,7 @@ The setup guide targets macOS. Automated bridge checks run on macOS and Linux; t
 | Platform | Required setup |
 |---|---|
 | Google Meet | Host admission, enabled chat, working microphone and configured MeetStream providers. |
-| Zoom | MeetStream Zoom account/Marketplace setup, supported invitation URL, host admission and recording permission. |
+| Zoom | For authenticated joins, the bot joins through your own Zoom Meeting SDK app using an OBF or ZAK token. Joining meetings outside your app's Zoom account through that app requires Zoom review and a token URL on the bot creation request. This launcher does not supply that URL. See the [authenticated Zoom setup](https://docs.meetstream.ai/guides/app-integrations/zoom-authenticated-bots). Host admission and recording permissions still apply. |
 | Microsoft Teams | Supported invitation URL, organization bot/access policy, admission and chat permissions. |
 
 Platform availability comes from MeetStream; validate your host and organization settings using its [platform FAQ](https://docs.meetstream.ai/guides/help/faq). In your meeting, check spoken and chat answers, speaker attribution, an approved task, cancellation and departure before relying on the workflow.
