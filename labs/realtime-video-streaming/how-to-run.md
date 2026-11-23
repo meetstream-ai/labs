@@ -213,5 +213,5 @@ Edit `onStreamComplete()` in `video-ws-server.js` to wire in your own logic:
 
 ## Resources
 
-- [Real-Time Video Streaming docs](https://docs.meetstream.ai/guides/web-sockets/real-time-video-streaming)
+- [Per-participant video docs (live video over WebSocket)](https://docs.meetstream.ai/guides/transcription-recordings/per-participant-video)
 - [API Reference](https://docs.meetstream.ai/api-reference)
