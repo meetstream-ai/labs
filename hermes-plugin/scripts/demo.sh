@@ -36,7 +36,7 @@ if [[ -z "$AGENT_ID" ]]; then
   step "Creating a MIA voice agent from examples/mia-intro-agent.json"
   [[ -n "${MEETSTREAM_API_KEY:-}" ]] || die "export MEETSTREAM_API_KEY in this shell (or pass an agent_config_id) to create the voice agent"
   command -v npx >/dev/null || die "npx (Node 18+) is required to create the voice agent"
-  OUT="$(npx -y @meetstream/cli mia create -f "$ROOT/examples/mia-intro-agent.json")"
+  OUT="$(npx -y @meetstream/cli mia apply -f "$ROOT/examples/mia-intro-agent.json" --json --no-input)"
   AGENT_ID="$(printf '%s' "$OUT" | grep -o '"agent_config_id": *"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')"
   [[ -n "$AGENT_ID" ]] || die "could not read agent_config_id from the CLI output"
   echo "agent_config_id: $AGENT_ID  (reuse it: export MEETSTREAM_MIA_AGENT_ID=$AGENT_ID)"

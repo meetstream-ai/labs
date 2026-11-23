@@ -14,6 +14,8 @@ node index.js
 
 Get an API key at [app.meetstream.ai](https://app.meetstream.ai/api-key). Node 18+ required. Building with a coding agent? Point it at the [Agent Quickstarts](https://docs.meetstream.ai/build-with-ai/agent-quickstarts) and the [MeetStream MCP server](https://docs.meetstream.ai/build-with-ai/meetstream-mcp-server), then tell it to start from one of the templates below.
 
+Prefer the terminal? The [`meetstream` CLI](https://github.com/meetstream-ai/cli) sends a bot and reads the results without a template: `npm install -g @meetstream/cli` (or `pipx install meetstream-cli`, or `brew install meetstream-ai/tap/meetstream`), `meetstream login`, then `meetstream join <meeting-url>` and `meetstream transcript <bot-id> --wait`. Agents call it with `--json --no-input`.
+
 ## What you can build with these
 
 | Goal | Start with |
@@ -106,7 +108,7 @@ MIA agents run on MeetStream's own hosted bridge. Attach one by passing **only**
 
 MeetStream has three flows ([Integration paths](https://docs.meetstream.ai/guides/introduction/integration-paths)): 1. recording only (the Bot API, most templates above), 2. an agent on your own stack, 3. an agent that MeetStream hosts (MIA). For an agent in the meeting:
 
-- **Your own stack (try this first).** A bridge server that you run receives live audio and sends audio, chat and images back ([Bridge server architecture](https://docs.meetstream.ai/guides/websockets/bridge-server-architecture), starter: [meetstream-agent](https://github.com/meetstream-ai/meetstream-agent), template: [websocket-bot-control](./websocket-bot-control)); bot price only. Or your own agent CLI is the brain through the [Agent Kit](https://github.com/meetstream-ai/agent-kit); bot price + $0.25 per hour agent infrastructure.
+- **Your own stack (try this first).** A bridge server that you run receives live audio and sends audio, chat and images back ([Bridge server architecture](https://docs.meetstream.ai/guides/websockets/bridge-server-architecture), starter: [meetstream-agent](https://github.com/meetstream-ai/meetstream-agent), template: [websocket-bot-control](./websocket-bot-control)); bot price only. Your own coding agent (for example Claude Code, Codex, Hermes or OpenClaw) as the brain, through `meetstream setup` and `meetstream agent serve` over the MeetStream relay (no tunnel), is coming soon; bot price + $0.25 per hour agent infrastructure.
 - **MeetStream hosts the agent (MIA, the templates below).** Inbuilt keys work in pipeline mode only: Deepgram (speech-to-text) and OpenAI (LLM and voice). Realtime mode runs on OpenAI and needs your own OpenAI key. Any other provider: bring your own key. See [Voice agent pricing and keys](https://docs.meetstream.ai/guides/mia/pricing-and-keys).
 
 | Template | What it does |

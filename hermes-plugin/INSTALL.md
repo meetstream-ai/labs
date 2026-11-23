@@ -152,7 +152,7 @@ Without this step the bot can join, record, read and post chat, and summarize, b
 ```bash
 cd hermes-plugin                                  # your clone of this repo
 export MEETSTREAM_API_KEY=ms_your_key_here        # the CLI reads it from your shell
-npx -y @meetstream/cli mia create -f examples/mia-intro-agent.json
+npx -y @meetstream/cli mia apply -f examples/mia-intro-agent.json --json --no-input
 ```
 
 Requires [Node.js 18+](https://nodejs.org). The output is JSON. Copy the `agent_config_id` value.
@@ -164,10 +164,10 @@ To change what the bot says when it joins, edit `first_message` in `examples/mia
 ### Option B: reuse an agent you already have
 
 ```bash
-npx -y @meetstream/cli mia list
+npx -y @meetstream/cli mia list --json --no-input
 ```
 
-Use an `AgentConfigID` from the list. You can also create and manage agents in the MeetStream dashboard.
+Use an agent id (`agent_config_id`) from the list. You can also create and manage agents in the MeetStream dashboard.
 
 ### Make sure your account can speak
 
