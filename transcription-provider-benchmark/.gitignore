@@ -1,0 +1,14 @@
+node_modules/
+.env
+
+# Built by `npm run fetch-sample`; manifest.json and reference.txt are committed
+# so the clip's contents and checksum are visible without running anything.
+sample/.cache/
+sample/clip.wav
+
+# Per-run output. Holds bot IDs, transcript IDs and what was said; never commit it.
+recordings/
+results/
+
+# Files uploaded through the UI
+uploads/

@@ -1,0 +1,49 @@
+{
+  "name": "meetstream-transcription-provider-benchmark",
+  "version": "1.1.0",
+  "description": "Runs one meeting recording through every MeetStream transcription provider and tabulates word error rate and turnaround time.",
+  "scripts": {
+    "fetch-sample": "node scripts/fetch-sample.js",
+    "record": "node index.js record",
+    "benchmark": "node index.js benchmark",
+    "score": "node index.js score",
+    "fetch-raw": "node index.js fetch-raw",
+    "ui": "node server.js",
+    "test": "node --test",
+    "lint": "eslint ."
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "meetstream",
+    "transcription",
+    "benchmark",
+    "wer",
+    "deepgram",
+    "assemblyai",
+    "sarvam",
+    "jigsawstack"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@ngrok/ngrok": "^1.7.0",
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.22.3",
+    "ffmpeg-static": "^5.2.0",
+    "hyparquet": "^1.17.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^15.15.0"
+  },
+  "author": {
+    "name": "MeetStream Labs",
+    "url": "https://meetstream.ai"
+  },
+  "homepage": "https://github.com/meetstream-ai/labs/tree/main/transcription-provider-benchmark",
+  "main": "index.js"
+}
