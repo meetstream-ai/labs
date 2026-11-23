@@ -85,7 +85,7 @@ async function removeBot(botId) {
 
 /**
  * POST /bots/{id}/transcribe. Runs the bot's existing recording through
- * `provider` again, so every provider sees byte-identical audio.
+ * `provider` again, so every provider works from the same stored recording.
  * Returns { bot_id, transcript_id, provider, message }.
  */
 async function transcribe(botId, provider) {

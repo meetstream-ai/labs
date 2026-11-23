@@ -323,7 +323,7 @@ $("#runButton").addEventListener("click", async () => {
       } else if (audioKind() === "upload") {
         const file = $("#audioFile").files[0];
         if (!file) throw new Error("Choose an audio file, or use the sample clip.");
-        // Without ffmpeg (the desktop build) the server reads WAV only, so the
+        // Without ffmpeg the server reads WAV only, so the
         // page decodes the file itself and sends it on as 48 kHz mono WAV.
         if (appStatus.decoder === "builtin" && !/\.wav$/i.test(file.name)) {
           button.textContent = "Converting audio…";
@@ -922,7 +922,6 @@ async function loadSettings() {
   const s = await api("/api/settings");
   renderKeys(s.keys, s.persistent);
   $("#dataPath").textContent = s.storage.path;
-  $("#openDataFolder").hidden = !s.desktop;
   const parts = [["Runs", s.storage.runs], ["Sample clip", s.storage.sample], ["Uploaded audio", s.storage.uploads], ["Recordings", s.storage.recordings]];
   const total = parts.reduce((a, [, b]) => a + b, 0) || 1;
   $("#storageBar").replaceChildren(...parts.map(([, b], i) => el("span", { class: `seg s${i}`, style: `flex-grow:${b / total}` })));
@@ -968,7 +967,6 @@ for (const [name, sel] of Object.entries(KEY_ROWS)) {
     e.target.disabled = false;
   });
 }
-$("#openDataFolder").addEventListener("click", () => api("/api/data-folder/open", { method: "POST" }));
 
 // ── Start ───────────────────────────────────────────────────────────────────
 

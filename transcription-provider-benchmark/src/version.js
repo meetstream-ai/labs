@@ -1,8 +1,7 @@
 /**
  * Which harness produced a run, so a result can be traced to the exact code:
  * the package version, and the git commit (with whether there were
- * uncommitted changes). A packaged desktop app has no .git, so `npm run dist`
- * stamps the commit into build-info.json instead.
+ * uncommitted changes). Outside a git checkout the commit is unknown.
  */
 const { spawnSync } = require("child_process");
 const fs = require("fs");
@@ -23,12 +22,7 @@ function harnessInfo() {
     const dirty = (git(["status", "--porcelain", "--", ".", ":!results", ":!recordings", ":!uploads", ":!sample"]) ?? "") !== "";
     return { name, version, commit, dirty, from: "git" };
   }
-  try {
-    const built = JSON.parse(fs.readFileSync(path.join(ROOT, "build-info.json"), "utf8"));
-    return { name, version, commit: built.commit ?? null, dirty: built.dirty ?? null, from: "build" };
-  } catch {
-    return { name, version, commit: null, dirty: null, from: null };
-  }
+  return { name, version, commit: null, dirty: null, from: null };
 }
 
 module.exports = { harnessInfo };

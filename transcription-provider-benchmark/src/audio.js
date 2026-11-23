@@ -2,14 +2,12 @@ const { spawn } = require("child_process");
 const crypto = require("crypto");
 const fs = require("fs");
 
-// ffmpeg comes with the command-line install (ffmpeg-static). The desktop
-// build leaves it out (it's 80 MB) and decodes with the built-in WAV reader
-// below instead: everything it plays is WAV (the sample clip, text-to-speech,
-// and uploads, which the page converts to WAV before sending).
+// ffmpeg comes with the install (ffmpeg-static). If it's missing, the
+// built-in WAV reader below decodes instead: the sample clip and
+// text-to-speech are WAV, and the page converts uploads to WAV before sending.
 let ffmpegPath = null;
 try {
-  // In a packaged app a bundled binary is unpacked next to app.asar.
-  ffmpegPath = require("ffmpeg-static")?.replace(/app\.asar([\\/])/, "app.asar.unpacked$1") ?? null;
+  ffmpegPath = require("ffmpeg-static") ?? null;
   if (ffmpegPath && !fs.existsSync(ffmpegPath)) ffmpegPath = null;
 } catch { /* not installed: built-in decoder only */ }
 if (process.env.BENCH_NO_FFMPEG === "1") ffmpegPath = null; // tests exercise the built-in decoder

@@ -39,7 +39,7 @@ function run(cmd, args) {
 
 /**
  * Speaks `text` into a WAV file in `dir` and returns its path. Always WAV, so
- * the desktop app's built-in decoder can read it without ffmpeg.
+ * the built-in decoder can read it even without ffmpeg.
  */
 async function synthesize(text, dir) {
   const engine = ttsEngine();

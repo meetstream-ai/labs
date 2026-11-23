@@ -12,9 +12,8 @@
  * typed into the page, kept in memory and never sent back to the browser) and
  * can send bots into your meetings, so it is not meant to be exposed.
  *
- * The desktop app (desktop/main.js) runs this same server inside Electron. It
- * passes a writable data folder in BENCH_DATA_DIR (an installed app cannot
- * write next to its own files) and a key store, so keys survive restarts.
+ * BENCH_DATA_DIR moves runs, recordings, uploads, the sample and .env to
+ * another folder; by default they live next to this file.
  */
 const fs = require("fs");
 const path = require("path");
@@ -103,18 +102,13 @@ function referenceKinds(mode, audioKind, rec) {
   return [...(rec?.reference ? ["saved"] : []), "text", "none"];
 }
 
-// Under Electron, process.execPath is the app itself; ELECTRON_RUN_AS_NODE
-// makes it behave as plain Node for the CLI, so users need no Node install.
-const NODE_ENV = process.versions.electron ? { ELECTRON_RUN_AS_NODE: "1" } : {};
 const runNode = (script, args, env = {}) =>
-  spawn(process.execPath, [script, ...args], { cwd: DATA, env: { ...process.env, ...NODE_ENV, BENCH_DATA_DIR: DATA, ...env } });
+  spawn(process.execPath, [script, ...args], { cwd: DATA, env: { ...process.env, BENCH_DATA_DIR: DATA, ...env } });
 
-// Keys come from .env, or are typed into the page. By default they live in
-// memory for this process only; the desktop app supplies a store that keeps
-// them (encrypted by the OS) between launches.
+// Keys come from .env, or are typed into the page, where they live in memory
+// for this process only. start({ store }) can supply a store that keeps them
+// between launches; `npm run ui` doesn't.
 let keyStore = null;
-// What the desktop app adds: openPath(folder) shows a folder in the OS.
-const hooks = { openPath: null };
 const keys = {
   MEETSTREAM_API_KEY: process.env.MEETSTREAM_API_KEY || "",
   NGROK_AUTHTOKEN: process.env.NGROK_AUTHTOKEN || "",
@@ -140,7 +134,7 @@ app.get("/api/status", (_req, res) => {
     hasNgrok: Boolean(keys.NGROK_AUTHTOKEN),
     sampleReady: exists(SAMPLE_AUDIO) && exists(SAMPLE_REFERENCE),
     tts: TTS?.name ?? null,
-    // "builtin" (no ffmpeg, the desktop build): the page converts uploads to WAV.
+    // "builtin" (no ffmpeg installed): the page converts uploads to WAV.
     decoder: decoder(),
     busy: Boolean(current && !current.done),
     currentJob: current && !current.done ? current.id : null,
@@ -148,8 +142,8 @@ app.get("/api/status", (_req, res) => {
   });
 });
 
-// Where each key came from: "env" (.env or the environment), "saved" (the
-// desktop app's encrypted store), "session" (typed in, kept in memory only).
+// Where each key came from: "env" (.env or the environment), "saved" (a key
+// store passed to start()), "session" (typed in, kept in memory only).
 const keySource = Object.fromEntries(Object.keys(keys).map((k) => [k, keys[k] ? "env" : null]));
 const keyState = () => Object.fromEntries(Object.keys(keys).map((k) => [k, { set: Boolean(keys[k]), source: keys[k] ? keySource[k] : null }]));
 const persistent = () => Boolean(keyStore?.persistent?.());
@@ -203,7 +197,6 @@ app.get("/api/settings", (_req, res) => {
   res.json({
     keys: keyState(),
     persistent: persistent(),
-    desktop: Boolean(hooks.openPath),
     version: require("./package.json").version,
     decoder: decoder(),
     pricesAsOf: PRICES_AS_OF,
@@ -215,12 +208,6 @@ app.get("/api/settings", (_req, res) => {
       sample: folderBytes(path.dirname(SAMPLE_AUDIO)),
     },
   });
-});
-
-app.post("/api/data-folder/open", (_req, res) => {
-  if (!hooks.openPath) return res.status(400).json({ error: "Only the desktop app can open folders." });
-  hooks.openPath(DATA);
-  res.json({ ok: true });
 });
 
 // How each provider has done across the runs saved here: WER pooled over
@@ -625,13 +612,11 @@ async function shutdown() {
 }
 
 /**
- * Starts the server on 127.0.0.1. Port 0 picks a free port (the desktop app
- * does that, so it never collides with anything already running).
+ * Starts the server on 127.0.0.1. Port 0 picks a free port.
  * @returns {Promise<{ server: import("http").Server, port: number }>}
  */
-function start({ port = PORT, store = null, openPath = null } = {}) {
+function start({ port = PORT, store = null } = {}) {
   keyStore = store;
-  hooks.openPath = openPath;
   const saved = store?.load() ?? {};
   for (const name of Object.keys(keys)) {
     if (!keys[name] && saved[name]) { keys[name] = saved[name]; keySource[name] = "saved"; }

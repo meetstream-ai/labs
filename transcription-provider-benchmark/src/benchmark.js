@@ -2,7 +2,7 @@
  * Step 2: send one recording to every provider and time each one.
  *
  * All providers are submitted at the same moment against the same bot, so
- * they transcribe byte-identical audio under the same conditions. Each job is
+ * each re-transcribes the same stored recording under the same conditions. Each job is
  * then polled until MeetStream reports it finished. Everything needed to
  * re-score the run offline (raw transcripts, the reference, the exact
  * provider configs) is written into the run directory, and then scored.

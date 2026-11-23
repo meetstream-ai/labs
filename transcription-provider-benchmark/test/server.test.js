@@ -110,7 +110,7 @@ test("settings say where each key came from, never what it is, and a key can be 
   assert.equal(cleared.json.hasKey, false);
   settings = await request("GET", "/api/settings");
   assert.deepEqual(settings.json.keys.MEETSTREAM_API_KEY, { set: false, source: null });
-  assert.equal((await request("POST", "/api/data-folder/open")).status, 400); // not the desktop app
+  assert.equal((await request("POST", "/api/data-folder/open")).status, 404); // no such endpoint
 });
 
 test("each provider's record across saved runs is pooled over scored runs only", async () => {
